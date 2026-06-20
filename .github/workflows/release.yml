@@ -45,7 +45,6 @@ jobs:
           - { name: linux-amd64, runner: ubuntu-24.04, taskns: linux, bin: senda-desktop, os: linux }
           - { name: linux-arm64, runner: ubuntu-24.04-arm, taskns: linux, bin: senda-desktop, os: linux }
           - { name: darwin-arm64, runner: macos-14, taskns: darwin, bin: senda-desktop, os: macos }
-          - { name: darwin-amd64, runner: macos-13, taskns: darwin, bin: senda-desktop, os: macos }
           - { name: windows-amd64, runner: windows-latest, taskns: windows, bin: senda-desktop.exe, os: windows }
     steps:
       - uses: actions/checkout@v4
@@ -191,9 +190,7 @@ jobs:
         run: |
           set -euo pipefail
           arm_file="senda_${VERSION}_darwin-arm64.tar.gz"
-          amd_file="senda_${VERSION}_darwin-amd64.tar.gz"
           arm_sha=$(shasum -a 256 "dist/$arm_file" | awk '{print $1}')
-          amd_sha=$(shasum -a 256 "dist/$amd_file" | awk '{print $1}')
           base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
 
           git clone "https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/${TAP_REPO}.git" tap
@@ -202,14 +199,9 @@ jobs:
           cask "senda" do
             version "${VERSION}"
 
-            on_arm do
-              url "${base}/${arm_file}"
-              sha256 "${arm_sha}"
-            end
-            on_intel do
-              url "${base}/${amd_file}"
-              sha256 "${amd_sha}"
-            end
+            depends_on arch: :arm64
+            url "${base}/${arm_file}"
+            sha256 "${arm_sha}"
 
             name "Senda"
             desc "Fast, git-native API client"

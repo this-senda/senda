@@ -13,7 +13,6 @@ release workflow builds and publishes:
 | ---------------------------------------- | ----------------- |
 | `senda_<version>_linux-amd64.tar.gz`     | Linux x86-64      |
 | `senda_<version>_linux-arm64.tar.gz`     | Linux ARM64       |
-| `senda_<version>_darwin-amd64.tar.gz`    | macOS Intel       |
 | `senda_<version>_darwin-arm64.tar.gz`    | macOS Apple Si.   |
 | `senda_<version>_windows-amd64.zip`      | Windows x86-64    |
 | `checksums.txt`                          | SHA-256 sums      |

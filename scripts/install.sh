@@ -58,6 +58,11 @@ case "$arch" in
   *) die "unsupported architecture: $arch" ;;
 esac
 
+# Intel macs are no longer built — only Apple Silicon ships a darwin archive.
+if [ "$OS" = "darwin" ] && [ "$ARCH" = "amd64" ]; then
+  die "macOS builds are Apple Silicon (arm64) only; Intel Macs are no longer supported"
+fi
+
 # --- resolve version --------------------------------------------------------
 VERSION="${SENDA_VERSION:-}"
 if [ -z "$VERSION" ]; then
