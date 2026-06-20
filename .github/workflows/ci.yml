@@ -3,14 +3,18 @@ name: CI
 on:
   push:
     branches: [main]
-    paths:
-      - "**.go"
-      - "go.mod"
-      - "go.sum"
-      - "frontend/**"
-      - ".github/workflows/ci.yml"
+    paths-ignore:
+      - "**.md"
+      - ".release-please-manifest.json"
+      - "release-please-config.json"
+      - "LICENSE"
   pull_request:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - ".release-please-manifest.json"
+      - "release-please-config.json"
+      - "LICENSE"
 
 jobs:
   backend:
