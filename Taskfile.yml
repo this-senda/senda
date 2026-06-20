@@ -112,7 +112,7 @@ tasks:
       - SENDA_CLI_SHOTS=1 SENDA_CLI_SHOT_DIR="$PWD/docs/screenshots/cli" go test ./cmd/senda -run TestCLIShot -count=1 -v
 
   hooks:install:
-    desc: "Enable git hooks (pre-commit secret scan via gitleaks). Run once per clone."
+    desc: "Enable git hooks (pre-commit: gofmt check + secret scan via gitleaks). Run once per clone."
     cmds:
       - git config core.hooksPath .githooks
       - 'echo "git hooks enabled (core.hooksPath=.githooks). Install gitleaks if missing: mise use -g gitleaks / brew install gitleaks."'

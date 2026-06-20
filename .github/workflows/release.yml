@@ -15,6 +15,11 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+"
       - "v[0-9]+.[0-9]+.[0-9]+-*"
+  # release-please can't fire the tag-push path above: a tag it pushes with the
+  # default GITHUB_TOKEN won't trigger another workflow. Instead it dispatches
+  # this one on the new tag ref, so GITHUB_REF_NAME is still the tag — every step
+  # below works unchanged for both entry points.
+  workflow_dispatch:
 
 permissions:
   contents: write # create the release and upload assets

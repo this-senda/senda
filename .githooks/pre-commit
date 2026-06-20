@@ -1,13 +1,38 @@
 #!/bin/sh
-# Senda pre-commit hook: block secrets/credentials from being committed.
+# Senda pre-commit hook: block secrets/credentials AND unformatted Go from
+# being committed. Both checks scan only the staged set, so they are fast and
+# never flag files you didn't touch.
 #
 # Enable once per clone:   task hooks:install   (sets core.hooksPath=.githooks)
-# Bypass in an emergency:  SKIP_GITLEAKS=1 git commit ...   (or git commit -n)
+# Bypass in an emergency:  git commit -n        (skips all hooks)
+#   or per-check:          SKIP_GITLEAKS=1 / SKIP_GOFMT=1 git commit ...
 #
-# Scans only the staged diff, so it is fast and never flags files you didn't
-# touch. Config + allowlist live in .gitleaks.toml.
+# Config + allowlist for the secret scan live in .gitleaks.toml.
 
 set -eu
+
+# --- gofmt: reject staged *.go files that aren't gofmt-clean -----------------
+if [ "${SKIP_GOFMT:-0}" = "1" ]; then
+  echo "pre-commit: SKIP_GOFMT=1 set — gofmt check skipped" >&2
+else
+  # Only consider files staged for this commit (Added/Copied/Modified/Renamed).
+  staged_go=$(git diff --cached --name-only --diff-filter=ACMR -- '*.go')
+  if [ -n "$staged_go" ]; then
+    # gofmt -l lists files that would change; filter to ones still on disk.
+    unformatted=$(printf '%s\n' "$staged_go" | while IFS= read -r f; do
+      [ -f "$f" ] && gofmt -l "$f"
+    done)
+    if [ -n "$unformatted" ]; then
+      echo "pre-commit: these staged Go files are not gofmt-clean:" >&2
+      printf '  %s\n' "$unformatted" >&2
+      echo "  Fix + restage:  gofmt -w $unformatted && git add $unformatted" >&2
+      echo "  Override (last resort):  SKIP_GOFMT=1 git commit ..." >&2
+      exit 1
+    fi
+  fi
+fi
+
+# --- gitleaks: block secrets in the staged diff ------------------------------
 
 if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
   echo "pre-commit: SKIP_GITLEAKS=1 set — skipping secret scan" >&2
