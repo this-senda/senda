@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://gnomeria.github.io/senda
+    url: https://this-senda.github.io/senda
     about: App docs and guides
   - name: Existing issues
-    url: https://github.com/gnomeria/senda/issues
+    url: https://github.com/this-senda/senda/issues
     about: Check before reporting a bug

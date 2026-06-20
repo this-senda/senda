@@ -7,7 +7,7 @@
     and installs senda.exe (desktop app) and senda-cli.exe.
 
 .EXAMPLE
-    irm https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.ps1 | iex
+    irm https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.ps1 | iex
 
 .PARAMETER Version
     Install a specific version (e.g. 0.1.0). Defaults to the latest release.
@@ -26,7 +26,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$Repo = "gnomeria/senda"
+$Repo = "this-senda/senda"
 
 function Info($m) { Write-Host "» $m" -ForegroundColor DarkGray }
 function Ok($m)   { Write-Host "✓ $m" -ForegroundColor Green }

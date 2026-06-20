@@ -5,7 +5,7 @@ verifying that this package's contents are trustworthy.
 
 This package downloads the official Senda release archive from GitHub:
 
-  https://github.com/gnomeria/senda/releases
+  https://github.com/this-senda/senda/releases
 
 The bundled binaries are produced by the project's GitHub Actions release
 workflow (.github/workflows/release.yml) directly from the tagged source.
@@ -22,4 +22,4 @@ To verify the download:
 
 The software is licensed under the MIT License:
 
-  https://github.com/gnomeria/senda/blob/main/LICENSE
+  https://github.com/this-senda/senda/blob/main/LICENSE

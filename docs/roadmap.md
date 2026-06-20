@@ -8,7 +8,7 @@ permalink: /roadmap/
 
 > Where Senda is headed. This is intent, not a promise — priorities shift as the
 > project and the people using it do. For exactly what changed and when, see the
-> [CHANGELOG](https://github.com/gnomeria/senda/blob/main/CHANGELOG.md).
+> [CHANGELOG](https://github.com/this-senda/senda/blob/main/CHANGELOG.md).
 
 ## Shipped in v0.1
 
@@ -23,7 +23,7 @@ The v0.1 line is feature-complete for everyday API work:
 - **Protocols** — HTTP/HTTPS, WebSocket, and Server-Sent Events.
 - **And more** — security scanning, JSON Schema response validation, import (curl / Postman / OpenAPI), code generation, doc generation, 13 themes, command palette, request history, file watch, cookie jar — plus a headless CLI and a terminal UI.
 
-See the [CHANGELOG](https://github.com/gnomeria/senda/blob/main/CHANGELOG.md) for the full v0.1 detail.
+See the [CHANGELOG](https://github.com/this-senda/senda/blob/main/CHANGELOG.md) for the full v0.1 detail.
 
 ## Next
 
@@ -52,4 +52,4 @@ Things Senda deliberately won't do, to stay small and local-first:
 - A proprietary collection format — it's plain YAML, and stays that way.
 - Electron — the native Wails shell is the whole point.
 
-Have an idea? [Open a feature request](https://github.com/gnomeria/senda/issues/new/choose).
+Have an idea? [Open a feature request](https://github.com/this-senda/senda/issues/new/choose).

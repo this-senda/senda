@@ -117,4 +117,4 @@ Initial public release — feature-complete for everyday API work, from the
 - Goja (Go-native JS engine) for scripting — no Node dependency
 - Plain YAML storage — `git diff` on your requests just works
 
-[0.1.0]: https://github.com/gnomeria/senda/releases/tag/v0.1.0
+[0.1.0]: https://github.com/this-senda/senda/releases/tag/v0.1.0

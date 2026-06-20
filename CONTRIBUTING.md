@@ -14,7 +14,7 @@ By participating, you agree to abide by our
 ## Local setup
 
 ```bash
-git clone https://github.com/gnomeria/senda.git
+git clone https://github.com/this-senda/senda.git
 cd senda
 cd frontend && bun install && cd ..
 ```

@@ -26,25 +26,25 @@ Each archive contains two binaries at its root: `senda` (the desktop app) and
 ### Shell installer (Linux / macOS)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.sh | sh
 ```
 
 ### PowerShell installer (Windows)
 
 ```powershell
-irm https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.ps1 | iex
 ```
 
 ### Homebrew (macOS / Linux)
 
 ```sh
-brew install gnomeria/tap/senda
+brew install this-senda/tap/senda
 ```
 
 ### winget (Windows — primary)
 
 ```powershell
-winget install gnomeria.Senda
+winget install this-senda.Senda
 ```
 
 ### Chocolatey (Windows — alternative)
@@ -58,7 +58,7 @@ choco install senda
 1. Tag a commit **on `main`** and push: `git tag v0.1.0 && git push origin v0.1.0`.
    The release workflow builds every platform, publishes the assets above, and —
    for stable (non-prerelease) tags — **auto-generates the Homebrew cask** and
-   pushes it to `gnomeria/homebrew-tap` (`Casks/senda.rb`). Homebrew needs no
+   pushes it to `this-senda/homebrew-tap` (`Casks/senda.rb`). Homebrew needs no
    manual step.
 2. Bump the Chocolatey + winget manifests from the published checksums:
 
@@ -68,12 +68,12 @@ choco install senda
 
    This rewrites the version + SHA-256 values in:
    - `chocolatey/senda.nuspec` + `chocolatey/tools/chocolateyinstall.ps1`
-   - `winget/gnomeria.Senda*.yaml`
+   - `winget/this-senda.Senda*.yaml`
 3. Publish the two manifests:
    - **winget** — submit `winget/` to
      [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs), e.g.
      `wingetcreate submit packaging/winget` or open a PR placing the three YAML
-     files under `manifests/g/gnomeria/Senda/0.1.0/`.
+     files under `manifests/t/this-senda/Senda/0.1.0/`.
    - **Chocolatey** — `cd chocolatey && choco pack && choco push senda.0.1.0.nupkg`.
 
 The `scripts/install.sh` and `scripts/install.ps1` installers need no per-release

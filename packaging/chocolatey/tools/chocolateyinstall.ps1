@@ -6,7 +6,7 @@ $checksum = 'REPLACE_WITH_WINDOWS_AMD64_SHA256'
 
 $packageName = 'senda'
 $toolsDir    = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url64       = "https://github.com/gnomeria/senda/releases/download/v$version/senda_${version}_windows-amd64.zip"
+$url64       = "https://github.com/this-senda/senda/releases/download/v$version/senda_${version}_windows-amd64.zip"
 
 $packageArgs = @{
   packageName    = $packageName

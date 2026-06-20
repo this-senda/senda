@@ -7,10 +7,10 @@
 </p>
 
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/gnomeria/senda/releases)
-[![Stack](https://img.shields.io/badge/stack-Go%20%2B%20SolidJS-orange)](https://github.com/gnomeria/senda)
-[![Binary size](https://img.shields.io/badge/binary-~24%20MB-green)](https://github.com/gnomeria/senda/releases)
-[![CI](https://github.com/gnomeria/senda/actions/workflows/ci.yml/badge.svg)](https://github.com/gnomeria/senda/actions/workflows/ci.yml)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/this-senda/senda/releases)
+[![Stack](https://img.shields.io/badge/stack-Go%20%2B%20SolidJS-orange)](https://github.com/this-senda/senda)
+[![Binary size](https://img.shields.io/badge/binary-~24%20MB-green)](https://github.com/this-senda/senda/releases)
+[![CI](https://github.com/this-senda/senda/actions/workflows/ci.yml/badge.svg)](https://github.com/this-senda/senda/actions/workflows/ci.yml)
 
 ---
 
@@ -261,14 +261,14 @@ postScript: |
 ## Install
 
 Prebuilt binaries for Linux, macOS, and Windows are attached to every
-[release](https://github.com/gnomeria/senda/releases). Each archive bundles the
+[release](https://github.com/this-senda/senda/releases). Each archive bundles the
 desktop app (`senda-desktop`) and the headless CLI runner (`senda-cli`). Pick
 whichever install path you prefer.
 
 ### Shell installer (Linux / macOS)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.sh | sh
 ```
 
 Installs into `~/.local/bin` (or `/usr/local/bin` when writable). Override with
@@ -283,25 +283,43 @@ before installing.
 ### PowerShell installer (Windows)
 
 ```powershell
-irm https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.ps1 | iex
+irm https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.ps1 | iex
 ```
 
 ### Homebrew (macOS / Linux)
 
 ```sh
-brew install gnomeria/tap/senda
+brew install this-senda/tap/senda
 ```
 
 ### winget (Windows)
 
 ```powershell
-winget install gnomeria.Senda
+winget install this-senda.Senda
 ```
 
 Prefer Chocolatey? `choco install senda` works too.
 
 > Maintainer notes for cutting releases and publishing the Homebrew/Chocolatey
 > manifests live in [`packaging/README.md`](packaging/README.md).
+
+### Unsigned builds
+
+Senda's binaries aren't code-signed yet, so the OS shows a one-time warning on
+first launch. The download is intact (verify the checksum if you like) — this is
+just the missing signature, not a problem with the app.
+
+- **macOS** — the [`.dmg`](https://github.com/this-senda/senda/releases) is the
+  recommended GUI download (drag `Senda.app` to Applications). On first launch
+  Gatekeeper says *"developer cannot be verified"* — right-click the app and
+  choose **Open**, or clear the quarantine flag:
+  ```sh
+  xattr -dr com.apple.quarantine /Applications/Senda.app
+  ```
+  The shell installer and Homebrew instead drop the CLI-style `senda-desktop` /
+  `senda-cli` binaries (and the installer clears their quarantine flag for you).
+- **Windows** — SmartScreen may show *"Windows protected your PC"*. Click
+  **More info → Run anyway**.
 
 ---
 
@@ -338,7 +356,7 @@ On **macOS** and **Windows**, WebKit / WebView2 is bundled — no extra step nee
 
 ```bash
 # Clone and enter
-git clone https://github.com/gnomeria/senda.git
+git clone https://github.com/this-senda/senda.git
 cd senda
 
 # Install frontend dependencies
@@ -595,7 +613,7 @@ written with heavy AI assistance (Claude), with me steering the direction and
 deciding what shipped. It's young, lightly used, and maintained by one person,
 so treat it as experimental. The source is plain Go and YAML, so when in doubt,
 read the diff. Catch something off?
-[Open an issue](https://github.com/gnomeria/senda/issues).
+[Open an issue](https://github.com/this-senda/senda/issues).
 
 ---
 

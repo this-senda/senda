@@ -9,17 +9,17 @@
 # exists). It rewrites:
 #   - packaging/chocolatey/senda.nuspec
 #   - packaging/chocolatey/tools/chocolateyinstall.ps1
-#   - packaging/winget/gnomeria.Senda*.yaml
+#   - packaging/winget/this-senda.Senda*.yaml
 #
 # Homebrew is NOT handled here — the release workflow auto-generates and pushes
-# the cask to gnomeria/homebrew-tap on every stable release.
+# the cask to this-senda/homebrew-tap on every stable release.
 set -euo pipefail
 
 VERSION="${1:-}"
 [ -n "$VERSION" ] || { echo "usage: $0 <version>  (e.g. 0.1.0)" >&2; exit 1; }
 VERSION="${VERSION#v}"
 
-REPO="gnomeria/senda"
+REPO="this-senda/senda"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 SUMS_URL="https://github.com/${REPO}/releases/download/v${VERSION}/checksums.txt"
 
@@ -46,13 +46,13 @@ echo "✓ updated ${CHOCO_INSTALL}"
 # --- winget -----------------------------------------------------------------
 # The placeholder version (0.0.0) appears in PackageVersion and the installer
 # URL; replace every occurrence. (ManifestVersion 1.6.0 is untouched.)
-for wf in "${HERE}"/winget/gnomeria.Senda*.yaml; do
+for wf in "${HERE}"/winget/this-senda.Senda*.yaml; do
   sed -i.bak "s/0\.0\.0/${VERSION}/g" "$wf"
   rm -f "${wf}.bak"
 done
 sed -i.bak "s/REPLACE_WITH_WINDOWS_AMD64_SHA256/${WINDOWS_AMD64}/" \
-  "${HERE}/winget/gnomeria.Senda.installer.yaml"
-rm -f "${HERE}/winget/gnomeria.Senda.installer.yaml.bak"
+  "${HERE}/winget/this-senda.Senda.installer.yaml"
+rm -f "${HERE}/winget/this-senda.Senda.installer.yaml.bak"
 echo "✓ updated ${HERE}/winget/*.yaml"
 
 echo
@@ -60,4 +60,4 @@ echo "Done. Review the diff, then:"
 echo "  • (cd packaging/chocolatey && choco pack && choco push senda.${VERSION}.nupkg)"
 echo "  • submit packaging/winget/ to microsoft/winget-pkgs"
 echo "    (e.g. 'wingetcreate submit packaging/winget' or open a PR under"
-echo "     manifests/g/gnomeria/Senda/${VERSION}/)"
+echo "     manifests/t/this-senda/Senda/${VERSION}/)"

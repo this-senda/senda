@@ -77,10 +77,12 @@ jobs:
       - name: Install wails3 CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.104
 
+      # `package` is a uniform alias on every OS namespace: linux/windows just
+      # build the desktop binary, darwin additionally bundles Senda.app + Senda.dmg.
       - name: Build
         shell: bash
         run: |
-          VERSION="${GITHUB_REF_NAME#v}" task ${{ matrix.taskns }}:build
+          VERSION="${GITHUB_REF_NAME#v}" task ${{ matrix.taskns }}:package
 
       # senda-cli is pure Go (no webview/CGO), so the native runner produces the
       # correct arch directly. Same version stamp as the desktop binary.
@@ -113,12 +115,24 @@ jobs:
           $hash = (Get-FileHash $art -Algorithm SHA256).Hash.ToLower()
           "$hash  $art" | Out-File "$art.sha256" -Encoding ascii -NoNewline
 
+      # GUI download asset for macOS (mounts as a Dock-installable .app). The
+      # tar.gz above still ships for install.sh / Homebrew (raw CLI-style binaries).
+      - name: Archive (dmg)
+        if: matrix.os == 'macos'
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ART="senda_${VERSION}_${{ matrix.name }}.dmg"
+          mv bin/Senda.dmg "$ART"
+          shasum -a 256 "$ART" > "$ART.sha256"
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
           path: |
             senda_*.tar.gz
             senda_*.zip
+            senda_*.dmg
             senda_*.sha256
 
   release:
@@ -154,6 +168,7 @@ jobs:
           files: |
             dist/senda_*.tar.gz
             dist/senda_*.zip
+            dist/senda_*.dmg
             dist/checksums.txt
 
   homebrew:
@@ -163,7 +178,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.release.outputs.version }}
-      TAP_REPO: gnomeria/homebrew-tap
+      TAP_REPO: this-senda/homebrew-tap
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -183,23 +198,16 @@ jobs:
 
           git clone "https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/${TAP_REPO}.git" tap
           mkdir -p tap/Casks
-          # NOTE: the `using: :homebrew_curl` + Authorization header lets the cask
-          # download assets from a PRIVATE release (needs HOMEBREW_GITHUB_API_TOKEN
-          # set when installing). When the repo goes public, delete those two lines.
           cat > tap/Casks/senda.rb <<EOF
           cask "senda" do
             version "${VERSION}"
 
             on_arm do
-              url "${base}/${arm_file}",
-                  using: :homebrew_curl,
-                  header: ["Authorization: Bearer #{ENV["HOMEBREW_GITHUB_API_TOKEN"]}"]
+              url "${base}/${arm_file}"
               sha256 "${arm_sha}"
             end
             on_intel do
-              url "${base}/${amd_file}",
-                  using: :homebrew_curl,
-                  header: ["Authorization: Bearer #{ENV["HOMEBREW_GITHUB_API_TOKEN"]}"]
+              url "${base}/${amd_file}"
               sha256 "${amd_sha}"
             end
 

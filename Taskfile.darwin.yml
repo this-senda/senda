@@ -12,6 +12,15 @@ vars:
   LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -extldflags=-Wl,-w
   # -s drops the symbol table, -w drops DWARF debug info (Go linker flags).
   STRIP: -s -w
+  # .app bundle metadata. The bundle wraps the raw senda-desktop binary so macOS
+  # gives it a proper Dock name/icon and activation policy (a bare Mach-O does not).
+  PRODUCT: Senda
+  BUNDLE_ID: io.github.this-senda.senda
+  ICON_SRC: frontend/public/appicon.png
+  # CFBundleShortVersionString must be numeric x.y.z; drop any -rc/-beta suffix
+  # (a 1.2.3-rc.1 tag bundles as 1.2.3). CFBundleVersion can keep the full string.
+  SHORT_VERSION:
+    sh: printf '%s' "{{.VERSION}}" | sed -E 's/^dev$/0.0.0/; s/-.*$//'
 
 tasks:
   build:
@@ -42,6 +51,69 @@ tasks:
       - go build -ldflags="-extldflags=-Wl,-w" -o {{.BIN_DIR}}/{{.APP_NAME}} .
       - "{{.BIN_DIR}}/{{.APP_NAME}}"
 
-  package:
-    desc: Build then bundle (alias for build for now)
+  bundle:
+    desc: Assemble bin/Senda.app around the built binary (Info.plist + .icns). macOS only.
     deps: [build]
+    vars:
+      APP: '{{.BIN_DIR}}/{{.PRODUCT}}.app'
+    cmds:
+      # Clean any stale bundle, then lay out the standard .app skeleton.
+      - rm -rf "{{.APP}}"
+      - mkdir -p "{{.APP}}/Contents/MacOS" "{{.APP}}/Contents/Resources"
+      - cp "{{.BIN_DIR}}/{{.APP_NAME}}" "{{.APP}}/Contents/MacOS/{{.APP_NAME}}"
+      - chmod +x "{{.APP}}/Contents/MacOS/{{.APP_NAME}}"
+      # Build icon.icns from the 256px appicon. sips upsamples the larger slots;
+      # fine for an unsigned build. Skips gracefully if the toolchain is absent.
+      - |
+        set -e
+        if command -v iconutil >/dev/null 2>&1 && command -v sips >/dev/null 2>&1; then
+          set="$(mktemp -d)/icon.iconset"; mkdir -p "$set"
+          for s in 16 32 128 256 512; do
+            sips -z $s     $s     "{{.ICON_SRC}}" --out "$set/icon_${s}x${s}.png"      >/dev/null
+            sips -z $((s*2)) $((s*2)) "{{.ICON_SRC}}" --out "$set/icon_${s}x${s}@2x.png" >/dev/null
+          done
+          iconutil -c icns "$set" -o "{{.APP}}/Contents/Resources/icon.icns"
+        else
+          echo "warn: iconutil/sips unavailable — bundling without icon" >&2
+        fi
+      - |
+        cat > "{{.APP}}/Contents/Info.plist" <<PLIST
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>CFBundleName</key>            <string>{{.PRODUCT}}</string>
+          <key>CFBundleDisplayName</key>     <string>{{.PRODUCT}}</string>
+          <key>CFBundleExecutable</key>      <string>{{.APP_NAME}}</string>
+          <key>CFBundleIdentifier</key>      <string>{{.BUNDLE_ID}}</string>
+          <key>CFBundleIconFile</key>        <string>icon</string>
+          <key>CFBundlePackageType</key>     <string>APPL</string>
+          <key>CFBundleShortVersionString</key> <string>{{.SHORT_VERSION}}</string>
+          <key>CFBundleVersion</key>         <string>{{.VERSION}}</string>
+          <key>LSMinimumSystemVersion</key>  <string>10.15</string>
+          <key>NSHighResolutionCapable</key> <true/>
+          <key>LSApplicationCategoryType</key> <string>public.app-category.developer-tools</string>
+        </dict>
+        </plist>
+        PLIST
+
+  dmg:
+    desc: Build Senda.app and pack it into bin/Senda.dmg with an /Applications symlink. macOS only.
+    deps: [bundle]
+    vars:
+      APP: '{{.BIN_DIR}}/{{.PRODUCT}}.app'
+      DMG: '{{.BIN_DIR}}/{{.PRODUCT}}.dmg'
+    cmds:
+      - |
+        set -e
+        stage="$(mktemp -d)"
+        cp -R "{{.APP}}" "$stage/"
+        ln -s /Applications "$stage/Applications"
+        rm -f "{{.DMG}}"
+        hdiutil create -volname "{{.PRODUCT}}" -srcfolder "$stage" \
+          -ov -format UDZO "{{.DMG}}" >/dev/null
+        echo "built {{.DMG}}"
+
+  package:
+    desc: Build the .app bundle and .dmg (macOS distribution artifacts)
+    deps: [dmg]

@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Check the [roadmap](https://github.com/gnomeria/senda/blob/main/docs/roadmap.md) and
-        [existing issues](https://github.com/gnomeria/senda/issues) first — your idea may
+        Check the [roadmap](https://github.com/this-senda/senda/blob/main/docs/roadmap.md) and
+        [existing issues](https://github.com/this-senda/senda/issues) first — your idea may
         already be shipped or planned.
 
   - type: textarea

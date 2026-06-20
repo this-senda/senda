@@ -2,7 +2,7 @@
 # Senda installer for Linux and macOS.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/gnomeria/senda/main/scripts/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/this-senda/senda/main/scripts/install.sh | sh
 #
 # Environment overrides:
 #   SENDA_VERSION       Install a specific version (e.g. 0.1.0). Default: latest release.
@@ -14,7 +14,7 @@
 
 set -eu
 
-REPO="gnomeria/senda"
+REPO="this-senda/senda"
 BIN_NAME="senda-desktop"
 CLI_NAME="senda-cli"
 
@@ -123,6 +123,14 @@ ok "installed ${INSTALL_DIR}/${BIN_NAME}"
 if [ "${SENDA_NO_CLI:-0}" != "1" ] && [ -f "${TMP}/${CLI_NAME}" ]; then
   install -m 0755 "${TMP}/${CLI_NAME}" "${INSTALL_DIR}/${CLI_NAME}"
   ok "installed ${INSTALL_DIR}/${CLI_NAME}"
+fi
+
+# Strip the quarantine flag on macOS so Gatekeeper does not block the unsigned
+# binary on first launch. A curl|sh download isn't quarantined, but this is
+# defensive and harmless if the attribute is absent.
+if [ "$OS" = "darwin" ]; then
+  xattr -dr com.apple.quarantine "${INSTALL_DIR}/${BIN_NAME}" 2>/dev/null || true
+  [ -f "${INSTALL_DIR}/${CLI_NAME}" ] && xattr -dr com.apple.quarantine "${INSTALL_DIR}/${CLI_NAME}" 2>/dev/null || true
 fi
 
 # --- post-install notes -----------------------------------------------------
