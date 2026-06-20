@@ -22,11 +22,20 @@ jobs:
       # alpha2.104, so `go vet`/`go test` need those dev libs to compile
       # the desktop package (matches .github/workflows/release.yml).
       - name: Install GTK4 + WebKitGTK 6.0 (required by Wails imports)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: libgtk-4-dev libwebkitgtk-6.0-dev
+          version: 1.0
+
+      - name: Cache wails3 CLI
+        id: cache-wails3
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin/wails3
+          key: wails3-${{ runner.os }}-${{ runner.arch }}-v3.0.0-alpha2.104
 
       - name: Install wails3 CLI
+        if: steps.cache-wails3.outputs.cache-hit != 'true'
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.104
 
       - name: Generate TypeScript bindings
@@ -66,6 +75,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Cache bun deps
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Download generated bindings
         uses: actions/download-artifact@v4

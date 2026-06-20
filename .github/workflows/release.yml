@@ -58,6 +58,14 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache bun deps
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: |
+            bun-${{ runner.os }}-${{ runner.arch }}-
+
       - uses: arduino/setup-task@v2
         with:
           version: 3.x
@@ -69,11 +77,20 @@ jobs:
       # with libwebkit2gtk-4.1-dev (see Taskfile.yml header).
       - name: Install Linux webview deps
         if: matrix.os == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-4-dev libwebkitgtk-6.0-dev
+        uses: awalsh128/cache-apt-pkgs-action@v1
+        with:
+          packages: libgtk-4-dev libwebkitgtk-6.0-dev
+          version: 1.0
+
+      - name: Cache wails3 CLI
+        id: cache-wails3
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin/wails3${{ matrix.os == 'windows' && '.exe' || '' }}
+          key: wails3-${{ runner.os }}-${{ runner.arch }}-v3.0.0-alpha2.104
 
       - name: Install wails3 CLI
+        if: steps.cache-wails3.outputs.cache-hit != 'true'
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.104
 
       # `package` is a uniform alias on every OS namespace: linux/windows just
