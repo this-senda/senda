@@ -7,6 +7,13 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.2](https://github.com/this-senda/senda/compare/v0.1.1...v0.1.2) (2026-06-20)
+
+
+### Features
+
+* **cli:** add --json to senda -v for CI parsing ([#11](https://github.com/this-senda/senda/issues/11)) ([fdd149a](https://github.com/this-senda/senda/commit/fdd149aca55b8ec421692aecc4f09b503f32f1a5))
+
 ## [Unreleased]
 
 ### Added
