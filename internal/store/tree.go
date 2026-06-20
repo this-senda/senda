@@ -43,8 +43,10 @@ func walkRequests(dir string, out *[]string) error {
 		}
 		full := filepath.Join(dir, e.Name())
 		if e.IsDir() {
+			// Skip subdirs we can't read (e.g. restricted /proc entries when
+			// the collection root is "/") rather than aborting the whole walk.
 			if err := walkRequests(full, out); err != nil {
-				return err
+				continue
 			}
 		} else if isYAMLFile(e.Name()) {
 			*out = append(*out, full)
