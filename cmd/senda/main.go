@@ -53,7 +53,15 @@ func main() {
 	case "-h", "--help", "help":
 		usage(os.Stdout)
 	case "-v", "--version", "version":
-		fmt.Println("senda", buildinfo.Version)
+		bi := buildinfo.Get()
+		line := "senda " + bi.Version
+		if bi.Commit != "" {
+			line += " (" + bi.Commit + ")"
+		}
+		if bi.Date != "" {
+			line += " " + bi.Date
+		}
+		fmt.Println(line)
 	default:
 		// A leading flag (e.g. `senda -collection ./api`) is shorthand for the
 		// default TUI with its flags.

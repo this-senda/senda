@@ -107,10 +107,12 @@ jobs:
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          COMMIT="$(git rev-parse --short HEAD)"
+          DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           ext=""
           [ "${{ matrix.os }}" = "windows" ] && ext=".exe"
           CGO_ENABLED=0 go build -trimpath \
-            -ldflags="-s -w -X senda/internal/buildinfo.Version=${VERSION}" \
+            -ldflags="-s -w -X senda/internal/buildinfo.Version=${VERSION} -X senda/internal/buildinfo.Commit=${COMMIT} -X senda/internal/buildinfo.Date=${DATE}" \
             -o "bin/senda${ext}" ./cmd/senda
 
       - name: Archive (tar.gz)
@@ -119,7 +121,15 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           ART="senda_${VERSION}_${{ matrix.name }}.tar.gz"
-          tar -C bin -czf "$ART" senda-desktop senda
+          # Ship the app icon in the Linux archive so install.sh can register a
+          # .desktop entry without a separate network fetch. macOS uses the
+          # bundled .icns in Senda.app, so it doesn't need this.
+          extra=""
+          if [ "${{ matrix.os }}" = "linux" ]; then
+            cp docs/logo/senda-mark-256.png bin/senda.png
+            extra="senda.png"
+          fi
+          tar -C bin -czf "$ART" senda-desktop senda $extra
           shasum -a 256 "$ART" > "$ART.sha256"
 
       - name: Archive (zip)
@@ -204,7 +214,7 @@ jobs:
 
       - name: Render and push cask
         env:
-          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_REPO_PAT_TOKEN }}
         run: |
           set -euo pipefail
           arm_file="senda_${VERSION}_darwin-arm64.tar.gz"

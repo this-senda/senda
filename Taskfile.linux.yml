@@ -8,7 +8,11 @@ version: "3"
 vars:
   PROD_TAGS: production
   VERSION: '{{.VERSION | default "dev"}}'
-  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}}
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo ""
+  DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
+  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -X senda/internal/buildinfo.Commit={{.COMMIT}} -X senda/internal/buildinfo.Date={{.DATE}}
   # -s drops the symbol table, -w drops DWARF debug info: ~32 MB -> ~24 MB.
   STRIP: -s -w
 

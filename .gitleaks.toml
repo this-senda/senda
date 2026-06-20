@@ -1,0 +1,32 @@
+# Gitleaks config for Senda. Extends the built-in rule set; the pre-commit hook
+# (.githooks/pre-commit) runs `gitleaks git --staged` against this file.
+#
+# Run a full working-tree scan locally with:  task secrets:scan
+title = "senda gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated, vendored, and fixture paths that legitimately contain secret-shaped strings"
+# Regexes match the file path. Anything here is excluded from scanning.
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)frontend/bindings/''',   # generated Wails TS bindings
+  '''(^|/)frontend/dist/''',       # build output
+  '''(^|/)bin/''',                 # compiled binaries
+  '''(^|/)tmp/''',                 # scratch / snapshots
+  '''(^|/)dist/''',
+  '''.*_test\.go$''',              # Go test fixtures use throwaway tokens
+  '''(^|/)testdata/''',
+  '''(^|/)examples-collection/''', # sample collections ship dummy creds
+  '''(^|/)internal/mockserver/presets/''', # mock OIDC/JWT material
+  '''(^|/)go\.sum$''',             # module hashes look like secrets to some rules
+]
+
+# Throwaway example values that show up in docs/sample requests. Keep this list
+# tight — only add values that are demonstrably fake.
+regexes = [
+  '''AKIAIOSFODNN7EXAMPLE''',                       # canonical AWS docs key
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',   # canonical AWS docs secret
+]

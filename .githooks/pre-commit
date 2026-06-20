@@ -1,0 +1,39 @@
+#!/bin/sh
+# Senda pre-commit hook: block secrets/credentials from being committed.
+#
+# Enable once per clone:   task hooks:install   (sets core.hooksPath=.githooks)
+# Bypass in an emergency:  SKIP_GITLEAKS=1 git commit ...   (or git commit -n)
+#
+# Scans only the staged diff, so it is fast and never flags files you didn't
+# touch. Config + allowlist live in .gitleaks.toml.
+
+set -eu
+
+if [ "${SKIP_GITLEAKS:-0}" = "1" ]; then
+  echo "pre-commit: SKIP_GITLEAKS=1 set — skipping secret scan" >&2
+  exit 0
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks not found — secret scan skipped." >&2
+  echo "  Install it so commits are protected:" >&2
+  echo "    mise use -g gitleaks      # or:" >&2
+  echo "    brew install gitleaks     # macOS / Linuxbrew" >&2
+  echo "    go install github.com/gitleaks/gitleaks/v8@latest" >&2
+  echo "  Then re-run: task hooks:install" >&2
+  # Don't hard-fail: a missing tool shouldn't block all work. CI is the backstop.
+  exit 0
+fi
+
+# --staged scans the index (what's about to be committed). Redacts secret values
+# in output so they don't end up in your terminal scrollback / logs.
+if ! gitleaks git --staged --redact --no-banner; then
+  echo "" >&2
+  echo "pre-commit: gitleaks found a potential secret in your staged changes." >&2
+  echo "  • Remove the secret, or move it to an env var / untracked file." >&2
+  echo "  • False positive? Allowlist it in .gitleaks.toml." >&2
+  echo "  • Override (last resort): SKIP_GITLEAKS=1 git commit ..." >&2
+  exit 1
+fi
+
+exit 0

@@ -3196,3 +3196,31 @@ body.dragging-splitter {
 .status-bar-load:hover {
   background: rgba(255, 193, 7, 0.22);
 }
+
+/* pushes build/version info to the right edge */
+.status-bar-spacer {
+  flex: 1 1 auto;
+}
+
+.status-bar-update {
+  background: rgba(56, 139, 253, 0.15);
+  color: var(--accent, #388bfd);
+}
+.status-bar-update:hover {
+  background: rgba(56, 139, 253, 0.25);
+}
+
+/* version/commit label, muted; clickable to open releases */
+.status-bar-build {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted, #8b949e);
+  white-space: nowrap;
+}
+.status-bar-build:hover {
+  color: var(--text, #c9d1d9);
+}

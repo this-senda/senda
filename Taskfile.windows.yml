@@ -8,8 +8,12 @@ version: "3"
 vars:
   PROD_TAGS: production
   VERSION: '{{.VERSION | default "dev"}}'
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo ""
+  DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
   # -H windowsgui hides the console window for the GUI app.
-  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -H windowsgui
+  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -X senda/internal/buildinfo.Commit={{.COMMIT}} -X senda/internal/buildinfo.Date={{.DATE}} -H windowsgui
   # -s drops the symbol table, -w drops DWARF debug info.
   STRIP: -s -w
 

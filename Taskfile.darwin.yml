@@ -7,9 +7,13 @@ version: "3"
 vars:
   PROD_TAGS: production
   VERSION: '{{.VERSION | default "dev"}}'
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo ""
+  DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
   # -extldflags=-Wl,-w silences ld64's cosmetic "built for newer macOS version"
   # warnings on the Go runtime objects (toolchain SDK > link floor).
-  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -extldflags=-Wl,-w
+  LDFLAGS: -X senda/internal/buildinfo.Version={{.VERSION}} -X senda/internal/buildinfo.Commit={{.COMMIT}} -X senda/internal/buildinfo.Date={{.DATE}} -extldflags=-Wl,-w
   # -s drops the symbol table, -w drops DWARF debug info (Go linker flags).
   STRIP: -s -w
   # .app bundle metadata. The bundle wraps the raw senda-desktop binary so macOS

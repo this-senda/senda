@@ -133,6 +133,46 @@ if [ "${SENDA_NO_DESKTOP:-0}" != "1" ] && [ -f "${TMP}/${DESKTOP_NAME}" ]; then
   DESKTOP_INSTALLED=1
 fi
 
+# --- register desktop entry (Linux) -----------------------------------------
+# Create a freedesktop .desktop launcher + icon so senda-desktop shows up in
+# GNOME/KDE/etc app menus. User-level under $XDG_DATA_HOME (no root needed).
+if [ "$OS" = "linux" ] && [ "$DESKTOP_INSTALLED" = "1" ] && [ "${SENDA_NO_DESKTOP:-0}" != "1" ]; then
+  DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+  ICON_DIR="${DATA_HOME}/icons/hicolor/256x256/apps"
+  APPS_DIR="${DATA_HOME}/applications"
+  mkdir -p "$ICON_DIR" "$APPS_DIR"
+
+  # Icon ships at the archive root (senda.png) on Linux. Older archives didn't
+  # bundle it, so fall back to fetching it from raw.
+  ICON="senda"
+  if [ -f "${TMP}/senda.png" ]; then
+    install -m 0644 "${TMP}/senda.png" "${ICON_DIR}/senda.png"
+  else
+    ICON_URL="https://raw.githubusercontent.com/${REPO}/main/docs/logo/senda-mark-256.png"
+    DLO "$ICON_URL" "${ICON_DIR}/senda.png" 2>/dev/null \
+      || warn "could not fetch icon — desktop entry may show no icon"
+  fi
+
+  cat > "${APPS_DIR}/senda-desktop.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=Senda
+GenericName=API Client
+Comment=Fast, git-native API client
+Exec=${INSTALL_DIR}/${DESKTOP_NAME} %F
+Icon=${ICON}
+Terminal=false
+Categories=Development;
+Keywords=API;HTTP;REST;client;rest;
+StartupWMClass=senda-desktop
+EOF
+  chmod 0644 "${APPS_DIR}/senda-desktop.desktop"
+  ok "registered desktop entry (${APPS_DIR}/senda-desktop.desktop)"
+
+  command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database "$APPS_DIR" 2>/dev/null || true
+  command -v gtk-update-icon-cache  >/dev/null 2>&1 && gtk-update-icon-cache -f -t "${DATA_HOME}/icons/hicolor" 2>/dev/null || true
+fi
+
 # Strip the quarantine flag on macOS so Gatekeeper does not block the unsigned
 # binary on first launch. A curl|sh download isn't quarantined, but this is
 # defensive and harmless if the attribute is absent.

@@ -69,6 +69,8 @@ export interface LoadTick {
 
 export const api = {
   ping: () => App.Ping(),
+  buildInfo: () => App.BuildInfo(),
+  checkUpdate: () => App.CheckUpdate(),
   pickDirectory: (title: string) => App.PickDirectory(title),
   pickZipCollection: (title: string) => App.PickZipCollection(title),
   pickFile: (title: string) => App.PickFile(title),

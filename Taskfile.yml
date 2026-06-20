@@ -14,6 +14,10 @@ vars:
   # Release version, injected into the binary via -ldflags. Overridable from the
   # environment (CI sets it from the git tag): `VERSION=1.2.3 wails3 build`.
   VERSION: '{{.VERSION | default "dev"}}'
+  COMMIT:
+    sh: git rev-parse --short HEAD 2>/dev/null || echo ""
+  DATE:
+    sh: date -u +%Y-%m-%dT%H:%M:%SZ
   # DEBUG=1 keeps symbols/DWARF in the pure-Go binaries (tui/cli); empty strips.
   DEBUG: '{{.DEBUG | default ""}}'
 
@@ -79,7 +83,7 @@ tasks:
     desc: Build the unified senda binary (TUI + headless run/mock/docs + gui launcher) into bin/, stripped. Pure Go — no frontend/webview. DEBUG=1 keeps symbols.
     cmds:
       - mkdir -p {{.BIN_DIR}}
-      - go build -ldflags="{{if ne .DEBUG "1"}}-s -w {{end}}-X senda/internal/buildinfo.Version={{.VERSION}}" -o {{.BIN_DIR}}/senda ./cmd/senda
+      - go build -ldflags="{{if ne .DEBUG "1"}}-s -w {{end}}-X senda/internal/buildinfo.Version={{.VERSION}} -X senda/internal/buildinfo.Commit={{.COMMIT}} -X senda/internal/buildinfo.Date={{.DATE}}" -o {{.BIN_DIR}}/senda ./cmd/senda
 
   tui:
     desc: Build and run the terminal UI against a collection (CLI_ARGS passed through)
@@ -106,6 +110,17 @@ tasks:
     cmds:
       - mkdir -p docs/screenshots/cli
       - SENDA_CLI_SHOTS=1 SENDA_CLI_SHOT_DIR="$PWD/docs/screenshots/cli" go test ./cmd/senda -run TestCLIShot -count=1 -v
+
+  hooks:install:
+    desc: "Enable git hooks (pre-commit secret scan via gitleaks). Run once per clone."
+    cmds:
+      - git config core.hooksPath .githooks
+      - 'echo "git hooks enabled (core.hooksPath=.githooks). Install gitleaks if missing: mise use -g gitleaks / brew install gitleaks."'
+
+  secrets:scan:
+    desc: "Scan the whole git history for committed secrets (gitleaks, uses .gitleaks.toml)."
+    cmds:
+      - gitleaks git --redact --no-banner
 
   clean:
     desc: Remove build artifacts
