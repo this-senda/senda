@@ -313,13 +313,26 @@ just the missing signature, not a problem with the app.
 
 - **macOS** — the [`.dmg`](https://github.com/this-senda/senda/releases) is the
   recommended GUI download (drag `Senda.app` to Applications). On first launch
-  Gatekeeper says *"developer cannot be verified"* — right-click the app and
-  choose **Open**, or clear the quarantine flag:
+  Gatekeeper blocks the unsigned app — on Apple Silicon it usually shows
+  *"Senda is damaged and can't be opened"* (older Macs may instead say
+  *"developer cannot be verified"*). **The "damaged" dialog can't be cleared by
+  right-clicking → Open** — you must remove the quarantine flag once:
   ```sh
   xattr -dr com.apple.quarantine /Applications/Senda.app
   ```
-  The shell installer and Homebrew instead drop the CLI-style `senda` /
-  `senda-desktop` binaries (and the installer clears their quarantine flag for you).
+  (The "developer cannot be verified" variant also clears with right-click →
+  **Open**.) The download is fine — this is only the missing Apple signature.
+  The shell installer instead drops the CLI-style `senda` / `senda-desktop`
+  binaries and clears their quarantine flag for you. Homebrew also installs those
+  binaries but re-applies quarantine by default — install with
+  `brew install --no-quarantine this-senda/tap/senda` to skip it.
+
+  Downloading a `.tar.gz` straight from the releases page (instead of via the
+  installer) quarantines **both** binaries, and the same block hits the terminal
+  `senda` CLI/TUI — not just the GUI. Clear them after extracting:
+  ```sh
+  xattr -dr com.apple.quarantine ./senda ./senda-desktop
+  ```
 - **Windows** — SmartScreen may show *"Windows protected your PC"*. Click
   **More info → Run anyway**.
 
