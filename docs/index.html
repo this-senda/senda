@@ -667,7 +667,7 @@
             <code id="cmd-brew">brew install this-senda/tap/senda</code>
             <button class="copy" data-copy="cmd-brew" aria-label="Copy command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
-          <p class="note">Works on macOS and Linux via the Homebrew tap.</p>
+          <p class="note">Works on macOS and Linux via the Homebrew tap. On macOS, Homebrew re-applies quarantine to the unsigned binaries — add <code style="font-family:var(--mono)">--no-quarantine</code> to skip it (see the note below).</p>
         </div>
 
         <div class="panel" data-panel="winget">
@@ -679,6 +679,17 @@
           <p class="note">Prefer Chocolatey? <code style="font-family:var(--mono)">choco install senda</code> works too.</p>
         </div>
       </div>
+
+      <p class="note reveal" style="max-width:760px;margin:1.5rem auto 0;">
+        <strong>Unsigned builds:</strong> Senda isn't Apple/Microsoft code-signed yet, so the OS shows a one-time warning on first launch — the download is intact, it's only the missing signature.
+        <br><br>
+        <strong>macOS</strong> — Gatekeeper blocks the unsigned app; on Apple Silicon it usually says <em>"Senda is damaged and can't be opened"</em> (older Macs: <em>"developer cannot be verified"</em>). The "damaged" dialog <strong>can't</strong> be cleared by right-clicking → Open — remove the quarantine flag once. The shell installer does this for you; the <code style="font-family:var(--mono)">.dmg</code> and manual <code style="font-family:var(--mono)">.tar.gz</code> downloads need it run by hand, and it affects the terminal <code style="font-family:var(--mono)">senda</code> CLI/TUI too, not just the GUI:
+        <br>
+        <code style="font-family:var(--mono)">xattr -dr com.apple.quarantine /Applications/Senda.app</code><br>
+        <code style="font-family:var(--mono)">xattr -dr com.apple.quarantine ./senda ./senda-desktop</code>
+        <br><br>
+        <strong>Windows</strong> — SmartScreen may show <em>"Windows protected your PC"</em>. Click <strong>More info → Run anyway</strong>.
+      </p>
     </div>
   </section>
 
