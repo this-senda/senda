@@ -544,7 +544,7 @@ ${
                   disabled={running()}
                 />
               </label>
-              <button class="btn load-start-btn" onClick={running() ? stop : start}>
+              <button class="btn load-start-btn" onClick={() => (running() ? stop() : start())}>
                 {running() ? "Stop" : "Scan"}
               </button>
             </div>
