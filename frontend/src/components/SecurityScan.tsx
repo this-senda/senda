@@ -259,6 +259,33 @@ export default function SecurityScan(props: {
     const sevSummary = SEVERITY_ORDER.filter((sev) => (s.bySeverity ?? {})[sev])
       .map((sev) => `<span class="sev sev-${sev}">${sev} ×${(s.bySeverity ?? {})[sev]}</span>`)
       .join(" ");
+    // Coverage breakdown: how the executed checks distribute across severity and
+    // OWASP category. Gives the report substance even when there are 0 findings —
+    // it documents what was actually checked, not just the pass/fail count.
+    const tally = (key: (c: SecurityCheck) => string) => {
+      const m = new Map<string, number>();
+      for (const c of checks()) {
+        const k = key(c);
+        if (k) m.set(k, (m.get(k) ?? 0) + 1);
+      }
+      return m;
+    };
+    const bySev = tally((c) => c.severity || "unknown");
+    const byCat = tally((c) => c.owasp ?? "");
+    const sevBreakdown = SEVERITY_ORDER.filter((sev) => bySev.get(sev))
+      .map((sev) => `<tr><td><span class="sev sev-${sev}">${sev}</span></td><td>${bySev.get(sev)}</td></tr>`)
+      .join("");
+    const catBreakdown = [...byCat.entries()]
+      .sort((x, y) => y[1] - x[1])
+      .map(([cat, n]) => `<tr><td>${esc(cat)}</td><td>${n}</td></tr>`)
+      .join("");
+    const coverageHtml = checks().length
+      ? `<h2>Checks performed (${checks().length})</h2>
+<div class="cov">
+  <table><tr><th>Severity</th><th>Count</th></tr>${sevBreakdown}</table>
+  ${catBreakdown ? `<table><tr><th>OWASP category</th><th>Count</th></tr>${catBreakdown}</table>` : ""}
+</div>`
+      : "";
     const html = `<!doctype html><html><head><meta charset="utf-8">
 <title>Security report — ${esc(props.folderName)}</title>
 <style>
@@ -281,6 +308,8 @@ export default function SecurityScan(props: {
   .sev-medium{color:#b58900;border-color:#b58900} .sev-low{color:#3a7;border-color:#3a7}
   .sev-info,.sev-unknown{color:#888;border-color:#888}
   h2{font-size:15px;margin:20px 0 4px} .empty{color:#888}
+  .cov{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .cov table{width:auto;min-width:220px}
 </style></head><body>
 <h1>Security scan — ${esc(props.folderName)}</h1>
 <div class="meta">${esc(stamp.toLocaleString())} · ${s.targets} target(s) · ${s.checks} check(s) · ${s.duration.toFixed(1)}s</div>
@@ -291,6 +320,7 @@ export default function SecurityScan(props: {
   <div class="card"><b>${s.targets}</b><span>Targets</span></div>
 </div>
 <div>${sevSummary}</div>
+${coverageHtml}
 <h2>Findings (${findings().length})</h2>
 ${
   findings().length

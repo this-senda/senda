@@ -263,6 +263,9 @@
     .callout h3 svg { width:22px; height:22px; color:var(--mauve); }
     .callout p { margin:.6em 0 0; color:var(--subtext1); font-size:.98rem; }
     .callout a { color:var(--lavender); }
+    .callout.warn { border-left-color:var(--peach); background:linear-gradient(180deg, rgba(250,179,135,.07), transparent); }
+    .callout.warn h3 svg { color:var(--peach); }
+    .callout.warn code { font-family:var(--mono); font-size:.86em; background:var(--surface0); padding:1px 6px; border-radius:5px; }
 
     /* CTA strip */
     .cta { text-align:center; }
@@ -680,16 +683,14 @@
         </div>
       </div>
 
-      <p class="note reveal" style="max-width:760px;margin:1.5rem auto 0;">
-        <strong>Unsigned builds:</strong> Senda isn't Apple/Microsoft code-signed yet, so the OS shows a one-time warning on first launch — the download is intact, it's only the missing signature.
-        <br><br>
-        <strong>macOS</strong> — Gatekeeper blocks the unsigned app; on Apple Silicon it usually says <em>"Senda is damaged and can't be opened"</em> (older Macs: <em>"developer cannot be verified"</em>). The "damaged" dialog <strong>can't</strong> be cleared by right-clicking → Open — remove the quarantine flag once. The shell installer does this for you; the <code style="font-family:var(--mono)">.dmg</code> and manual <code style="font-family:var(--mono)">.tar.gz</code> downloads need it run by hand, and it affects the terminal <code style="font-family:var(--mono)">senda</code> CLI/TUI too, not just the GUI:
-        <br>
-        <code style="font-family:var(--mono)">xattr -dr com.apple.quarantine /Applications/Senda.app</code><br>
-        <code style="font-family:var(--mono)">xattr -dr com.apple.quarantine ./senda ./senda-desktop</code>
-        <br><br>
-        <strong>Windows</strong> — SmartScreen may show <em>"Windows protected your PC"</em>. Click <strong>More info → Run anyway</strong>.
-      </p>
+      <div class="callout warn reveal" style="margin-top:1.5rem;">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Unsigned builds</h3>
+        <p>Senda isn't Apple/Microsoft code-signed yet, so the OS shows a one-time warning on first launch — the download is intact, it's only the missing signature.</p>
+        <p><strong>macOS</strong> — Gatekeeper blocks the unsigned app; on Apple Silicon it usually says <em>"Senda is damaged and can't be opened"</em> (older Macs: <em>"developer cannot be verified"</em>). The "damaged" dialog <strong>can't</strong> be cleared by right-clicking → Open — remove the quarantine flag once. The shell installer does this for you; the <code>.dmg</code> and manual <code>.tar.gz</code> downloads need it run by hand, and it affects the terminal <code>senda</code> CLI/TUI too, not just the GUI:</p>
+        <p><code>xattr -dr com.apple.quarantine /Applications/Senda.app</code><br>
+        <code>xattr -dr com.apple.quarantine ./senda ./senda-desktop</code></p>
+        <p><strong>Windows</strong> — SmartScreen may show <em>"Windows protected your PC"</em>. Click <strong>More info → Run anyway</strong>.</p>
+      </div>
     </div>
   </section>
 
