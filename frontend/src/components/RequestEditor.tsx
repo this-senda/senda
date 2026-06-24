@@ -64,8 +64,12 @@ export default function RequestEditor() {
         <button class="url-icon-btn" title="Generate code" onClick={() => setShowCode(true)}>
           <Code2 size={ICON.lg} />
         </button>
-        <Show when={activePath() && dirty()}>
-          <button class="url-icon-btn dirty" title="Save changes (⌘S)" onClick={save}>
+        <Show when={dirty()}>
+          <button
+            class="url-icon-btn dirty"
+            title={activePath() ? "Save changes (⌘S)" : "Save request (⌘S)"}
+            onClick={save}
+          >
             <SaveIcon size={ICON.lg} />
           </button>
         </Show>

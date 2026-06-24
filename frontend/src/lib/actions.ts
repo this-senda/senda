@@ -58,10 +58,22 @@ export function cancelSend() {
   inFlight?.cancel();
 }
 
-// saveActive persists the live request when it has a backing file.
+// saveActive persists the live request. A scratch tab (no backing file yet)
+// prompts for a name and writes into the open collection root — otherwise a
+// brand-new request has no way to be saved.
 export async function saveActive() {
-  const path = activePath();
-  if (!path) return;
+  let path = activePath();
+  if (!path) {
+    const coll = collection();
+    if (!coll) return; // no collection open: nowhere to save
+    const name = prompt("Request name:", request.name || "new-request");
+    if (!name) return;
+    path = `${coll.path}/${name.replace(/\.ya?ml$/i, "")}.yaml`;
+    await api.saveRequest(path, request);
+    markActiveSaved(path);
+    await refreshCollection(coll.path); // surface the new file in the sidebar
+    return;
+  }
   await api.saveRequest(path, request);
   markActiveSaved(path);
 }

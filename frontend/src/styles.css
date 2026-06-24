@@ -292,6 +292,10 @@ body.dragging-splitter {
   margin: 1px 6px;
   font-size: var(--fs-base);
   color: var(--text-dim);
+  /* Draggable rows: without this WebKitGTK starts a text selection on
+     mousedown instead of a drag, so moving a request never begins. */
+  user-select: none;
+  -webkit-user-select: none;
 }
 .tree-folder:hover,
 .tree-leaf:hover {
@@ -2582,6 +2586,10 @@ body.dragging-splitter {
   border-bottom: 1px solid var(--border-soft);
 }
 
+body.dragging-node,
+body.dragging-node * {
+  cursor: grabbing !important;
+}
 .tree-folder.drop-hover {
   background: var(--selection);
   color: var(--selection-fg);

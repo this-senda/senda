@@ -91,8 +91,14 @@ export default function App() {
     if (!mod) return;
     // Ctrl+Tab cycles even while the palette is open; everything else below
     // is suppressed so palette typing can't trigger app actions.
-    if (e.key === "Tab") {
+    // Match on e.code, not e.key: on Linux/GTK, Shift+Tab emits the
+    // ISO_Left_Tab keysym, so WebKitGTK reports e.key as something other than
+    // "Tab" and Ctrl+Shift+Tab would never match. e.code is the physical key,
+    // unaffected by modifiers. stopImmediatePropagation + capture-phase
+    // listening (see onMount) beat the native focus-traversal default.
+    if (e.code === "Tab") {
       e.preventDefault();
+      e.stopImmediatePropagation();
       cycleTab(e.shiftKey ? -1 : 1);
       return;
     }
@@ -130,8 +136,22 @@ export default function App() {
         break;
     }
   };
-  onMount(() => window.addEventListener("keydown", onKey));
-  onCleanup(() => window.removeEventListener("keydown", onKey));
+  onMount(() => window.addEventListener("keydown", onKey, { capture: true }));
+  onCleanup(() => window.removeEventListener("keydown", onKey, { capture: true }));
+
+  // Swallow drops that miss a registered dropzone. Without this the webview
+  // performs its default drop action and navigates the whole window to a
+  // wails:// URL — e.g. dragging a request onto a non-folder row. Real
+  // dropzones stopPropagation, so this only catches unhandled drops.
+  const eatDrag = (e: DragEvent) => e.preventDefault();
+  onMount(() => {
+    window.addEventListener("dragover", eatDrag);
+    window.addEventListener("drop", eatDrag);
+  });
+  onCleanup(() => {
+    window.removeEventListener("dragover", eatDrag);
+    window.removeEventListener("drop", eatDrag);
+  });
 
   // External file changes (git pull, $EDITOR) refresh the open collection.
   onMount(() => {

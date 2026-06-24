@@ -32,8 +32,9 @@ tasks:
 
   _build:
     internal: true
+    # build:frontend already deps generate:bindings; listing both ran the
+    # bindings gen twice. Go build needs only the frontend dist.
     deps:
-      - ":generate:bindings"
       - ":build:frontend"
     env:
       CGO_ENABLED: 0

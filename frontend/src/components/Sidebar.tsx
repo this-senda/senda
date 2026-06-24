@@ -30,6 +30,48 @@ function toggleExpandAll() {
   setExpandCmd((c) => ({ open: next, n: c.n + 1 }));
 }
 
+// --- Pointer-based drag to move requests/folders ---
+// WebKitGTK's HTML5 drag-and-drop doesn't reliably start a drag from a
+// `draggable` element (it begins a text selection instead), so we track the
+// drag with raw mouse events: source path while dragging, the folder path the
+// cursor is over, and a flag to swallow the click that mouseup would fire.
+const [dropPath, setDropPath] = createSignal<string | null>(null);
+let dragJustEnded = false;
+
+// trackDrag begins a drag from a row. It only activates past a small movement
+// threshold so a plain click still opens the request. onDrop runs on release
+// when the cursor is over a folder (folders carry data-drop-path).
+function trackDrag(e: MouseEvent, src: string, onDrop: (src: string, dst: string) => void) {
+  if (e.button !== 0) return;
+  const sx = e.clientX;
+  const sy = e.clientY;
+  let active = false;
+  const move = (ev: MouseEvent) => {
+    if (!active) {
+      if (Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 5) return;
+      active = true;
+      document.body.classList.add("dragging-node");
+    }
+    ev.preventDefault(); // suppress text selection while dragging
+    const el = document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null;
+    setDropPath(el?.closest<HTMLElement>("[data-drop-path]")?.dataset.dropPath ?? null);
+  };
+  const up = () => {
+    window.removeEventListener("mousemove", move);
+    window.removeEventListener("mouseup", up);
+    document.body.classList.remove("dragging-node");
+    const dst = dropPath();
+    setDropPath(null);
+    if (active) {
+      dragJustEnded = true;
+      setTimeout(() => (dragJustEnded = false), 0);
+      if (dst) onDrop(src, dst);
+    }
+  };
+  window.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", up);
+}
+
 // methodTag is the short sidebar badge for a request method (Bruno-style).
 function methodTag(m: string | undefined): string {
   const up = (m || "GET").toUpperCase();
@@ -189,21 +231,7 @@ export default function Sidebar() {
       </Show>
       <div
         class="tree"
-        onDragOver={(e) => {
-          if (e.dataTransfer?.types.includes("text/senda-path")) e.preventDefault();
-        }}
-        onDrop={async (e) => {
-          const root = collection()?.path;
-          const src = e.dataTransfer?.getData("text/senda-path");
-          if (!root || !src) return;
-          e.preventDefault();
-          try {
-            await api.moveNode(src, root);
-            refresh(root);
-          } catch (err) {
-            alert("Move failed: " + err);
-          }
-        }}
+        data-drop-path={collection()?.path}
       >
         <Show when={visibleTree()} fallback={<div class="empty-hint">Open a collection to begin.</div>}>
           <For each={visibleTree()!.children ?? []}>
@@ -335,33 +363,17 @@ function TreeRow(props: {
   };
   onCleanup(() => closeCtx?.());
 
-  // --- drag & drop move ---
-  const [dropHover, setDropHover] = createSignal(false);
-  const onDragStart = (e: DragEvent) => {
-    e.dataTransfer?.setData("text/senda-path", props.node.path);
-    e.dataTransfer!.effectAllowed = "move";
-  };
-  const onDragOver = (e: DragEvent) => {
-    if (!props.node.isDir) return;
-    if (e.dataTransfer?.types.includes("text/senda-path")) {
-      e.preventDefault();
-      setDropHover(true);
-    }
-  };
-  const onDrop = async (e: DragEvent) => {
-    setDropHover(false);
-    if (!props.node.isDir) return;
-    e.preventDefault();
-    e.stopPropagation();
-    const src = e.dataTransfer?.getData("text/senda-path");
-    if (!src || src === props.node.path || props.node.path.startsWith(src + "/")) return;
+  // --- drag & drop move (pointer-based, see trackDrag) ---
+  const onMoveDrop = async (src: string, dst: string) => {
+    if (src === dst || dst.startsWith(src + "/")) return;
     try {
-      await api.moveNode(src, props.node.path);
+      await api.moveNode(src, dst);
       props.onRefresh();
     } catch (err) {
       alert("Move failed: " + err);
     }
   };
+  const startDrag = (e: MouseEvent) => trackDrag(e, props.node.path, onMoveDrop);
 
   return (
     <div class="tree-node">
@@ -372,10 +384,9 @@ function TreeRow(props: {
             class="tree-leaf"
             classList={{ active: activePath() === props.node.path }}
             style={pad()}
-            onClick={openReq}
+            onMouseDown={startDrag}
+            onClick={() => { if (!dragJustEnded) openReq(); }}
             onContextMenu={openCtxMenu}
-            draggable
-            onDragStart={onDragStart}
           >
             <span class={`leaf-method method-${(props.node.method || "get").toLowerCase()}`}>
               {methodTag(props.node.method)}
@@ -416,15 +427,12 @@ function TreeRow(props: {
       >
         <div
           class="tree-folder"
-          classList={{ "drop-hover": dropHover() }}
+          classList={{ "drop-hover": dropPath() === props.node.path }}
+          data-drop-path={props.node.path}
           style={pad()}
-          onClick={() => setOpen(!open())}
+          onMouseDown={startDrag}
+          onClick={() => { if (!dragJustEnded) setOpen(!open()); }}
           onContextMenu={openCtxMenu}
-          draggable
-          onDragStart={onDragStart}
-          onDragOver={onDragOver}
-          onDragLeave={() => setDropHover(false)}
-          onDrop={onDrop}
         >
           <span class="caret" classList={{ open: open() }}>
             <ChevronRight size={ICON.lg} />

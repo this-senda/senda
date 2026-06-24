@@ -31,8 +31,10 @@ tasks:
 
   _build:
     internal: true
+    # build:frontend already deps generate:bindings; listing it here too made
+    # Task run the (concurrent, run:always) bindings gen twice. Go build needs
+    # only the frontend dist, not the TS bindings.
     deps:
-      - ":generate:bindings"
       - ":build:frontend"
     cmds:
       - mkdir -p {{.BIN_DIR}}
