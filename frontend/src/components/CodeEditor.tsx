@@ -12,8 +12,7 @@ import {
   type CompletionResult,
 } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
-import { triggerAt } from "../lib/vars";
-import { buildScope } from "../lib/scope";
+import { buildScope, triggerAt } from "../lib/vars";
 import { fakerTokens } from "../lib/faker";
 import { graphql, updateSchema } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
