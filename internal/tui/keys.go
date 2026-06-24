@@ -25,6 +25,9 @@ func (m tuiModel) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if m.envMgrOpen {
 		return m.handleEnvMgr(s)
 	}
+	if m.browseOpen {
+		return m.handleBrowse(s)
+	}
 
 	// Global keys.
 	switch s {
@@ -44,6 +47,8 @@ func (m tuiModel) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.pickerOpen = true
 		m.pickerIdx = m.envIdx + 1 // map -1->0
 		return m, nil
+	case "O":
+		return m.openBrowser(), nil
 	case "tab":
 		m.focus = m.nextFocus(1)
 		return m, nil

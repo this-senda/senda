@@ -68,6 +68,8 @@ func (m tuiModel) render() string {
 		return m.composite(screen, m.helpBox(), false)
 	case m.pickerOpen:
 		return m.composite(screen, m.pickerBox(), false)
+	case m.browseOpen:
+		return m.composite(screen, m.browseBox(), false)
 	case m.paletteOpen:
 		return m.composite(screen, m.paletteBox(), true)
 	}
@@ -254,7 +256,7 @@ func (m tuiModel) contextHints() string {
 	case focusResp:
 		pairs = [][2]string{{"^K", "jump"}, {"↵", "send"}, {"^\\", "panes"}, {"gd", "docs"}, {"?", "help"}}
 	default:
-		pairs = [][2]string{{"^K", "palette"}, {"j/k", "move"}, {"l", "focus"}, {"↵", "send"}, {":", "cmd"}, {"?", "help"}}
+		pairs = [][2]string{{"^K", "palette"}, {"j/k", "move"}, {"l", "focus"}, {"⇧O", "open"}, {"↵", "send"}, {"?", "help"}}
 	}
 	parts := make([]string, len(pairs))
 	for i, p := range pairs {

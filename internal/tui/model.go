@@ -144,6 +144,13 @@ type tuiModel struct {
 	envMgrOpen bool
 	envMgrIdx  int
 
+	// collection folder picker (O)
+	browseOpen bool
+	browseDir  string
+	browseDirs []string
+	browseIdx  int
+	browseErr  string
+
 	// websocket session (populated when a WS request is connected)
 	ws *wsState
 

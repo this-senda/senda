@@ -10,7 +10,7 @@ import (
 // handleMouseClick routes a left-click at screen (x,y) to the element under it:
 // open-request tabs, tree rows, or the request/response sub-tab strips.
 func (m tuiModel) handleMouseClick(x, y int) (tea.Model, tea.Cmd) {
-	if m.showHelp || m.pickerOpen || m.paletteOpen || m.envMgrOpen {
+	if m.showHelp || m.pickerOpen || m.paletteOpen || m.envMgrOpen || m.browseOpen {
 		return m, nil
 	}
 	if y == 1 { // open-request tab bar
@@ -157,6 +157,19 @@ func (m tuiModel) clickCodegenTab(localX int) (tea.Model, tea.Cmd) {
 // handleMouseWheel scrolls the tree when the pointer is over it, otherwise the
 // focused viewport.
 func (m tuiModel) handleMouseWheel(msg tea.MouseWheelMsg) (tea.Model, tea.Cmd) {
+	if m.browseOpen {
+		if n := len(m.browseDirs); n > 0 {
+			if msg.Button == tea.MouseWheelUp {
+				m.browseIdx = (m.browseIdx + n - 1) % n
+			} else {
+				m.browseIdx = (m.browseIdx + 1) % n
+			}
+		}
+		return m, nil
+	}
+	if m.showHelp || m.pickerOpen || m.paletteOpen || m.envMgrOpen {
+		return m, nil
+	}
 	d := m.dims()
 	overTree := d.treeW > 0 && msg.X < d.treeW+2 && !m.exportOpen && m.layout != layoutFocus
 	if overTree {

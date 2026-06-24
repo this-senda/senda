@@ -127,6 +127,7 @@ func (m tuiModel) helpBox() string {
 		{"x", "export request as code"},
 		{"ctrl+w", "close current request tab"},
 		{"[ / ]", "cycle environment"},
+		{"⇧O", "open collection folder"},
 		{"E", "environment picker"},
 		{"ctrl+e", "environments manager"},
 		{"?", "toggle this help"},
@@ -138,6 +139,45 @@ func (m tuiModel) helpBox() string {
 		b.WriteString(fmt.Sprintf("%s  %s\n", lipgloss.NewStyle().Foreground(colAccent).Render(fmt.Sprintf("%-16s", r[0])), r[1]))
 	}
 	b.WriteString("\n" + styleDim.Render("press ? or esc to close"))
+	return styleBorderFoc.Padding(1, 2).Render(b.String())
+}
+
+// browseBox renders the collection folder picker overlay.
+func (m tuiModel) browseBox() string {
+	var b strings.Builder
+	b.WriteString(styleTitle.Render("open collection") + "\n")
+	b.WriteString(styleDim.Render(truncate(m.browseDir, 60)) + "\n\n")
+	if len(m.browseDirs) == 0 {
+		b.WriteString(styleDim.Render("  (no subfolders)") + "\n")
+	}
+	const max = 12
+	// Scroll a window of `max` entries so the selection stays visible.
+	start := 0
+	if m.browseIdx >= max {
+		start = m.browseIdx - max + 1
+	}
+	if start > 0 {
+		b.WriteString(styleDim.Render(fmt.Sprintf("  ↑ %d more", start)) + "\n")
+	}
+	end := start + max
+	if end > len(m.browseDirs) {
+		end = len(m.browseDirs)
+	}
+	for i := start; i < end; i++ {
+		name := truncate(m.browseDirs[i], 40) + "/"
+		line := "  " + name
+		if i == m.browseIdx {
+			line = styleSel.Render(padRight("▸ "+name, 28))
+		}
+		b.WriteString(line + "\n")
+	}
+	if end < len(m.browseDirs) {
+		b.WriteString(styleDim.Render(fmt.Sprintf("  ↓ %d more", len(m.browseDirs)-end)) + "\n")
+	}
+	if m.browseErr != "" {
+		b.WriteString("\n" + lipgloss.NewStyle().Foreground(colWarn).Render(m.browseErr) + "\n")
+	}
+	b.WriteString("\n" + styleDim.Render("↑/↓ select · → enter folder · ← up · ↵ open · o open current · esc cancel"))
 	return styleBorderFoc.Padding(1, 2).Render(b.String())
 }
 
