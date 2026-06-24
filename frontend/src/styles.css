@@ -897,16 +897,26 @@ body.dragging-splitter {
   font-size: var(--fs-sm);
   user-select: text;
 }
-.kv-key {
-  flex: 1;
-}
-.kv-val {
-  flex: 2;
-}
 .kv-key:focus,
 .kv-val:focus {
   outline: none;
   border-color: var(--accent-dim);
+}
+/* VarInput wrapper carries the flex sizing; the inner input fills it and keeps
+   the .kv-key/.kv-val box style. Dropdown (.url-ac) anchors to this wrapper. */
+.var-input {
+  position: relative;
+  min-width: 0;
+}
+.var-input:has(> .kv-key) {
+  flex: 1;
+}
+.var-input:has(> .kv-val) {
+  flex: 2;
+}
+.var-input > input {
+  width: 100%;
+  box-sizing: border-box;
 }
 .kv-toolbar {
   display: flex;

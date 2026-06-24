@@ -4,6 +4,7 @@ import { Plus, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import type { KV } from "../lib/api";
 import { blankKV } from "../lib/factory";
+import VarInput from "./VarInput";
 
 type Props = {
   rows: KV[];
@@ -32,17 +33,17 @@ export default function KVEditor(props: Props) {
               onChange={(e) => update(i, { enabled: e.currentTarget.checked })}
               title="Enable / disable"
             />
-            <input
+            <VarInput
               class="kv-key"
               placeholder={props.keyPlaceholder ?? "key"}
               value={row().key}
-              onInput={(e) => update(i, { key: e.currentTarget.value })}
+              onChange={(v) => update(i, { key: v })}
             />
-            <input
+            <VarInput
               class="kv-val"
               placeholder={props.valuePlaceholder ?? "value"}
               value={row().value}
-              onInput={(e) => update(i, { value: e.currentTarget.value })}
+              onChange={(v) => update(i, { value: v })}
             />
             <button class="icon-btn" onClick={() => remove(i)} title="Remove">
               <X size={ICON.sm} />
