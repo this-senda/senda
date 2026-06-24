@@ -127,31 +127,117 @@ button {
   gap: 6px;
 }
 
-/* ---- collection switcher ---- */
-.coll-switcher {
-  position: relative;
-}
-.coll-switcher-btn {
+/* ---- workspace rail (open collections as icon boxes) ---- */
+.ws-rail {
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 240px;
+}
+.ws-box-wrap {
+  position: relative;
+  display: flex;
+}
+.ws-box {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: hsl(var(--ws-hue, 230) 40% 38%);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+}
+.ws-box:hover {
+  transform: translateY(-1px);
+}
+.ws-box-active {
+  border-color: var(--accent);
+}
+.ws-box-mono,
+.ws-box-emoji {
+  display: block;
+  line-height: 1;
+}
+.ws-box-emoji {
+  font-size: 16px;
+}
+.ws-add-box {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-dim);
+  gap: 0;
+}
+.ws-add-box:hover {
+  color: var(--text);
+  border-color: var(--text-faint);
+}
+.ws-add-caret {
+  margin-left: -2px;
+}
+
+/* icon picker popover */
+.ws-picker {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 41;
+  width: max-content;
+  box-sizing: border-box;
   background: var(--bg-elev2);
   border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.ws-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 34px);
+  gap: 4px;
+}
+.ws-picker-cell {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: none;
   border-radius: 6px;
-  padding: 4px 8px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ws-picker-cell:hover {
+  background: var(--bg-elev);
+}
+.ws-picker-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 8px;
   color: var(--text-dim);
   font-size: var(--fs-sm);
   cursor: pointer;
 }
-.coll-switcher-btn:hover {
+.ws-picker-row:hover {
+  background: var(--bg-elev);
   color: var(--text);
 }
-.coll-switcher-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.ws-picker-danger:hover {
+  color: var(--danger, #e5484d);
 }
+
+/* ---- collection menu (shared by workspace + add menu) ---- */
 .menu-backdrop {
   position: fixed;
   inset: 0;
@@ -187,9 +273,6 @@ button {
 }
 .coll-menu-item:hover {
   background: var(--bg-elev);
-}
-.coll-menu-active {
-  background: var(--accent-dim);
 }
 .coll-menu-item-name {
   font-size: var(--fs-base);

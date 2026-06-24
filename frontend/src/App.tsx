@@ -5,7 +5,7 @@ import TabBar from "./components/TabBar";
 import RequestEditor from "./components/RequestEditor";
 import ResponseViewer from "./components/ResponseViewer";
 import EnvSwitcher from "./components/EnvSwitcher";
-import CollectionSwitcher from "./components/CollectionSwitcher";
+import WorkspaceRail from "./components/WorkspaceRail";
 import FpsMeter from "./components/FpsMeter";
 import CommandPalette from "./components/CommandPalette";
 import ThemeSettings from "./components/ThemeSettings";
@@ -204,7 +204,7 @@ export default function App() {
       <header class="titlebar">
         <div class="titlebar-left">
           <span class="brand">Senda</span>
-          <CollectionSwitcher />
+          <WorkspaceRail />
         </div>
         <div class="titlebar-actions">
           <EnvSwitcher />

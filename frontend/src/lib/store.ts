@@ -411,6 +411,74 @@ export function rememberRecent(name: string, path: string) {
 export function forgetRecent(path: string) {
   writeRecents(recentCollections().filter((e) => e.path !== path));
 }
+// Pinned collections are a user-curated subset shown as pills in the titlebar.
+// Still single active root: clicking a pin swaps the open collection (same as
+// recents). Stored separately so pins survive recents pruning.
+const PINNED_COLLECTIONS = "senda.pinnedCollections";
+
+export function pinnedCollections(): RecentCollection[] {
+  try {
+    const raw = localStorage.getItem(PINNED_COLLECTIONS);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list.filter((e) => e?.path) : [];
+  } catch {
+    return [];
+  }
+}
+
+const [pinned, setPinned] = createSignal<RecentCollection[]>(pinnedCollections());
+export { pinned };
+
+function writePinned(list: RecentCollection[]) {
+  localStorage.setItem(PINNED_COLLECTIONS, JSON.stringify(list));
+  setPinned(list);
+}
+
+export function isPinned(path: string): boolean {
+  return pinned().some((e) => e.path === path);
+}
+
+// ensurePinned adds a collection to the pill bar if not already there (called
+// when a collection is opened — your open workspaces just appear as tabs).
+export function ensurePinned(name: string, path: string) {
+  if (!path || isPinned(path)) return;
+  writePinned([...pinned(), { name: name || path, path }]);
+}
+
+// unpin removes a collection's box from the rail.
+export function unpin(path: string) {
+  writePinned(pinned().filter((e) => e.path !== path));
+}
+
+// Per-collection icon (an emoji) chosen by the user; absent → monogram fallback.
+const COLLECTION_ICONS = "senda.collectionIcons";
+
+function readIcons(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(COLLECTION_ICONS);
+    const m = raw ? JSON.parse(raw) : {};
+    return m && typeof m === "object" ? m : {};
+  } catch {
+    return {};
+  }
+}
+
+const [icons, setIcons] = createSignal<Record<string, string>>(readIcons());
+
+export function collectionIcon(path: string): string | undefined {
+  return icons()[path];
+}
+
+// setCollectionIcon stores an emoji for a path (empty string clears it).
+export function setCollectionIcon(path: string, icon: string) {
+  if (!path) return;
+  const next = { ...icons() };
+  if (icon) next[path] = icon;
+  else delete next[path];
+  localStorage.setItem(COLLECTION_ICONS, JSON.stringify(next));
+  setIcons(next);
+}
+
 export function rememberEnv(name: string) {
   localStorage.setItem(ACTIVE_ENV, name);
 }

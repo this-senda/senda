@@ -5,6 +5,7 @@ import {
   activeEnv,
   activePath,
   collection,
+  ensurePinned,
   forgetRecent,
   markActiveSaved,
   rememberCollection,
@@ -84,6 +85,7 @@ export async function refreshCollection(path: string) {
   setCollection(coll);
   setEnvironments((await api.listEnvironments(path)) ?? []);
   rememberRecent(coll.name, path);
+  ensurePinned(coll.name, path);
   void refreshActivity(path);
 }
 
