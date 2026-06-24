@@ -7,6 +7,25 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.3](https://github.com/this-senda/senda/compare/v0.1.2...v0.1.3) (2026-06-21)
+
+
+### Features
+
+* **security:** add checks-performed breakdown to HTML report ([#17](https://github.com/this-senda/senda/issues/17)) ([122b491](https://github.com/this-senda/senda/commit/122b49129f5d349d89b19ee8826f61478252b284))
+
+
+### Bug Fixes
+
+* **frontend:** wrap toggle button handlers in arrows ([#19](https://github.com/this-senda/senda/issues/19)) ([40cd619](https://github.com/this-senda/senda/commit/40cd61939dabd4936437f587fdd9702d750689b5))
+* **security:** make scan stop button actually cancel the run ([#18](https://github.com/this-senda/senda/issues/18)) ([9b1ff9d](https://github.com/this-senda/senda/commit/9b1ff9d1d7d480b91dd56eca636788b9b6131a93))
+
+
+### Documentation
+
+* **landing:** add macOS quarantine note for unsigned builds ([3b74529](https://github.com/this-senda/senda/commit/3b74529706a2a92bfd1777336dcbaf009c5212c7))
+* **readme:** clarify macOS quarantine steps for unsigned builds ([2d9cfba](https://github.com/this-senda/senda/commit/2d9cfba2363343c3edd060b3e649b69d3b09f4bc))
+
 ## [0.1.2](https://github.com/this-senda/senda/compare/v0.1.1...v0.1.2) (2026-06-20)
 
 
