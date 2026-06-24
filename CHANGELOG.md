@@ -7,6 +7,26 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.5](https://github.com/this-senda/senda/compare/v0.1.4...v0.1.5) (2026-06-24)
+
+
+### Features
+
+* **cli:** add --report json|junit to senda run ([#27](https://github.com/this-senda/senda/issues/27)) ([b672c55](https://github.com/this-senda/senda/commit/b672c55186cd0f7c4fccd3182e0f4561c7d45d5b))
+* **editor:** {{var}} + gofakeit autocomplete in JSON body ([#34](https://github.com/this-senda/senda/issues/34)) ([8fe1725](https://github.com/this-senda/senda/commit/8fe172582dcd6766e3d3c42a413f6ce13094515a))
+* **editor:** themed syntax colors + gql autocomplete ([#32](https://github.com/this-senda/senda/issues/32)) ([7dc54a1](https://github.com/this-senda/senda/commit/7dc54a17087c986fb6b0742d84087eb3fd21b60e))
+* **tui:** add collection folder picker overlay ([#31](https://github.com/this-senda/senda/issues/31)) ([51ebc84](https://github.com/this-senda/senda/commit/51ebc849124113746964d741fa127872b8ca7e76))
+
+
+### Bug Fixes
+
+* **docs:** align mode cards to equal height ([#24](https://github.com/this-senda/senda/issues/24)) ([905102d](https://github.com/this-senda/senda/commit/905102dcf21d4221d9653f2e64a45b2f47e9d9ea))
+
+
+### Documentation
+
+* **site:** mark winget/choco install as coming soon ([#29](https://github.com/this-senda/senda/issues/29)) ([8a35744](https://github.com/this-senda/senda/commit/8a357444e59d5edf2ccdb51f40aca6b00d724b29))
+
 ## [0.1.4](https://github.com/this-senda/senda/compare/v0.1.3...v0.1.4) (2026-06-24)
 
 
