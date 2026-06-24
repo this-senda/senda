@@ -211,14 +211,14 @@
 
     /* Run modes */
     .modes { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-    .mode { border:1px solid var(--surface0); border-radius:var(--radius); overflow:hidden; background:var(--mantle); }
-    .mode .shot { background:var(--crust); border-bottom:1px solid var(--surface0); }
-    .mode .shot img { width:100%; }
-    .mode .body { padding:20px 22px 24px; }
+    .mode { display:flex; flex-direction:column; border:1px solid var(--surface0); border-radius:var(--radius); overflow:hidden; background:var(--mantle); }
+    .mode .shot { aspect-ratio:16/10; background:var(--crust); border-bottom:1px solid var(--surface0); }
+    .mode .shot img { width:100%; height:100%; object-fit:cover; object-position:top left; }
+    .mode .body { display:flex; flex-direction:column; flex:1; padding:20px 22px 24px; }
     .mode .tag { font:600 .72rem var(--mono); letter-spacing:.04em; color:var(--teal); text-transform:uppercase; }
     .mode h3 { font-size:1.18rem; margin:6px 0 8px; }
     .mode p { margin:0 0 12px; color:var(--subtext0); font-size:.93rem; }
-    .mode p.cmd { font-family:var(--mono); font-size:.82rem; color:var(--blue); background:var(--base); border:1px solid var(--surface0); border-radius:8px; padding:.6em .8em; margin:0; }
+    .mode p.cmd { font-family:var(--mono); font-size:.82rem; color:var(--blue); background:var(--base); border:1px solid var(--surface0); border-radius:8px; padding:.6em .8em; margin:auto 0 0; }
 
     /* Gallery */
     .gallery { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
