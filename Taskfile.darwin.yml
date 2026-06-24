@@ -114,9 +114,16 @@ tasks:
         cp -R "{{.APP}}" "$stage/"
         ln -s /Applications "$stage/Applications"
         rm -f "{{.DMG}}"
-        hdiutil create -volname "{{.PRODUCT}}" -srcfolder "$stage" \
-          -ov -format UDZO "{{.DMG}}" >/dev/null
-        echo "built {{.DMG}}"
+        # Retry — hdiutil hits "Resource busy" when Spotlight/fsevents still
+        # holds the fresh temp dir; settle + retry clears it on CI.
+        for try in 1 2 3 4 5; do
+          if hdiutil create -volname "{{.PRODUCT}}" -srcfolder "$stage" \
+               -ov -format UDZO "{{.DMG}}" >/dev/null; then
+            echo "built {{.DMG}}"; exit 0
+          fi
+          echo "hdiutil busy, retry $try..." >&2; sleep 3
+        done
+        echo "hdiutil create failed after retries" >&2; exit 1
 
   package:
     desc: Build the .app bundle and .dmg (macOS distribution artifacts)

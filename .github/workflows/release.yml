@@ -64,8 +64,9 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache bun deps
-        uses: actions/cache@v4
+      - name: Restore bun deps
+        id: cache-bun
+        uses: actions/cache/restore@v4
         with:
           path: frontend/node_modules
           key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/bun.lock') }}
@@ -88,9 +89,12 @@ jobs:
           packages: libgtk-4-dev libwebkitgtk-6.0-dev
           version: 1.0
 
-      - name: Cache wails3 CLI
+      # Split restore/save so the cache lands right after install — the combined
+      # actions/cache@v4 only saves in a post step with post-if:success(), so a
+      # later Build failure would skip the save and a re-run still cache-misses.
+      - name: Restore wails3 CLI
         id: cache-wails3
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/go/bin/wails3${{ matrix.os == 'windows' && '.exe' || '' }}
           key: wails3-${{ runner.os }}-${{ runner.arch }}-v3.0.0-alpha2.104
@@ -98,6 +102,29 @@ jobs:
       - name: Install wails3 CLI
         if: steps.cache-wails3.outputs.cache-hit != 'true'
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.104
+
+      - name: Save wails3 CLI
+        if: steps.cache-wails3.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/go/bin/wails3${{ matrix.os == 'windows' && '.exe' || '' }}
+          key: wails3-${{ runner.os }}-${{ runner.arch }}-v3.0.0-alpha2.104
+
+      # Install + save bun deps before Build so the cache persists even if Build
+      # fails (the combined cache action's post-save is skipped on job failure).
+      # task package re-runs install too, but a frozen install over restored
+      # node_modules is near-instant.
+      - name: Install bun deps
+        if: steps.cache-bun.outputs.cache-hit != 'true'
+        shell: bash
+        run: cd frontend && bun install --frozen-lockfile
+
+      - name: Save bun deps
+        if: steps.cache-bun.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: frontend/node_modules
+          key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('frontend/bun.lock') }}
 
       # `package` is a uniform alias on every OS namespace: linux/windows just
       # build the desktop binary, darwin additionally bundles Senda.app + Senda.dmg.
