@@ -2,12 +2,12 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FileArchive, FilePlus, Folder, FolderOpen, FolderPlus, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, Folder, FolderPlus, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
 import { activePath, activity, collection, openInTab, setShowMockPanel, setRunPanelTarget, setShowRunPanel } from "../lib/store";
-import { openCollectionDialog, openZipCollectionDialog, refreshCollection } from "../lib/actions";
+import { refreshCollection } from "../lib/actions";
 import { fmtAgo, nodeRecency } from "../lib/recency";
 import { attachCtxDismiss } from "../lib/ctxMenu";
 import { blankRequest } from "../lib/factory";
@@ -97,7 +97,6 @@ function filterTree(node: TreeNode, q: string): TreeNode | null {
 }
 
 export default function Sidebar() {
-  const [opening, setOpening] = createSignal(false);
   const [showSettings, setShowSettings] = createSignal(false);
   const [showImport, setShowImport] = createSignal(false);
   const [showHistory, setShowHistory] = createSignal(false);
@@ -111,28 +110,6 @@ export default function Sidebar() {
     if (!q) return tree;
     return { ...tree, children: (tree.children ?? []).filter(Boolean).map((c) => filterTree(c!, q)).filter((c): c is TreeNode => c !== null) };
   });
-
-  const open = async () => {
-    setOpening(true);
-    try {
-      await openCollectionDialog();
-    } catch (e) {
-      alert("Could not open collection: " + e);
-    } finally {
-      setOpening(false);
-    }
-  };
-
-  const openZip = async () => {
-    setOpening(true);
-    try {
-      await openZipCollectionDialog();
-    } catch (e) {
-      alert("Could not open collection: " + e);
-    } finally {
-      setOpening(false);
-    }
-  };
 
   const newRequest = async () => {
     const coll = collection();
@@ -188,12 +165,6 @@ export default function Sidebar() {
             disabled={!collection()}
           >
             <Server size={ICON.xl} />
-          </button>
-          <button class="icon-btn" title="Open collection folder" onClick={open} disabled={opening()}>
-            <FolderOpen size={ICON.xl} />
-          </button>
-          <button class="icon-btn" title="Open .zip collection" onClick={openZip} disabled={opening()}>
-            <FileArchive size={ICON.xl} />
           </button>
         </div>
       </div>

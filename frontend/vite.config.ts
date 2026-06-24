@@ -10,6 +10,10 @@ export default defineConfig(({ mode }) => ({
     // back to 5173 for a bare `bun run dev`.
     port: Number(process.env.WAILS_VITE_PORT) || 5173,
     strictPort: true,
+    // Wails' asset proxy dials tcp4 127.0.0.1; vite's default "localhost"
+    // resolves to ::1 (IPv6) on Node 17+, so the proxy gets connection
+    // refused and the window stays blank. Pin to IPv4.
+    host: "127.0.0.1",
   },
   build: {
     target: "esnext",
