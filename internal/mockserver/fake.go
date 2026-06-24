@@ -6,89 +6,12 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+
+	"senda/internal/fake"
 )
 
-// Hand-rolled faker. Small word lists keep the binary small (no faker
-// dependency). Used both by template functions ({{faker.name}}) and by
-// schema-driven fake bodies.
-
-var (
-	fakeFirst = []string{"Ada", "Alan", "Grace", "Linus", "Ken", "Dennis", "Margaret", "Edsger", "Barbara", "Donald", "Katherine", "Tim"}
-	fakeLast  = []string{"Lovelace", "Turing", "Hopper", "Torvalds", "Thompson", "Ritchie", "Hamilton", "Dijkstra", "Liskov", "Knuth", "Johnson", "Berners-Lee"}
-	fakeWords = []string{"lorem", "ipsum", "dolor", "sit", "amet", "consectetur", "adipiscing", "elit", "sed", "tempor", "labore", "magna"}
-	fakeCity  = []string{"London", "Helsinki", "Tokyo", "Berlin", "Austin", "Toronto", "Oslo", "Lisbon"}
-	fakeCtry  = []string{"Finland", "Japan", "Germany", "Canada", "Portugal", "Norway", "Brazil", "Kenya"}
-	fakeCorp  = []string{"Acme", "Globex", "Initech", "Umbrella", "Hooli", "Vandelay", "Stark", "Wayne"}
-)
-
-func pick(s []string) string { return s[rand.Intn(len(s))] }
-
-func fakeName() string { return pick(fakeFirst) + " " + pick(fakeLast) }
-func fakeEmail() string {
-	return strings.ToLower(pick(fakeFirst) + "." + pick(fakeLast) + "@example.com")
-}
-func fakeUsername() string { return strings.ToLower(pick(fakeFirst)) + fmt.Sprint(rand.Intn(1000)) }
-func fakeWord() string     { return pick(fakeWords) }
-func fakeSentence() string {
-	n := 4 + rand.Intn(6)
-	w := make([]string, n)
-	for i := range w {
-		w[i] = pick(fakeWords)
-	}
-	s := strings.Join(w, " ")
-	return strings.ToUpper(s[:1]) + s[1:] + "."
-}
-func fakeUUID() string {
-	b := make([]byte, 16)
-	rand.Read(b)
-	b[6] = (b[6] & 0x0f) | 0x40
-	b[8] = (b[8] & 0x3f) | 0x80
-	return fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
-}
-func fakePhone() string {
-	return fmt.Sprintf("+1-%03d-%03d-%04d", rand.Intn(1000), rand.Intn(1000), rand.Intn(10000))
-}
-
-// fakerFunc resolves {{faker.NAME}} to a generated value.
-func fakerFunc(name string) (string, bool) {
-	switch strings.ToLower(name) {
-	case "name":
-		return fakeName(), true
-	case "firstname":
-		return pick(fakeFirst), true
-	case "lastname":
-		return pick(fakeLast), true
-	case "email":
-		return fakeEmail(), true
-	case "username":
-		return fakeUsername(), true
-	case "uuid":
-		return fakeUUID(), true
-	case "int":
-		return fmt.Sprint(rand.Intn(1000)), true
-	case "float":
-		return fmt.Sprintf("%.2f", rand.Float64()*1000), true
-	case "bool":
-		return fmt.Sprint(rand.Intn(2) == 1), true
-	case "word":
-		return fakeWord(), true
-	case "sentence":
-		return fakeSentence(), true
-	case "city":
-		return pick(fakeCity), true
-	case "country":
-		return pick(fakeCtry), true
-	case "company":
-		return pick(fakeCorp), true
-	case "phone":
-		return fakePhone(), true
-	case "date":
-		return time.Now().UTC().Format("2006-01-02"), true
-	case "datetime":
-		return time.Now().UTC().Format(time.RFC3339), true
-	}
-	return "", false
-}
+// Schema-driven fake bodies. The faker generators themselves live in package
+// fake (shared with request-time {{$token}} resolution).
 
 // fakeFromSchema generates a minimal fake JSON object from a JSON Schema.
 // Supports type:object with string/integer/number/boolean/array properties.
@@ -183,9 +106,9 @@ func fakeStringFor(name string, schema map[string]any) string {
 	if f, _ := schema["format"].(string); f != "" {
 		switch f {
 		case "email":
-			return fakeEmail()
+			return fake.Email()
 		case "uuid":
-			return fakeUUID()
+			return fake.UUID()
 		case "date":
 			return time.Now().UTC().Format("2006-01-02")
 		case "date-time":
@@ -197,19 +120,19 @@ func fakeStringFor(name string, schema map[string]any) string {
 	// Property-name heuristics.
 	switch n := strings.ToLower(name); {
 	case strings.Contains(n, "email"):
-		return fakeEmail()
+		return fake.Email()
 	case strings.Contains(n, "name"):
-		return fakeName()
+		return fake.Name()
 	case strings.Contains(n, "phone"):
-		return fakePhone()
+		return fake.Phone()
 	case strings.Contains(n, "city"):
-		return pick(fakeCity)
+		return fake.City()
 	case strings.Contains(n, "country"):
-		return pick(fakeCtry)
+		return fake.Country()
 	case strings.Contains(n, "id"):
-		return fakeUUID()
+		return fake.UUID()
 	case n != "":
-		return fakeWord()
+		return fake.Word()
 	}
 	return "example"
 }

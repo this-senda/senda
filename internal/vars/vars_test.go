@@ -55,3 +55,36 @@ func TestApplyKVsDropsDisabled(t *testing.T) {
 		t.Errorf("interpolate + drop disabled: got %+v", out)
 	}
 }
+
+func TestFakerTokens(t *testing.T) {
+	sc := Build(nil)
+	// Known faker token resolves to a non-verbatim value.
+	if got := sc.Apply("{{$uuid}}"); got == "{{$uuid}}" || len(got) != 36 {
+		t.Errorf("faker uuid not resolved: got %q", got)
+	}
+	// $-prefixed faker tokens are never recorded as unresolved scope vars.
+	sc.Apply("{{$email}}")
+	if len(sc.Unresolved) != 0 {
+		t.Errorf("faker token leaked into Unresolved: %v", sc.Unresolved)
+	}
+	// Unknown faker token is left verbatim.
+	if got := sc.Apply("{{$nope}}"); got != "{{$nope}}" {
+		t.Errorf("unknown faker token: got %q", got)
+	}
+}
+
+func TestFakerNamespacedAndParams(t *testing.T) {
+	sc := Build([]model.KV{kv("greet", "hi")})
+	// Namespaced token resolves (not left verbatim).
+	if got := sc.Apply("{{$person.firstname}}"); got == "" || got == "{{$person.firstname}}" {
+		t.Errorf("namespaced faker not resolved: got %q", got)
+	}
+	// Param token honours a pinned range, inline with a plain var and literals.
+	if got := sc.Apply("{{greet}} n={{$number.number(min=4,max=4)}}"); got != "hi n=4" {
+		t.Errorf("param faker + plain var: got %q", got)
+	}
+	// Grammar change didn't break plain vars or leak faker into Unresolved.
+	if len(sc.Unresolved) != 0 {
+		t.Errorf("unexpected unresolved: %v", sc.Unresolved)
+	}
+}

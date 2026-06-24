@@ -428,6 +428,7 @@ function GraphQLEditor() {
           <CodeEditor
             value={request.body.variables ?? ""}
             language="json"
+            varComplete
             onChange={(v) => {
               setRequest("body", "variables", v);
               setDirty(true);
@@ -551,6 +552,7 @@ function BodyEditor() {
           <CodeEditor
             value={request.body.raw ?? ""}
             language={request.body.type === "json" ? "json" : "text"}
+            varComplete
             onChange={(v) => {
               setRequest("body", "raw", v);
               setDirty(true);

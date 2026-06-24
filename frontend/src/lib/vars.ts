@@ -5,11 +5,13 @@
 import { collection, environments, activeEnv } from "./store";
 import type { KV } from "./api";
 
-// VAR_RE matches {{name}} placeholders (same grammar as internal/vars).
-// Global flag: callers using .exec in a loop must reset lastIndex or use
-// matchAll. For per-call use, build a fresh regex via varRe().
+// VAR_RE matches {{name}} placeholders (same grammar as internal/vars). A
+// leading "$" marks a dynamic faker token (e.g. {{$email}}). Global flag:
+// callers using .exec in a loop must reset lastIndex or use matchAll. For
+// per-call use, build a fresh regex via varRe().
 export function varRe(): RegExp {
-  return /\{\{\s*([\w.-]+)\s*\}\}/g;
+  // Mirrors internal/vars: plain {{name}} or faker {{$ns.name(args)}}.
+  return /\{\{\s*(\$?[\w.-]+(?:\([^)]*\))?)\s*\}\}/g;
 }
 
 const SECRET_KW = ["token", "secret", "password", "passwd", "api_key", "apikey", "client_secret"];
@@ -40,6 +42,7 @@ export function buildScope(): Map<string, string> {
 export type VarStatus = "found" | "secret" | "missing";
 
 export function varStatus(scope: Map<string, string>, name: string): VarStatus {
+  if (name.startsWith("$")) return "found"; // dynamic faker token, resolved at send
   if (scope.has(name)) return "found";
   if (isSecret(name)) return "secret";
   return "missing";
@@ -97,6 +100,6 @@ export function triggerAt(value: string, caret: number): { start: number; prefix
   // A "}}" between the "{{" and the caret means this placeholder is closed.
   if (value.slice(open, caret).includes("}}")) return null;
   const prefix = value.slice(open + 2, caret);
-  if (!/^[\w.-]*$/.test(prefix)) return null;
+  if (!/^[\w.$-]*$/.test(prefix)) return null;
   return { start: open + 2, prefix };
 }

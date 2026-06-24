@@ -6,10 +6,15 @@ import (
 	"regexp"
 	"strings"
 
+	"senda/internal/fake"
 	"senda/internal/model"
 )
 
-var placeholder = regexp.MustCompile(`\{\{\s*([\w.-]+)\s*\}\}`)
+// placeholder matches {{name}} and dynamic faker tokens. A leading "$" marks a
+// faker token (e.g. {{$email}}, {{$person.firstname}}) resolved at apply time
+// rather than from scope; faker tokens may carry params: {{$number.int(min=1,
+// max=9)}}. Plain vars never have parens.
+var placeholder = regexp.MustCompile(`\{\{\s*(\$?[\w.\-]+(?:\([^)]*\))?)\s*\}\}`)
 
 // Scope is a flattened, precedence-resolved variable map plus a record of
 // which placeholders could not be resolved during the last Apply call.
@@ -44,7 +49,12 @@ func (sc *Scope) Apply(s string) string {
 	seen := map[string]bool{}
 	return placeholder.ReplaceAllStringFunc(s, func(match string) string {
 		name := strings.TrimSpace(placeholder.FindStringSubmatch(match)[1])
-		if v, ok := sc.values[name]; ok {
+		if strings.HasPrefix(name, "$") {
+			if v, ok := fake.Func(name[1:]); ok {
+				return v
+			}
+			// Unknown faker token: leave verbatim, record once.
+		} else if v, ok := sc.values[name]; ok {
 			return v
 		}
 		if !seen[name] {

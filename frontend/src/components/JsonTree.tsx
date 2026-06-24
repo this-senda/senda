@@ -33,8 +33,10 @@ export default function JsonTree(props: Props) {
     setAllOpen(next);
     setFold((c) => ({ v: c.v + 1, open: next }));
   };
-  // Wrap long string values vs. single-line + horizontal scroll.
-  const [wrap, setWrap] = createSignal(false);
+  // Wrap long string values vs. single-line + horizontal scroll. Persisted so
+  // it survives response/request switches (default on).
+  const [wrap, setWrap] = createSignal(localStorage.getItem("senda.jsonWrap") !== "0");
+  createEffect(() => localStorage.setItem("senda.jsonWrap", wrap() ? "1" : "0"));
   const parsed = createMemo(() => {
     try {
       return { ok: true as const, value: JSON.parse(props.text) };

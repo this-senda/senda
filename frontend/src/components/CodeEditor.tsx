@@ -2,10 +2,18 @@
 // payloads stay smooth. Used for request bodies and response display.
 import { createEffect, onCleanup, onMount } from "solid-js";
 import { EditorState } from "@codemirror/state";
-import { EditorView, keymap, lineNumbers } from "@codemirror/view";
+import { EditorView, keymap, lineNumbers, tooltips } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
-import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import {
+  autocompletion,
+  completionKeymap,
+  type Completion,
+  type CompletionContext,
+  type CompletionResult,
+} from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
+import { buildScope, triggerAt } from "../lib/vars";
+import { fakerTokens } from "../lib/faker";
 import { graphql, updateSchema } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
 import { HighlightStyle, syntaxHighlighting, bracketMatching } from "@codemirror/language";
@@ -19,7 +27,58 @@ type Props = {
   // GraphQL only: when set, enables schema-aware validation + autocomplete.
   // Syntax linting runs even without it.
   schema?: GraphQLSchema;
+  // When set, typing "{{" offers collection/env variable completions. Used for
+  // request bodies. Reads the client scope (secrets excluded, server-side).
+  varComplete?: boolean;
 };
+
+// varCompletionSource feeds {{var}} names into CM autocomplete. Fires only
+// inside an open, unclosed "{{" (triggerAt). Reads buildScope() at completion
+// time so it always reflects the current collection + active env.
+// ponytail: client scope only (no folder vars / secrets) — enough for bodies;
+// switch to api.resolveScope like UrlField if folder-scoped vars matter.
+// applyToken replaces the whole {{ token (typed prefix + any trailing
+// name/braces) with `insert` + closing braces, so re-picking inside a closed
+// {{x}} doesn't duplicate the braces. Caret lands just after "}}".
+function applyToken(insert: string) {
+  return (view: EditorView, _c: unknown, from: number) => {
+    const after = view.state.doc.sliceString(from, from + 64);
+    const eaten = after.match(/^[\w.$-]*\}{0,2}/)?.[0].length ?? 0;
+    view.dispatch({
+      changes: { from, to: from + eaten, insert: insert + "}}" },
+      selection: { anchor: from + insert.length + 2 },
+    });
+  };
+}
+
+function varCompletionSource(ctx: CompletionContext): CompletionResult | null {
+  const trig = triggerAt(ctx.state.doc.toString(), ctx.pos);
+  if (!trig) return null;
+  const scope = buildScope();
+  const options: Completion[] = [...scope.keys()].sort().map((name) => ({
+    label: name,
+    type: "variable",
+    detail: scope.get(name),
+    apply: applyToken(name),
+  }));
+  // Faker tokens ({{$person.firstname}}…): only once the user starts a "$"
+  // token, so plain {{ doesn't dump 300+ entries. Grouped by category via
+  // `section`; gofakeit's own example shown as detail. CM does final filtering.
+  if (trig.prefix.startsWith("$")) {
+    for (const f of fakerTokens()) {
+      const token = "$" + f.category + "." + f.name;
+      options.push({
+        label: token,
+        type: "function",
+        detail: f.example,
+        section: f.category,
+        apply: applyToken(token),
+      });
+    }
+  }
+  if (options.length === 0) return null;
+  return { from: trig.start, options };
+}
 
 const theme = EditorView.theme(
   {
@@ -42,14 +101,71 @@ const theme = EditorView.theme(
     ".cm-tooltip": {
       backgroundColor: "var(--bg-elev2)",
       border: "1px solid var(--border)",
-      borderRadius: "4px",
+      borderRadius: "8px",
       color: "var(--text)",
+      boxShadow: "0 8px 28px rgba(0,0,0,0.4)",
+      overflow: "hidden",
     },
-    ".cm-tooltip-autocomplete ul li[aria-selected]": {
+    ".cm-tooltip-autocomplete": { padding: "4px" },
+    ".cm-tooltip-autocomplete > ul": {
+      maxHeight: "20em",
+      fontFamily: "var(--mono)",
+      fontSize: "12.5px",
+    },
+    // Each row: icon · label · (example pushed right).
+    ".cm-tooltip-autocomplete > ul > li": {
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      padding: "5px 9px",
+      borderRadius: "5px",
+      lineHeight: "1.4",
+    },
+    ".cm-tooltip-autocomplete > ul > li[aria-selected]": {
       backgroundColor: "var(--accent)",
       color: "var(--accent-fg)",
     },
-    ".cm-completionIcon": { color: "var(--text-dim)" },
+    ".cm-completionLabel": { flex: "1 1 auto" },
+    ".cm-completionMatchedText": {
+      color: "var(--accent)",
+      fontWeight: "700",
+      textDecoration: "none",
+    },
+    "li[aria-selected] .cm-completionMatchedText": { color: "var(--accent-fg)" },
+    // The faker example / var value, dimmed and right-aligned.
+    ".cm-completionDetail": {
+      marginLeft: "auto",
+      paddingLeft: "12px",
+      fontStyle: "normal",
+      fontSize: "11px",
+      color: "var(--text-faint)",
+      maxWidth: "16em",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+    "li[aria-selected] .cm-completionDetail": { color: "var(--accent-fg)", opacity: "0.8" },
+    ".cm-completionIcon": {
+      width: "1.1em",
+      opacity: "0.7",
+      color: "var(--text-dim)",
+      fontSize: "90%",
+    },
+    "li[aria-selected] .cm-completionIcon": { color: "var(--accent-fg)" },
+    // Sticky category header between groups.
+    ".cm-completionSection": {
+      position: "sticky",
+      top: "0",
+      padding: "5px 9px 3px",
+      marginTop: "2px",
+      fontFamily: "var(--mono)",
+      fontSize: "10px",
+      fontWeight: "700",
+      color: "var(--text-faint)",
+      textTransform: "uppercase",
+      letterSpacing: "0.06em",
+      backgroundColor: "var(--bg-elev2)",
+    },
   },
   { dark: true }
 );
@@ -84,12 +200,15 @@ export default function CodeEditor(props: Props) {
       theme,
       highlight,
       bracketMatching(),
+      // Reparent popups to <body> so the autocomplete dropdown isn't clipped by
+      // the editor pane's overflow.
+      tooltips({ parent: document.body }),
       EditorState.readOnly.of(ro),
       ...(ro
         ? []
         : [
             history(),
-            autocompletion(),
+            autocompletion(props.varComplete ? { override: [varCompletionSource] } : undefined),
             keymap.of([...completionKeymap, ...defaultKeymap, ...historyKeymap]),
             EditorView.lineWrapping,
           ]),

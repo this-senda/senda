@@ -5,6 +5,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
+	"senda/internal/fake"
 	"senda/internal/mockserver"
 	"senda/internal/model"
 	"senda/internal/pipeline"
@@ -34,6 +35,12 @@ func (a *App) SendRequest(ctx context.Context, req model.Request, collPath, reqP
 	resp, appliedURL := a.session.Send(ctx, req, collPath, reqPath, envName)
 	recordSend(collPath, req, resp, appliedURL)
 	return resp
+}
+
+// FakerTokens lists the namespaced {{$token}} faker generators (from gofakeit's
+// catalog) for editor autocomplete, so the frontend needn't hardcode the set.
+func (a *App) FakerTokens() []fake.Token {
+	return fake.Tokens()
 }
 
 // ListRuntimeVars exposes the session's script-set variables to the UI.

@@ -6,6 +6,7 @@ require (
 	charm.land/bubbles/v2 v2.1.0
 	charm.land/bubbletea/v2 v2.0.7
 	charm.land/lipgloss/v2 v2.0.4
+	github.com/brianvoe/gofakeit/v7 v7.15.0
 	github.com/charmbracelet/x/ansi v0.11.7
 	github.com/coder/websocket v1.8.14
 	github.com/dop251/goja v0.0.0-20260607120635-348e6bea910d

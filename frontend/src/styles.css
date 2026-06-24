@@ -1438,6 +1438,10 @@ body.dragging-splitter {
 .json-tree.wrap .jt-row {
   min-width: 0;
   white-space: normal;
+  /* jt-val uses content-visibility (layout containment) below, which hides its
+     baseline — baseline alignment would then drop the value below the key. Top-
+     align instead; also the right look when a long value wraps to many lines. */
+  align-items: flex-start;
 }
 .json-tree.wrap .jt-val {
   white-space: pre-wrap;

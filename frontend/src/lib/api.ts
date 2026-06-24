@@ -81,6 +81,7 @@ export const api = {
   readFolderMeta: (path: string) => App.ReadFolderMeta(path),
   resolveScope: (collPath: string, reqPath: string, envName: string) =>
     App.ResolveScope(collPath, reqPath, envName),
+  fakerTokens: () => App.FakerTokens(),
   readRequest: (path: string) => App.ReadRequest(path),
   saveRequest: (path: string, req: Request) => App.SaveRequest(path, req),
   deleteRequest: (path: string) => App.DeleteRequest(path),

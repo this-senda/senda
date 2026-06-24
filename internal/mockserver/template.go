@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"senda/internal/fake"
 )
 
 // tmplCtx is the data available to {{...}} expressions in a response.
@@ -87,14 +89,14 @@ func evalExpr(expr string, ctx tmplCtx) (string, bool) {
 		case "body":
 			return lookupBody(ctx.body, rest)
 		case "faker":
-			return fakerFunc(rest)
+			return fake.Func(rest)
 		}
 	}
 
 	// Bare functions.
 	switch strings.ToLower(head) {
 	case "uuid":
-		return fakeUUID(), true
+		return fake.UUID(), true
 	case "now":
 		layout := time.RFC3339
 		if len(args) > 0 {
