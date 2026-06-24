@@ -7,6 +7,14 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.4](https://github.com/this-senda/senda/compare/v0.1.3...v0.1.4) (2026-06-24)
+
+
+### Bug Fixes
+
+* **ci:** persist build caches on failure and retry dmg create ([#20](https://github.com/this-senda/senda/issues/20)) ([817ec2f](https://github.com/this-senda/senda/commit/817ec2f68cadf8a6052959467429230e47893af5))
+* **ui:** saveable scratch tabs, drag-move, tab nav ([#22](https://github.com/this-senda/senda/issues/22)) ([5c5cf4a](https://github.com/this-senda/senda/commit/5c5cf4a8b64a8e5ec3a750d7edc5df82d75220cd))
+
 ## [0.1.3](https://github.com/this-senda/senda/compare/v0.1.2...v0.1.3) (2026-06-21)
 
 
