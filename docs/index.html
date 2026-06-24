@@ -236,8 +236,11 @@
     }
     .tab:hover { color:var(--text); }
     .tab[aria-selected="true"] { color:#11111b; background:var(--brand); }
+    .tab .soon { margin-left:.45em; font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:.12em .5em; border-radius:999px; background:var(--surface0); color:var(--subtext0); vertical-align:middle; }
+    .tab[aria-selected="true"] .soon { background:rgba(17,17,27,.18); color:#11111b; }
     .panel { padding:24px; display:none; }
     .panel[data-active="true"] { display:block; }
+    .panel .terminal.soon { opacity:.5; filter:grayscale(1); pointer-events:none; }
     .panel p.note { margin:14px 0 0; font-size:.86rem; color:var(--subtext0); }
     .terminal {
       display:flex; align-items:flex-start; gap:14px;
@@ -643,7 +646,7 @@
           <button class="tab" role="tab" aria-selected="true" data-tab="sh">Linux / macOS</button>
           <button class="tab" role="tab" aria-selected="false" data-tab="ps">Windows</button>
           <button class="tab" role="tab" aria-selected="false" data-tab="brew">Homebrew</button>
-          <button class="tab" role="tab" aria-selected="false" data-tab="winget">winget</button>
+          <button class="tab" role="tab" aria-selected="false" data-tab="winget">winget<span class="soon">soon</span></button>
         </div>
 
         <div class="panel" data-panel="sh" data-active="true">
@@ -674,12 +677,11 @@
         </div>
 
         <div class="panel" data-panel="winget">
-          <div class="terminal">
+          <div class="terminal soon" aria-hidden="true">
             <span class="prompt">&gt;</span>
             <code id="cmd-winget">winget install this-senda.Senda</code>
-            <button class="copy" data-copy="cmd-winget" aria-label="Copy command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
-          <p class="note">Prefer Chocolatey? <code style="font-family:var(--mono)">choco install senda</code> works too.</p>
+          <p class="note"><strong>Coming soon.</strong> The winget and Chocolatey (<code style="font-family:var(--mono)">choco install senda</code>) packages aren't published to their repositories yet. For now, install on Windows with the <a href="#install" data-tab-link="ps">PowerShell installer</a> or grab the <code>.exe</code> from the <a href="https://github.com/this-senda/senda/releases">releases page</a>.</p>
         </div>
       </div>
 
@@ -795,6 +797,12 @@
           panels.forEach(function (p) {
             p.setAttribute('data-active', p.getAttribute('data-panel') === name ? 'true' : 'false');
           });
+        });
+      });
+      document.querySelectorAll('[data-tab-link]').forEach(function (link) {
+        link.addEventListener('click', function () {
+          var target = document.querySelector('.tab[data-tab="' + link.getAttribute('data-tab-link') + '"]');
+          if (target) target.click();
         });
       });
     })();
