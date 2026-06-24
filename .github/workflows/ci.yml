@@ -141,12 +141,24 @@ jobs:
         working-directory: frontend
         run: bun install --frozen-lockfile
 
+      # Cache the downloaded browser binaries (~100 MB) across runs, keyed on
+      # the pinned Playwright version in the lockfile. System libs from
+      # --with-deps (apt) aren't cached here, but they're fast on warm runners.
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('frontend/bun.lock') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
       # Playwright's bundled WebKit ≈ the WebKitGTK runtime the app ships,
       # without a native build. Catches drag-and-drop / prompt() / focus bugs
-      # jsdom can't. --with-deps pulls the system libs WebKit needs.
+      # jsdom can't. --with-deps pulls the system libs WebKit needs; the
+      # browser download is skipped when the cache above hit.
       - name: Install Playwright WebKit
         working-directory: frontend
-        run: bunx playwright install --with-deps webkit
+        run: bun run test:e2e:install
 
       - name: Run smoke tests
         working-directory: frontend
