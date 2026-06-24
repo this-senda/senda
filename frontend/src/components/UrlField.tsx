@@ -11,16 +11,8 @@ import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { request, setRequest, setDirty, activeEnv, activePath, collection } from "../lib/store";
 import { api } from "../lib/api";
 import { sendActive } from "../lib/actions";
-import {
-  buildScope,
-  buildSources,
-  sourceOf,
-  splitVars,
-  triggerAt,
-  type Segment,
-  type VarSource,
-  type VarStatus,
-} from "../lib/vars";
+import { splitVars, triggerAt, type Segment, type VarStatus } from "../lib/vars";
+import { buildScope, buildSources, sourceOf, type VarSource } from "../lib/scope";
 
 export default function UrlField() {
   let inputRef: HTMLInputElement | undefined;
