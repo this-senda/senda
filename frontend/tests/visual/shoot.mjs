@@ -102,6 +102,16 @@ async function seedCollection(page, { env = "dev", themeMode = "light" } = {}) {
       localStorage.setItem("senda.lastCollection", "/demo");
       localStorage.setItem("senda.activeEnv", env);
       localStorage.setItem("senda.themeMode", themeMode);
+      // Pin a couple of workspaces so the titlebar rail has more than one box:
+      // /demo carries a chosen emoji icon, /petstore falls back to its monogram.
+      localStorage.setItem(
+        "senda.pinnedCollections",
+        JSON.stringify([
+          { name: "demo-api", path: "/demo" },
+          { name: "petstore", path: "/petstore" },
+        ]),
+      );
+      localStorage.setItem("senda.collectionIcons", JSON.stringify({ "/demo": "🚀" }));
     },
     [env, themeMode],
   );
@@ -145,6 +155,25 @@ await shot(page, "05-body-json.png", async () => {
   await centerTab(page, "Body").click();
   await wait(300);
 });
+
+// 19 — {{$faker}} autocomplete in the JSON body (still on the Body tab).
+await shot(page, "19-faker-autocomplete.png", async () => {
+  await page.locator(".cm-content").click();
+  await page.keyboard.press("Control+End");
+  // Type the token: the first completion call fires fakerTokens() (fetched async,
+  // empty on that first pass). Wait for it to cache, then re-query with Ctrl+Space
+  // ("$"/"." aren't word chars, so it won't auto-reopen) to get the faker entries.
+  // Screenshot must happen while the popup is up — the editor's store-sync closes
+  // it within ~300ms, so shot() captures immediately after waitFor (no dwell).
+  await page.keyboard.type("\n{{$person.f");
+  await wait(900);
+  await page.keyboard.press("Control+Space");
+  await page.locator(".cm-tooltip-autocomplete").waitFor({ timeout: 4000 });
+});
+await page.keyboard.press("Escape").catch(() => {});
+// undo the scratch token so later Body-dependent shots stay clean.
+await page.keyboard.press("Control+z").catch(() => {});
+await page.keyboard.press("Control+z").catch(() => {});
 
 // 06 — request headers.
 await shot(page, "06-headers.png", async () => {
@@ -213,6 +242,16 @@ await shot(page, "17-history.png", async () => {
   await wait(500);
 });
 await dismiss(page);
+
+// 18 — workspace rail: right-click a box to reveal the icon picker.
+await shot(page, "18-workspace-rail.png", async () => {
+  await page.locator(".ws-box").first().click({ button: "right" });
+  await page.locator(".ws-picker").waitFor({ timeout: 4000 });
+  await wait(300);
+});
+// the picker closes on its own backdrop, not the modal backdrop dismiss() uses.
+await page.locator(".menu-backdrop").first().click({ position: { x: 6, y: 6 } }).catch(() => {});
+await wait(200);
 
 // 09 — command palette.
 await shot(page, "09-command-palette.png", async () => {
@@ -365,6 +404,20 @@ async function captureGif() {
   await injectCursor();
   await dwell(800); // collection open
 
+  // workspace rail: right-click the active box and pick a new emoji icon
+  const wsBox = gp.locator(".ws-box").first();
+  const wsC = await centerOf(wsBox);
+  if (wsC) {
+    await glide(wsC.x, wsC.y);
+    await gp.mouse.click(wsC.x, wsC.y, { button: "right" });
+    await gp.locator(".ws-picker").waitFor({ timeout: 4000 }).catch(() => {});
+    await film(3);
+    const cell = gp.locator(".ws-picker-cell").nth(4); // a different emoji
+    if (await cell.count()) { await clickEl(cell, { settle: 120 }); await film(4); }
+    await gp.locator(".menu-backdrop").first().click({ position: { x: 6, y: 6 } }).catch(() => {});
+    await wait(150);
+  }
+
   // open a request
   await clickEl(gp.locator("aside .tree-leaf", { hasText: "create-user" }).first());
   await dwell(600);
@@ -378,6 +431,20 @@ async function captureGif() {
   // peek at the assertions
   await clickEl(gp.locator("main.center .tabs button", { hasText: /^Tests/ }).first());
   await dwell(850);
+
+  // {{$faker}} autocomplete: open Body, type a token, film the dropdown
+  await clickEl(gp.locator("main.center .tabs button", { hasText: /^Body/ }).first());
+  await dwell(400);
+  await clickEl(gp.locator(".cm-content").first(), { settle: 120 });
+  await gp.keyboard.press("Control+End");
+  await gp.keyboard.type("\n");
+  await typeOut("{{$person.f"); // first pass kicks off the faker fetch
+  await wait(900);             // let it cache
+  await gp.keyboard.press("Control+Space"); // re-query -> faker entries
+  await gp.locator(".cm-tooltip-autocomplete").waitFor({ timeout: 4000 }).catch(() => {});
+  await film(4); // hold on the dropdown before it auto-closes
+  await gp.keyboard.press("Escape");
+  await wait(150);
 
   // command palette: open and type to filter
   await gp.keyboard.press("Control+k");

@@ -24,6 +24,7 @@ export const OpenCollection = method("OpenCollection");
 export const SaveCollection = method("SaveCollection");
 export const ReadFolderMeta = method("ReadFolderMeta");
 export const ResolveScope = method("ResolveScope");
+export const FakerTokens = method("FakerTokens");
 export const ReadRequest = method("ReadRequest");
 export const SaveRequest = method("SaveRequest");
 export const DeleteRequest = method("DeleteRequest");

@@ -288,6 +288,23 @@ export function installCaptureMock() {
     GenerateAssertions: async () => [],
     AIConfigured: async () => false,
 
+    // faker tokens ({{$category.name}} body autocomplete). Real backend pulls
+    // gofakeit's full catalog; this slice is enough to populate the dropdown.
+    FakerTokens: async () => [
+      { category: "person", name: "firstname", example: "Ada" },
+      { category: "person", name: "lastname", example: "Lovelace" },
+      { category: "person", name: "name", example: "Ada Lovelace" },
+      { category: "person", name: "email", example: "ada@example.com" },
+      { category: "person", name: "phone", example: "555-0142" },
+      { category: "internet", name: "username", example: "ada_l" },
+      { category: "internet", name: "url", example: "https://example.com" },
+      { category: "internet", name: "ipv4", example: "192.168.0.42" },
+      { category: "address", name: "city", example: "London" },
+      { category: "address", name: "country", example: "United Kingdom" },
+      { category: "company", name: "name", example: "Analytical Engines Ltd" },
+      { category: "misc", name: "uuid", example: "f47ac10b-58cc-4372-a567-0e02b2c3d479" },
+    ],
+
     // mock server (newest feature)
     StartMockServer: async () => mockInfo.addr,
     StopMockServer: async () => {},

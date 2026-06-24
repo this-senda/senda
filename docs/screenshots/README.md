@@ -66,4 +66,6 @@ Numbered to match the order they appear in the root README.
 | `15-code-generation.png` | Code generation — curl / fetch / httpie / python / go |
 | `16-import.png` | Import — curl, Postman, and OpenAPI |
 | `17-history.png` | Request history panel |
-| `walkthrough.gif` | Animated tour: open → send → tests → palette → theme |
+| `18-workspace-rail.png` | Workspace rail — multi-collection switcher + icon picker |
+| `19-faker-autocomplete.png` | `{{$faker}}` token autocomplete in the JSON body |
+| `walkthrough.gif` | Animated tour: open → workspace icon → send → tests → faker → palette → theme |
