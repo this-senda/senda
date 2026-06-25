@@ -29,6 +29,9 @@
   --text-faint: #5a616d;
   --accent: #6e8bff;
   --accent-dim: #3d4f8a;
+  --var-purple: #a78bfa;
+  --var-purple-dim: #6e54c81f;
+  --method-patch: #c792ea;
   --accent-fg: #ffffff;
   --selection: #3d4f8a;
   --selection-fg: #ffffff;
@@ -549,15 +552,33 @@ body.dragging-splitter {
   align-items: center;
   background: var(--bg-elev);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   /* visible so the {{var}} autocomplete popup can overflow the pill */
   overflow: visible;
   position: relative;
   transition: border-color 0.15s;
+  --rail: var(--border);
 }
 .url-group:focus-within {
   border-color: var(--accent-dim);
 }
+/* Verb rail: rounded colored bar on the pill's left edge, keyed to the method. */
+.url-group::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--rail);
+  pointer-events: none;
+}
+.url-group.method-get  { --rail: var(--ok); }
+.url-group.method-post { --rail: var(--warn); }
+.url-group.method-put { --rail: var(--redirect); }
+.url-group.method-patch { --rail: var(--method-patch); }
+.url-group.method-delete { --rail: var(--err); }
 /* Inline method select inside pill */
 .method-inline {
   appearance: none;
@@ -565,14 +586,79 @@ body.dragging-splitter {
   background: transparent;
   border: none;
   outline: none;
-  padding: 0 6px 0 10px;
+  padding: 0 8px 0 14px;
   font-weight: 700;
   font-size: var(--fs-sm);
+  letter-spacing: 0.04em;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
   height: 100%;
   min-width: 0;
+}
+/* Custom verb dropdown */
+.method-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+}
+.method-menu {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: -1px;
+  z-index: 40;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+}
+.method-menu-head {
+  padding: 6px 10px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.method-opt {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 8px 11px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.05em;
+  color: var(--text-dim); /* default for verbs w/o a color (HEAD/OPTIONS) */
+}
+.method-opt:hover {
+  background: var(--hover);
+}
+.method-opt.selected {
+  background: rgba(110, 139, 255, 0.16);
+}
+.method-rail {
+  width: 3px;
+  height: 14px;
+  border-radius: 3px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.method-opt-label {
+  flex: 1;
+  text-align: left;
+}
+.method-check {
+  color: var(--accent);
+  flex-shrink: 0;
 }
 .url-divider {
   width: 1px;
@@ -586,7 +672,7 @@ body.dragging-splitter {
   background: transparent;
   border: none;
   outline: none;
-  padding: 7px 10px;
+  padding: 11px 12px;
   font-family: var(--mono);
   font-size: var(--fs-sm);
   user-select: text;
@@ -614,7 +700,7 @@ body.dragging-splitter {
   position: absolute;
   inset: 0;
   z-index: 0;
-  padding: 7px 10px;
+  padding: 11px 12px;
   font-family: var(--mono);
   font-size: var(--fs-sm);
   white-space: pre;
@@ -622,7 +708,7 @@ body.dragging-splitter {
   pointer-events: none;
   color: var(--text);
 }
-.url-highlight .var-found { color: var(--accent); }
+.url-highlight .var-found { color: var(--var-purple); }
 .url-highlight .var-secret { color: var(--warn); }
 .url-highlight .var-missing { color: var(--err); }
 /* Rest-state read view: {{var}} tokens shown as pills, plain text otherwise.
@@ -630,7 +716,7 @@ body.dragging-splitter {
 .url-read {
   flex: 1;
   min-width: 0;
-  padding: 7px 10px;
+  padding: 11px 12px;
   font-family: var(--mono);
   font-size: var(--fs-sm);
   line-height: 1.2;
@@ -653,8 +739,8 @@ body.dragging-splitter {
   cursor: pointer;
 }
 .pill-found {
-  background: var(--accent-dim);
-  color: var(--accent);
+  background: var(--var-purple-dim);
+  color: var(--var-purple);
 }
 .pill-secret {
   background: rgba(210, 153, 34, 0.18);
@@ -778,21 +864,34 @@ body.dragging-splitter {
 }
 .method-get  { color: var(--ok); }
 .method-post { color: var(--warn); }
-.method-put,
-.method-patch { color: var(--redirect); }
+.method-put { color: var(--redirect); }
+.method-patch { color: var(--method-patch); }
 .method-delete { color: var(--err); }
 .send-btn {
-  background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #8b9bff, var(--accent));
   border: none;
   color: var(--accent-fg);
   font-weight: 600;
   padding: 0 18px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+/* URL bar Send is icon-only — fixed square, centered so it never stretches.
+   (WS/SSE Send buttons keep their text.) Explicit w/h, not aspect-ratio:
+   WebKitGTK mis-sizes aspect-ratio under flex-stretch. */
+.url-bar .send-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  align-self: center;
 }
 .send-btn:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.08);
 }
 .send-btn:disabled {
   opacity: 0.6;
@@ -805,12 +904,14 @@ body.dragging-splitter {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
+  width: 30px;
+  height: 34px;
+  align-self: center;
   flex-shrink: 0;
-  background: var(--bg-elev2);
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-faint);
+  border-radius: 8px;
   cursor: pointer;
   position: relative;
   transition: color 0.15s, border-color 0.15s;

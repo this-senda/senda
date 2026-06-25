@@ -1,8 +1,8 @@
 // Request editing pane: method + URL + send, and tabs for params / headers /
 // body. Drives the shared request store.
-import { createSignal, For, Index, Match, Show, Switch } from "solid-js";
+import { createSignal, For, Index, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { buildClientSchema, getIntrospectionQuery, type GraphQLSchema } from "graphql";
-import { Code2, Plus, Save as SaveIcon, X } from "lucide-solid";
+import { Check, Code2, Plus, Save as SaveIcon, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api, BodyType, type KV, type Request, type WSSession, type SSEEvent } from "../lib/api";
 import { blankKV } from "../lib/factory";
@@ -42,28 +42,11 @@ export default function RequestEditor() {
   return (
     <div class="request-editor">
       <div class="url-bar">
-        <div class="url-group">
-          <select
-            class={`method method-inline method-${request.method.toLowerCase()}`}
-            value={request.method}
-            onChange={(e) => {
-              setRequest("method", e.currentTarget.value);
-              setDirty(true);
-            }}
-          >
-            {METHODS.map((m) => (
-              <option value={m}>{m}</option>
-            ))}
-          </select>
+        <div class={`url-group method-${request.method.toLowerCase()}`}>
+          <MethodSelect />
           <span class="url-divider" />
           <UrlField />
         </div>
-        <button class="send-btn" onClick={send} disabled={sending()}>
-          {sending() ? "…" : "Send"}
-        </button>
-        <button class="url-icon-btn" title="Generate code" onClick={() => setShowCode(true)}>
-          <Code2 size={ICON.lg} />
-        </button>
         <Show when={dirty()}>
           <button
             class="url-icon-btn dirty"
@@ -73,6 +56,16 @@ export default function RequestEditor() {
             <SaveIcon size={ICON.lg} />
           </button>
         </Show>
+        <button class="url-icon-btn" title="Generate code" onClick={() => setShowCode(true)}>
+          <Code2 size={ICON.lg} />
+        </button>
+        <button class="send-btn" onClick={send} disabled={sending()} title="Send (⏎)" aria-label="Send">
+          {sending() ? "…" : (
+            <svg width={ICON.lg} height={ICON.lg} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2z" />
+            </svg>
+          )}
+        </button>
       </div>
       <Show when={showCode()}>
         <CodeGenDialog onClose={() => setShowCode(false)} />
@@ -179,6 +172,54 @@ export default function RequestEditor() {
           </Match>
         </Switch>
       </div>
+    </div>
+  );
+}
+
+// Custom verb dropdown — native <select> can't render per-option color rails +
+// check. Trigger shows the colored verb; menu lists all methods.
+function MethodSelect() {
+  const [open, setOpen] = createSignal(false);
+  let ref: HTMLDivElement | undefined;
+  const onDoc = (e: MouseEvent) => {
+    if (ref && !ref.contains(e.target as Node)) setOpen(false);
+  };
+  onMount(() => document.addEventListener("mousedown", onDoc));
+  onCleanup(() => document.removeEventListener("mousedown", onDoc));
+  const pick = (m: string) => {
+    setRequest("method", m);
+    setDirty(true);
+    setOpen(false);
+  };
+  return (
+    <div class="method-select" ref={ref}>
+      <button
+        class={`method-inline method-${request.method.toLowerCase()}`}
+        onClick={() => setOpen(!open())}
+        onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
+      >
+        {request.method}
+      </button>
+      <Show when={open()}>
+        <div class="method-menu">
+          <div class="method-menu-head">Method</div>
+          <For each={METHODS}>
+            {(m) => (
+              <button
+                class={`method-opt method-${m.toLowerCase()}`}
+                classList={{ selected: request.method === m }}
+                onClick={() => pick(m)}
+              >
+                <span class="method-rail" />
+                <span class="method-opt-label">{m}</span>
+                <Show when={request.method === m}>
+                  <Check size={14} class="method-check" />
+                </Show>
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
     </div>
   );
 }
