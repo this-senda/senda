@@ -254,7 +254,7 @@
       border-top:1px solid var(--surface0); flex:1;
     }
     .gallery figcaption code { color:var(--teal); }
-    .gallery .frame img { cursor:zoom-in; }
+    .gallery .frame img, .mode .shot img, .window img { cursor:zoom-in; }
 
     /* Lightbox (native <dialog>) */
     .lightbox { border:0; padding:0; background:transparent; max-width:94vw; max-height:94vh; overflow:visible; }
@@ -889,7 +889,7 @@
       var dlg = document.querySelector('.lightbox');
       if (!dlg || typeof dlg.showModal !== 'function') return;
       var big = dlg.querySelector('img');
-      document.querySelectorAll('.gallery .frame img').forEach(function (thumb) {
+      document.querySelectorAll('.gallery .frame img, .mode .shot img, .window img').forEach(function (thumb) {
         thumb.addEventListener('click', function () {
           big.src = thumb.currentSrc || thumb.src;
           big.alt = thumb.alt || '';
