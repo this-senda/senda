@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => ({
               replacement: resolve(__dirname, "src/test-stubs/models.ts"),
             },
             {
-              find: "../../bindings/senda/app",
+              find: "../../bindings/senda/internal/app/app",
               replacement: resolve(__dirname, "src/test-stubs/app.ts"),
             },
           ]
