@@ -6,11 +6,13 @@ import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { KV } from "../lib/api";
 import { collection, environments, setEnvironments } from "../lib/store";
+import { ENV_COLORS, envColor } from "../lib/envColor";
 import KVEditor from "./KVEditor";
 
 export default function EnvEditor(props: { onClose: () => void }) {
   const [selected, setSelected] = createSignal(environments()[0]?.name ?? "");
   const [draftVars, setDraftVars] = createSignal<KV[] | null>(null);
+  const [draftColor, setDraftColor] = createSignal<string | null>(null);
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal("");
 
@@ -18,10 +20,13 @@ export default function EnvEditor(props: { onClose: () => void }) {
     environments().find((e) => e.name === selected())
   );
   const vars = () => draftVars() ?? current()?.vars ?? [];
+  const color = () => draftColor() ?? current()?.color ?? "";
+  const dirty = () => draftVars() !== null || draftColor() !== null;
 
   const pick = (name: string) => {
     setSelected(name);
     setDraftVars(null);
+    setDraftColor(null);
     setError("");
   };
 
@@ -32,19 +37,20 @@ export default function EnvEditor(props: { onClose: () => void }) {
       pick(name);
       return;
     }
-    await save(name, []);
+    await save(name, [], "");
     pick(name);
   };
 
-  const save = async (name: string, rows: KV[]) => {
+  const save = async (name: string, rows: KV[], col: string) => {
     const coll = collection();
     if (!coll) return;
     setSaving(true);
     setError("");
     try {
-      await api.saveEnvironment(coll.path, { name, vars: rows } as any);
+      await api.saveEnvironment(coll.path, { name, color: col, vars: rows } as any);
       setEnvironments((await api.listEnvironments(coll.path)) ?? []);
       setDraftVars(null);
+      setDraftColor(null);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -83,6 +89,20 @@ export default function EnvEditor(props: { onClose: () => void }) {
               when={selected()}
               fallback={<div class="empty-hint">Create an environment to begin.</div>}
             >
+              <div class="env-color-row">
+                <span class="env-color-label">Colour</span>
+                <For each={ENV_COLORS}>
+                  {(c) => (
+                    <button
+                      class="env-swatch"
+                      classList={{ active: envColor(color()) === c }}
+                      style={{ background: c }}
+                      title={c}
+                      onClick={() => setDraftColor(c)}
+                    />
+                  )}
+                </For>
+              </div>
               <KVEditor
                 rows={vars()}
                 keyPlaceholder="variable"
@@ -100,8 +120,8 @@ export default function EnvEditor(props: { onClose: () => void }) {
           </button>
           <button
             class="btn primary"
-            disabled={!selected() || draftVars() === null || saving()}
-            onClick={() => save(selected(), vars())}
+            disabled={!selected() || !dirty() || saving()}
+            onClick={() => save(selected(), vars(), color())}
           >
             {saving() ? "Saving…" : "Save"}
           </button>

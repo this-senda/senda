@@ -314,12 +314,116 @@ button {
   font-size: var(--fs-sm);
   color: var(--text-faint);
 }
-.env-switcher select {
+.env-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.env-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px; /* match titlebar .icon-btn so the pill sits flush with gear/palette */
+  box-sizing: border-box;
   background: var(--bg-elev2);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 4px 8px;
+  border-radius: 7px;
+  padding: 0 9px;
+  color: var(--text);
+  cursor: pointer;
+}
+.env-pill:hover {
+  background: var(--hover);
+}
+.env-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.env-name {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  /* font baseline sits low in the em box → lowercase mass renders ~1-2px below
+     the dot/chevron centers. Nudge up to optically align. Calibration knob:
+     bump to -2px if it still reads low. */
+  transform: translateY(-1px);
+}
+.env-chevron {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.env-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 5px 2px;
+}
+.env-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+}
+.env-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 11px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
+}
+.env-opt:hover {
+  background: var(--hover);
+}
+.env-opt.selected {
+  background: rgba(110, 139, 255, 0.16);
+  color: var(--text);
+}
+.env-opt-label {
+  flex: 1;
+  text-align: left;
+}
+.env-check {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.env-color-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.env-color-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-right: 4px;
+}
+.env-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.env-swatch.active {
+  border-color: var(--text);
+  box-shadow: 0 0 0 1px var(--bg);
 }
 
 /* ---- panes ---- */
@@ -587,11 +691,21 @@ body.dragging-splitter {
   background: var(--rail);
   pointer-events: none;
 }
-.url-group.method-get  { --rail: var(--ok); }
-.url-group.method-post { --rail: var(--warn); }
-.url-group.method-put { --rail: var(--redirect); }
-.url-group.method-patch { --rail: var(--method-patch); }
-.url-group.method-delete { --rail: var(--err); }
+.url-group.method-get {
+  --rail: var(--ok);
+}
+.url-group.method-post {
+  --rail: var(--warn);
+}
+.url-group.method-put {
+  --rail: var(--redirect);
+}
+.url-group.method-patch {
+  --rail: var(--method-patch);
+}
+.url-group.method-delete {
+  --rail: var(--err);
+}
 /* Inline method select inside pill */
 .method-inline {
   appearance: none;
@@ -721,9 +835,15 @@ body.dragging-splitter {
   pointer-events: none;
   color: var(--text);
 }
-.url-highlight .var-found { color: var(--var-purple); }
-.url-highlight .var-secret { color: var(--warn); }
-.url-highlight .var-missing { color: var(--err); }
+.url-highlight .var-found {
+  color: var(--var-purple);
+}
+.url-highlight .var-secret {
+  color: var(--warn);
+}
+.url-highlight .var-missing {
+  color: var(--err);
+}
 /* Rest-state read view: {{var}} tokens shown as pills, plain text otherwise.
    Metrics mirror .url-input so swapping to edit mode doesn't shift the text. */
 .url-read {
@@ -790,9 +910,15 @@ body.dragging-splitter {
   word-break: break-all;
   color: var(--text);
 }
-.pop-val.pv-found { color: var(--ok); }
-.pop-val.pv-secret { color: var(--text-dim); }
-.pop-val.pv-missing { color: var(--err); }
+.pop-val.pv-found {
+  color: var(--ok);
+}
+.pop-val.pv-secret {
+  color: var(--text-dim);
+}
+.pop-val.pv-missing {
+  color: var(--err);
+}
 .pop-src {
   color: var(--text-dim);
   font-size: calc(var(--fs-sm) - 1px);
@@ -856,9 +982,15 @@ body.dragging-splitter {
   white-space: pre;
   text-overflow: ellipsis;
 }
-.url-preview-text .pv-found { color: var(--ok); }
-.url-preview-text .pv-secret { color: var(--text-dim); }
-.url-preview-text .pv-missing { color: var(--err); }
+.url-preview-text .pv-found {
+  color: var(--ok);
+}
+.url-preview-text .pv-secret {
+  color: var(--text-dim);
+}
+.url-preview-text .pv-missing {
+  color: var(--err);
+}
 .url-preview-env {
   margin-left: auto;
   flex-shrink: 0;
@@ -875,12 +1007,27 @@ body.dragging-splitter {
   font-size: var(--fs-sm);
   cursor: pointer;
 }
-.method-get  { color: var(--ok); }
-.method-post { color: var(--warn); }
-.method-put { color: var(--redirect); }
-.method-patch { color: var(--method-patch); }
-.method-delete { color: var(--err); }
-.method-stream { color: var(--accent); cursor: default; display: inline-flex; align-items: center; }
+.method-get {
+  color: var(--ok);
+}
+.method-post {
+  color: var(--warn);
+}
+.method-put {
+  color: var(--redirect);
+}
+.method-patch {
+  color: var(--method-patch);
+}
+.method-delete {
+  color: var(--err);
+}
+.method-stream {
+  color: var(--accent);
+  cursor: default;
+  display: inline-flex;
+  align-items: center;
+}
 .send-btn {
   display: inline-flex;
   align-items: center;
@@ -928,7 +1075,9 @@ body.dragging-splitter {
   border-radius: 8px;
   cursor: pointer;
   position: relative;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 .url-icon-btn:hover {
   color: var(--text);
@@ -1858,7 +2007,9 @@ body.dragging-splitter {
   color: var(--text);
   cursor: pointer;
 }
-.check-row input { cursor: pointer; }
+.check-row input {
+  cursor: pointer;
+}
 .text-input {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -1905,7 +2056,7 @@ body.dragging-splitter {
   border-radius: 6px;
   padding: 4px;
   min-width: 140px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 .ctx-item {
   display: flex;
@@ -1957,7 +2108,9 @@ body.dragging-splitter {
   border: none;
   border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
 }
 .run-tab:hover {
   color: var(--text);
@@ -3057,9 +3210,16 @@ body.dragging-node * {
   border-bottom: 1px solid var(--border);
   font-size: var(--fs-xs);
 }
-.ws-status-ok { color: var(--success, #4caf50); }
-.ws-status-err { color: var(--danger, #f44336); }
-.ws-duration { color: var(--text-dim); margin-left: auto; }
+.ws-status-ok {
+  color: var(--success, #4caf50);
+}
+.ws-status-err {
+  color: var(--danger, #f44336);
+}
+.ws-duration {
+  color: var(--text-dim);
+  margin-left: auto;
+}
 .ws-messages {
   flex: 1;
   overflow-y: auto;
@@ -3077,12 +3237,33 @@ body.dragging-node * {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
 }
-.ws-msg-sent { background: var(--accent-dim, rgba(100,180,255,0.08)); }
-.ws-msg-received { background: var(--bg-elev2); }
-.ws-msg-dir { flex-shrink: 0; color: var(--text-dim); }
-.ws-msg-data { flex: 1; white-space: pre-wrap; word-break: break-all; margin: 0; }
-.ws-msg-time { flex-shrink: 0; color: var(--text-dim); font-size: var(--fs-3xs); align-self: center; }
-.ws-error { color: var(--danger, #f44336); font-size: var(--fs-sm); padding: 6px; }
+.ws-msg-sent {
+  background: var(--accent-dim, rgba(100, 180, 255, 0.08));
+}
+.ws-msg-received {
+  background: var(--bg-elev2);
+}
+.ws-msg-dir {
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.ws-msg-data {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+.ws-msg-time {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: var(--fs-3xs);
+  align-self: center;
+}
+.ws-error {
+  color: var(--danger, #f44336);
+  font-size: var(--fs-sm);
+  padding: 6px;
+}
 .ws-conn-dot {
   width: 8px;
   height: 8px;
@@ -3090,9 +3271,16 @@ body.dragging-node * {
   background: var(--text-dim);
   flex-shrink: 0;
 }
-.ws-conn-dot.on { background: var(--success, #4caf50); }
-.ws-conn-label { font-size: var(--fs-xs); color: var(--text-dim); }
-.ws-toolbar-spacer { flex: 1; }
+.ws-conn-dot.on {
+  background: var(--success, #4caf50);
+}
+.ws-conn-label {
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+.ws-toolbar-spacer {
+  flex: 1;
+}
 .ws-disconnect {
   background: transparent;
   border: 1px solid var(--border);
@@ -3102,7 +3290,10 @@ body.dragging-node * {
   font-size: var(--fs-sm);
   cursor: pointer;
 }
-.ws-disconnect:hover { border-color: var(--danger, #f44336); color: var(--danger, #f44336); }
+.ws-disconnect:hover {
+  border-color: var(--danger, #f44336);
+  color: var(--danger, #f44336);
+}
 .ws-compose {
   display: flex;
   gap: 8px;
@@ -3119,8 +3310,12 @@ body.dragging-node * {
   font-size: var(--fs-sm);
   outline: none;
 }
-.ws-input:focus { border-color: var(--accent); }
-.ws-input:disabled { opacity: 0.5; }
+.ws-input:focus {
+  border-color: var(--accent);
+}
+.ws-input:disabled {
+  opacity: 0.5;
+}
 
 /* ── SSE panel ───────────────────────────────────────────────────────────── */
 .sse-panel {
@@ -3142,8 +3337,13 @@ body.dragging-node * {
   animation: pulse 1s ease-in-out infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 .sse-events {
   flex: 1;
@@ -3163,17 +3363,28 @@ body.dragging-node * {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
 }
-.sse-event:last-child { border-bottom: none; }
+.sse-event:last-child {
+  border-bottom: none;
+}
 .sse-event-type {
   flex-shrink: 0;
-  background: var(--accent-dim, rgba(100,180,255,0.15));
+  background: var(--accent-dim, rgba(100, 180, 255, 0.15));
   color: var(--accent, #64b4ff);
   padding: 1px 6px;
   border-radius: 3px;
   font-size: var(--fs-3xs);
 }
-.sse-event-data { flex: 1; white-space: pre-wrap; word-break: break-all; margin: 0; }
-.sse-event-id { flex-shrink: 0; color: var(--text-dim); font-size: var(--fs-3xs); }
+.sse-event-data {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+.sse-event-id {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-size: var(--fs-3xs);
+}
 
 /* ── Schema badge in status bar ─────────────────────────────────────────── */
 .schema-badge {
@@ -3183,14 +3394,14 @@ body.dragging-node * {
   font-weight: 500;
 }
 .schema-pass {
-  background: rgba(76,175,80,0.15);
+  background: rgba(76, 175, 80, 0.15);
   color: var(--success, #4caf50);
-  border: 1px solid rgba(76,175,80,0.3);
+  border: 1px solid rgba(76, 175, 80, 0.3);
 }
 .schema-fail {
-  background: rgba(244,67,54,0.12);
+  background: rgba(244, 67, 54, 0.12);
   color: var(--danger, #f44336);
-  border: 1px solid rgba(244,67,54,0.25);
+  border: 1px solid rgba(244, 67, 54, 0.25);
 }
 
 /* ── Response body search bar ───────────────────────────────────────────── */
@@ -3320,7 +3531,10 @@ body.dragging-node * {
   font-size: var(--fs-sm);
   padding: 4px 8px;
 }
-.mock-stop-btn { background: var(--danger, #f44336); color: #fff; }
+.mock-stop-btn {
+  background: var(--danger, #f44336);
+  color: #fff;
+}
 .mock-status {
   display: flex;
   align-items: center;
@@ -3391,8 +3605,13 @@ body.dragging-node * {
   font-size: var(--fs-xs);
   font-family: var(--font-mono);
 }
-.mock-path { flex: 1; color: var(--text); }
-.mock-status-code { color: var(--text-dim); }
+.mock-path {
+  flex: 1;
+  color: var(--text);
+}
+.mock-status-code {
+  color: var(--text-dim);
+}
 .mock-variant-select {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -3403,7 +3622,9 @@ body.dragging-node * {
   color: var(--text);
   cursor: pointer;
 }
-.mock-variant-select:hover { border-color: var(--accent); }
+.mock-variant-select:hover {
+  border-color: var(--accent);
+}
 .mock-log {
   max-height: 200px;
   overflow-y: auto;
@@ -3419,10 +3640,20 @@ body.dragging-node * {
   font-size: var(--fs-xs);
   font-family: var(--font-mono);
 }
-.mock-log-path { flex: 1; color: var(--text); }
-.mock-log-status { flex-shrink: 0; }
-.mock-log-time { flex-shrink: 0; color: var(--text-dim); }
-.mock-hint { padding: 12px 16px; }
+.mock-log-path {
+  flex: 1;
+  color: var(--text);
+}
+.mock-log-status {
+  flex-shrink: 0;
+}
+.mock-log-time {
+  flex-shrink: 0;
+  color: var(--text-dim);
+}
+.mock-hint {
+  padding: 12px 16px;
+}
 .mock-section-sub {
   text-transform: none;
   letter-spacing: 0;
@@ -3439,7 +3670,9 @@ body.dragging-node * {
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: 6px;
 }
-.mock-quickstart { gap: 8px; }
+.mock-quickstart {
+  gap: 8px;
+}
 
 /* ── Response body search highlight ─────────────────────────────────────── */
 .resp-highlight-body {
@@ -3487,11 +3720,11 @@ body.dragging-node * {
   white-space: nowrap;
 }
 .status-bar-mock {
-  background: rgba(76,175,80,0.15);
+  background: rgba(76, 175, 80, 0.15);
   color: var(--success, #4caf50);
 }
 .status-bar-mock:hover {
-  background: rgba(76,175,80,0.25);
+  background: rgba(76, 175, 80, 0.25);
 }
 
 .status-bar-load {

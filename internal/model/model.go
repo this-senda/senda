@@ -137,8 +137,9 @@ type Request struct {
 
 // Environment is a named set of variables (e.g. dev, prod).
 type Environment struct {
-	Name string `yaml:"name" json:"name"`
-	Vars []KV   `yaml:"vars" json:"vars"`
+	Name  string `yaml:"name" json:"name"`
+	Color string `yaml:"color,omitempty" json:"color,omitempty"` // dot color in the env switcher pill
+	Vars  []KV   `yaml:"vars" json:"vars"`
 }
 
 // ResponseTiming breaks a request's duration into phases, all in
