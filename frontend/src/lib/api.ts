@@ -101,6 +101,7 @@ export const api = {
   generateMocksFromOpenAPI: (collPath: string, data: string) =>
     App.GenerateMocksFromOpenAPI(collPath, data),
   generateCode: (req: Request, target: string) => App.GenerateCode(req, target),
+  renderMarkdown: (md: string) => App.RenderMarkdown(md),
   codegenTargets: () => App.CodegenTargets(),
 
   // runner

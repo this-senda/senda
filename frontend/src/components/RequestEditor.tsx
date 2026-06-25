@@ -1,6 +1,6 @@
 // Request editing pane: method + URL + send, and tabs for params / headers /
 // body. Drives the shared request store.
-import { createSignal, For, Index, Match, Show, Switch } from "solid-js";
+import { createResource, createSignal, For, Index, Match, Show, Switch } from "solid-js";
 import { buildClientSchema, getIntrospectionQuery, type GraphQLSchema } from "graphql";
 import { Code2, Plus, Save as SaveIcon, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
@@ -19,6 +19,7 @@ import {
   setRequest,
 } from "../lib/store";
 import { Events } from "@wailsio/runtime";
+import { docsSrcdoc } from "../lib/docsPreview";
 import KVEditor from "./KVEditor";
 import CodeEditor from "./CodeEditor";
 import AuthEditor from "./AuthEditor";
@@ -35,6 +36,13 @@ const PASSIVE_AUTH = new Set(["", "inherit", "none"]);
 export default function RequestEditor() {
   const [tab, setTab] = createSignal<Tab>("params");
   const [showCode, setShowCode] = createSignal(false);
+  const [docsView, setDocsView] = createSignal<"edit" | "preview">("edit");
+  // Render docs markdown to HTML via the Go docgen renderer (same one used for
+  // exported docs) only while the preview tab is showing. Empty docs → skip.
+  const [docsHtml] = createResource(
+    () => (docsView() === "preview" ? (request.docs ?? "") : null),
+    (md) => api.renderMarkdown(md),
+  );
 
   const send = () => void sendActive();
   const save = () => void saveActive();
@@ -160,15 +168,58 @@ export default function RequestEditor() {
           </Match>
           <Match when={tab() === "docs"}>
             <div class="docs-editor">
-              <div class="empty-hint docs-hint">Markdown notes for this request — stored in its YAML.</div>
-              <CodeEditor
-                value={request.docs ?? ""}
-                language="text"
-                onChange={(v) => {
-                  setRequest("docs", v);
-                  setDirty(true);
-                }}
-              />
+              <div class="docs-toolbar">
+                <button
+                  type="button"
+                  classList={{ active: docsView() === "edit" }}
+                  onClick={() => setDocsView("edit")}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  classList={{ active: docsView() === "preview" }}
+                  onClick={() => setDocsView("preview")}
+                >
+                  Preview
+                </button>
+              </div>
+              <Show
+                when={docsView() === "edit"}
+                fallback={
+                  <Show
+                    when={(request.docs ?? "").trim()}
+                    fallback={<div class="empty-hint docs-hint">Nothing to preview yet.</div>}
+                  >
+                    <Switch>
+                      <Match when={docsHtml.error}>
+                        <div class="empty-hint docs-hint">Preview failed: {String(docsHtml.error)}</div>
+                      </Match>
+                      <Match when={docsHtml.loading}>
+                        <div class="empty-hint docs-hint">Rendering…</div>
+                      </Match>
+                      <Match when={true}>
+                        <iframe
+                          class="docs-preview"
+                          sandbox=""
+                          srcdoc={docsSrcdoc(docsHtml() ?? "")}
+                          title="Docs preview"
+                        />
+                      </Match>
+                    </Switch>
+                  </Show>
+                }
+              >
+                <div class="empty-hint docs-hint">Markdown notes for this request — stored in its YAML.</div>
+                <CodeEditor
+                  value={request.docs ?? ""}
+                  language="text"
+                  onChange={(v) => {
+                    setRequest("docs", v);
+                    setDirty(true);
+                  }}
+                />
+              </Show>
             </div>
           </Match>
           <Match when={tab() === "ws"}>

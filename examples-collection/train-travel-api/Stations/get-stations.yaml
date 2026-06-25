@@ -5,19 +5,30 @@ params:
     - key: page
       value: ""
       enabled: false
+      desc: The page number to return
     - key: limit
       value: ""
       enabled: false
+      desc: The number of items to return per page
     - key: coordinates
       value: ""
       enabled: false
+      desc: |
+        The latitude and longitude of the user's location, to narrow down the search results to sites within a proximity of this location.
     - key: search
       value: ""
       enabled: false
+      desc: |
+        A search term to filter the list of stations by name or address.
     - key: country
       value: ""
       enabled: false
+      desc: Filter stations by country code
 body:
     type: none
 auth:
     type: inherit
+docs: |-
+    **Get a list of train stations**
+
+    Returns a paginated and searchable list of all train stations.

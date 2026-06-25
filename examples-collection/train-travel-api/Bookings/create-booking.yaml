@@ -5,3 +5,7 @@ body:
     type: none
 auth:
     type: inherit
+docs: |-
+    **Create a booking**
+
+    A booking is a temporary hold on a trip. It is not confirmed until the payment is processed.
