@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-Senda — fast, git-native API client. Collections = plain folders of YAML. Built Wails v3 (Go shell) + SolidJS (UI). Ships TUI + headless CLI too.
+Senda — fast, git-native API client. Collections = plain folders of YAML. Built Wails v3 (Go shell) + SolidJS (UI). Also ships TUI + headless CLI.
 
 ## Architecture
 
 - **Frontend** (`frontend/`, SolidJS + TS + CodeMirror 6): pure view + local UI state. No HTTP, no disk. Call Go via Wails bindings.
 - **Backend** (Go): all network/disk/CPU work. Rule: **touch network, disk, or CPU-heavy → Go.** Frontend only render.
 - **Disk = source of truth.** App stateless editor over `*.yaml` collection files.
-- Two binaries: desktop GUI (`main.go` + `app*.go`, Wails/CGO/webview → `senda-desktop`) and unified pure-Go `senda` (`cmd/senda` dispatch → TUI default + `run`/`mock`/`docs` subcommands + `gui` launcher that execs `senda-desktop`). TUI in `internal/tui`. Pure-Go binary no frontend/webview, runs anywhere (servers/CI/containers).
+- Two binaries: desktop GUI (`main.go` + `app*.go`, Wails/CGO/webview → `senda-desktop`) and the unified pure-Go `senda` (`cmd/senda` dispatch → TUI default + `run`/`mock`/`docs` subcommands + `gui` launcher that execs `senda-desktop`). TUI lives in `internal/tui`. The pure-Go binary has no frontend/webview, runs anywhere (servers/CI/containers).
 
 ### Go packages (`internal/`)
 
@@ -51,9 +51,9 @@ Specs drive real WebKit. Rename/retag any selector below → CI breaks. Touch ma
 - `button.method-inline` + `.method-menu .method-opt` — verb picker = custom dropdown, NOT `<select>`. Open button, click `.method-opt`.
 - `.url-icon-btn.dirty` — dirty/Save reveal.
 - `.tabs button`(Docs) `.docs-toolbar button`(Edit/Preview) `.docs-hint` `iframe.docs-preview`(`sandbox=""`+`srcdoc`).
-- `.code-editor` — CM6 host (Body/Docs). `shell-no-scroll.spec` asserts clicking these tabs never scrolls window.
+- `.code-editor` — CM6 host (Body/Docs). `shell-no-scroll.spec` asserts clicking these tabs never makes the window scroll.
 - WebKit can't pierce `sandbox=""` srcdoc iframe → assert `srcdoc` attr, never `frameLocator().locator()` inside.
 
-Shell invariant: window must never scroll. `.panes` needs definite `grid-template-rows`; `html,body` stay `overflow:hidden`. height:100% child (CM6) of indefinite parent overflows shell into void. Guarded by `shell-no-scroll.spec`.
+Shell invariant: window must never scroll. `.panes` needs a definite `grid-template-rows`; `html,body` stay `overflow:hidden`. A height:100% child (CM6) of an indefinite parent overflows the shell into a void. Guarded by `shell-no-scroll.spec`.
 
 Pre-push UI: `cd frontend && bun run test:e2e` (needs WebKit deps; CI has them).

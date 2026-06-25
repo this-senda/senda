@@ -60,6 +60,13 @@ body,
 #root {
   height: 100%;
 }
+/* App shell — the window itself must never scroll. Any pane that needs to
+   scroll owns its own overflow; if something inside ever miscomputes height,
+   it gets clipped here instead of revealing a void below the shell. */
+html,
+body {
+  overflow: hidden;
+}
 body {
   font-family: var(--sans);
   background: var(--bg);
@@ -320,6 +327,12 @@ button {
   flex: 1;
   display: grid;
   grid-template-columns: 250px 5px 1fr 5px 1fr; /* overridden inline by splitter drags */
+  /* Single explicit row that fills .panes and is allowed to shrink (minmax 0).
+     Without this the implicit row is `auto` = content-sized, so a tall child
+     (CM6 body/docs editor, whose .cm-editor is height:100% of an indefinite
+     parent → expands to full content) overflows the shell and scrolls the
+     whole window into a black void. Keep this row definite. */
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
 }
 .splitter {
