@@ -3,7 +3,7 @@
 import { createEffect, createMemo, createSignal, For, Index, Match, onCleanup, onMount, Show, Switch } from "solid-js";
 import { AlertTriangle, Check, Copy, Download, FilePlus, Search, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
-import { api } from "../lib/api";
+import { api, BodyType } from "../lib/api";
 import { collection, request, response, sending } from "../lib/store";
 import { cancelSend } from "../lib/actions";
 import { formatBytes, statusClass } from "../lib/factory";
@@ -172,6 +172,12 @@ export default function ResponseViewer() {
       <Switch>
         <Match when={sending()}>
           <Sending />
+        </Match>
+        <Match when={request.body?.type === BodyType.BodyWebSocket}>
+          <div class="resp-empty">WebSocket session — connect and send messages from the WebSocket tab.</div>
+        </Match>
+        <Match when={request.body?.type === BodyType.BodySSE}>
+          <div class="resp-empty">SSE stream — connect and watch events from the SSE tab.</div>
         </Match>
         <Match when={!response()}>
           <div class="resp-empty">Send a request to see the response.</div>

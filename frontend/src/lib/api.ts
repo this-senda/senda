@@ -136,9 +136,12 @@ export const api = {
   listCookies: (url: string) => App.ListCookies(url),
   clearCookies: () => App.ClearCookies(),
 
-  // WebSocket
-  connectWebSocket: (req: Request, collPath: string, envName: string) =>
-    App.ConnectWebSocket(req, collPath, envName),
+  // WebSocket — interactive: open persistent conn, send/close by id.
+  // Received messages + close arrive via the "ws:event" Wails event.
+  openWebSocket: (req: Request, collPath: string, envName: string) =>
+    App.OpenWebSocket(req, collPath, envName),
+  sendWebSocketMessage: (id: string, message: string) => App.SendWebSocketMessage(id, message),
+  closeWebSocket: (id: string) => App.CloseWebSocket(id),
 
   // SSE
   connectSSE: (req: Request, collPath: string, envName: string) =>

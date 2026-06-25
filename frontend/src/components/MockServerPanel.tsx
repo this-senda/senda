@@ -73,8 +73,9 @@ export default function MockServerPanel(props: { onClose: () => void }) {
   const subscribe = () => {
     offLog?.();
     offRoutes?.();
-    offLog = Events.On("mock:log", (data: unknown) => {
-      setLog((prev) => [...prev.slice(-199), data as MockLogEntry]);
+    offLog = Events.On("mock:log", (e: any) => {
+      // Wails v3 wraps the payload in `.data`.
+      setLog((prev) => [...prev.slice(-199), e.data as MockLogEntry]);
     });
     offRoutes = Events.On("mock:routes", () => { void refreshRoutes(); void refreshInfo(); });
   };

@@ -1,6 +1,6 @@
 // Shared app actions, callable from buttons, keyboard shortcuts and the
 // command palette alike.
-import { api } from "./api";
+import { api, BodyType } from "./api";
 import {
   activeEnv,
   activePath,
@@ -26,6 +26,9 @@ let inFlight: ReturnType<typeof api.send> | undefined;
 // sendActive sends the live editor request and stores the response.
 export async function sendActive() {
   if (sending()) return;
+  // ws/sse aren't HTTP — sending one fires a doomed http.Client call
+  // ("unsupported protocol scheme"). Connect/send happens in their tab instead.
+  if (request.body?.type === BodyType.BodyWebSocket || request.body?.type === BodyType.BodySSE) return;
   setSending(true);
   setResponse(null);
   try {

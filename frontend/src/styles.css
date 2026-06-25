@@ -880,6 +880,7 @@ body.dragging-splitter {
 .method-put { color: var(--redirect); }
 .method-patch { color: var(--method-patch); }
 .method-delete { color: var(--err); }
+.method-stream { color: var(--accent); cursor: default; display: inline-flex; align-items: center; }
 .send-btn {
   display: inline-flex;
   align-items: center;
@@ -3082,6 +3083,44 @@ body.dragging-node * {
 .ws-msg-data { flex: 1; white-space: pre-wrap; word-break: break-all; margin: 0; }
 .ws-msg-time { flex-shrink: 0; color: var(--text-dim); font-size: var(--fs-3xs); align-self: center; }
 .ws-error { color: var(--danger, #f44336); font-size: var(--fs-sm); padding: 6px; }
+.ws-conn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  flex-shrink: 0;
+}
+.ws-conn-dot.on { background: var(--success, #4caf50); }
+.ws-conn-label { font-size: var(--fs-xs); color: var(--text-dim); }
+.ws-toolbar-spacer { flex: 1; }
+.ws-disconnect {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.ws-disconnect:hover { border-color: var(--danger, #f44336); color: var(--danger, #f44336); }
+.ws-compose {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.ws-input {
+  flex: 1;
+  background: var(--bg-elev1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  outline: none;
+}
+.ws-input:focus { border-color: var(--accent); }
+.ws-input:disabled { opacity: 0.5; }
 
 /* ── SSE panel ───────────────────────────────────────────────────────────── */
 .sse-panel {
