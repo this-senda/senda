@@ -641,7 +641,7 @@ read the diff. Catch something off?
 
 Contributions are welcome. Please open an issue before starting larger changes.
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, test commands, conventions, and PR guidelines.
+See **[CONTRIBUTING.md](.github/CONTRIBUTING.md)** for setup, test commands, conventions, and PR guidelines.
 
 Architecture references:
 

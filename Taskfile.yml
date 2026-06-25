@@ -23,21 +23,24 @@ vars:
 
 includes:
   linux:
-    taskfile: ./Taskfile.linux.yml
+    taskfile: ./taskfiles/Taskfile.linux.yml
+    dir: '{{.ROOT_DIR}}'
     vars:
       APP_NAME: "{{.APP_NAME}}"
       BIN_DIR: "{{.BIN_DIR}}"
       BUILD_TAGS: "{{.BUILD_TAGS}}"
       VERSION: "{{.VERSION}}"
   darwin:
-    taskfile: ./Taskfile.darwin.yml
+    taskfile: ./taskfiles/Taskfile.darwin.yml
+    dir: '{{.ROOT_DIR}}'
     vars:
       APP_NAME: "{{.APP_NAME}}"
       BIN_DIR: "{{.BIN_DIR}}"
       BUILD_TAGS: "{{.BUILD_TAGS}}"
       VERSION: "{{.VERSION}}"
   windows:
-    taskfile: ./Taskfile.windows.yml
+    taskfile: ./taskfiles/Taskfile.windows.yml
+    dir: '{{.ROOT_DIR}}'
     vars:
       APP_NAME: "{{.APP_NAME}}"
       BIN_DIR: "{{.BIN_DIR}}"
