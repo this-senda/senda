@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"context"
@@ -25,6 +25,10 @@ type App struct {
 func NewApp() *App {
 	return &App{session: pipeline.NewSession()}
 }
+
+// SetApp attaches the running Wails handle after application.New (native
+// dialogs and event emits need it). Tests leave it nil.
+func (a *App) SetApp(w *application.App) { a.wails = w }
 
 // Ping is a trivial liveness check used by the frontend to confirm bindings.
 func (a *App) Ping() string { return "senda-ok" }

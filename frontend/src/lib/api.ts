@@ -1,10 +1,10 @@
 // Thin typed wrapper over the generated Wails bindings. All backend access
 // goes through here so components stay free of binding paths and tests can
 // mock a single module.
-import * as App from "../../bindings/senda/app";
+import * as App from "../../bindings/senda/internal/app/app";
 import * as model from "../../bindings/senda/internal/model/models";
 import * as mockserverModel from "../../bindings/senda/internal/mockserver/models";
-import type { ScopeVar } from "../../bindings/senda/models";
+import type { ScopeVar } from "../../bindings/senda/internal/app/models";
 import type { SyncState } from "../../bindings/senda/internal/security/models";
 import type { Activity } from "../../bindings/senda/internal/store/models";
 
