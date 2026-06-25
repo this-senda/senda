@@ -18,8 +18,10 @@ test("a new scratch request can be saved (save-as prompt)", async ({ page }) => 
   const activeTitle = page.locator(".tab.active .tab-title");
   await expect(activeTitle).toHaveText("New request");
 
-  // Dirty it (method change flips the dirty flag), which reveals Save.
-  await page.locator("select.method-inline").selectOption("PUT");
+  // Dirty it (method change flips the dirty flag), which reveals Save. The verb
+  // picker is a custom dropdown (#43), not a native <select>: open it, pick PUT.
+  await page.locator("button.method-inline").click();
+  await page.locator(".method-menu .method-opt", { hasText: "PUT" }).click();
   await expect(page.locator(".url-icon-btn.dirty")).toBeVisible();
 
   // Save → prompt → write. The tab adopts the new name and goes clean.

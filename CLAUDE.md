@@ -41,3 +41,16 @@ cd frontend && bun run typecheck       # tsc --noEmit
 - Frontend never do I/O — add backend work as bound Go method, regen bindings.
 - Go `go 1.25.7`. Module name `senda`.
 - Commit messages: no AI attribution trailers — never add `Co-Authored-By: Claude` or `Claude-Session:` lines.
+
+## WebKit e2e (`frontend/tests/e2e/`) — load-bearing selectors
+
+Specs drive real WebKit. Rename/retag any selector below → CI breaks. Touch markup → fix matching spec same change.
+
+- `.tree-leaf` `.tree-folder` `.drop-hover` — Sidebar rows + drag target.
+- `.tab-new` `.tab.active .tab-title` `.tab.active .tab-dot.on` — TabBar.
+- `button.method-inline` + `.method-menu .method-opt` — verb picker = custom dropdown, NOT `<select>`. Open button, click `.method-opt`.
+- `.url-icon-btn.dirty` — dirty/Save reveal.
+- `.tabs button`(Docs) `.docs-toolbar button`(Edit/Preview) `.docs-hint` `iframe.docs-preview`(`sandbox=""`+`srcdoc`).
+- WebKit can't pierce `sandbox=""` srcdoc iframe → assert `srcdoc` attr, never `frameLocator().locator()` inside.
+
+Pre-push UI: `cd frontend && bun run test:e2e` (needs WebKit deps; CI has them).
