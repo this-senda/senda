@@ -7,6 +7,18 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.8](https://github.com/this-senda/senda/compare/v0.1.7...v0.1.8) (2026-06-25)
+
+
+### Features
+
+* **ui:** env switcher pill with per-env color dot ([#51](https://github.com/this-senda/senda/issues/51)) ([d6e11cb](https://github.com/this-senda/senda/commit/d6e11cb2c2b2ba0280e2454e88796a2700810bb9))
+
+
+### Bug Fixes
+
+* **ws:** make WebSocket usable — live streaming, interactive send, no… ([#49](https://github.com/this-senda/senda/issues/49)) ([2fb3de5](https://github.com/this-senda/senda/commit/2fb3de52db5674f011b239f65d7091d9d08530dc))
+
 ## [0.1.7](https://github.com/this-senda/senda/compare/v0.1.6...v0.1.7) (2026-06-25)
 
 
