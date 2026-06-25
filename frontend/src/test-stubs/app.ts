@@ -1,4 +1,5 @@
-// Test stand-in for the generated Wails bindings module `bindings/senda/app`
+// Test stand-in for the generated Wails bindings module
+// `bindings/senda/internal/app/app` (aliased in vite.config.ts, mode "test")
 // (see models.ts for why stubs exist). Each export delegates to the dev mock
 // backend (`window.go.main.App`, installed by lib/devMock.ts) when present,
 // so `vite --mode test` serves a fully clickable UI in a plain browser; in
