@@ -13,6 +13,7 @@ import (
 
 	"senda/internal/aigen"
 	"senda/internal/codegen"
+	"senda/internal/docgen"
 	"senda/internal/history"
 	"senda/internal/importer"
 	"senda/internal/load"
@@ -135,7 +136,29 @@ func (a *App) ImportCollection(collPath, format, data, destSubdir string) (int, 
 		}
 		count++
 	}
+
+	// OpenAPI carries collection-level info: a description for the destination
+	// folder and one environment per server (supplying {{baseUrl}}).
+	if format == "openapi" {
+		if desc, envs, err := importer.OpenAPIMeta([]byte(data)); err == nil {
+			if desc != "" {
+				meta := store.ReadMeta(base)
+				meta.Description = desc
+				_ = store.SaveCollection(meta)
+			}
+			for _, env := range envs {
+				_ = store.SaveEnvironment(collPath, env)
+			}
+		}
+	}
 	return count, nil
+}
+
+// RenderMarkdown converts request Docs markdown into an HTML body fragment for
+// the editor's Docs preview. Reuses the docgen renderer so the in-app preview
+// matches the exported documentation.
+func (a *App) RenderMarkdown(md string) string {
+	return docgen.RenderFragment(md)
 }
 
 // GenerateMocksFromOpenAPI parses an OpenAPI 3 document and writes one mock
@@ -160,7 +183,9 @@ func (a *App) GenerateMocksFromOpenAPI(collPath, data string) (int, error) {
 		if err != nil {
 			return count, err
 		}
-		dest := uniquePath(mocksDir, slugify(def.Name))
+		// Stable filename per operation so regenerating the same spec overwrites
+		// rather than piling up get-stations-2.yaml duplicates (uniquePath would).
+		dest := filepath.Join(mocksDir, slugify(def.Name)+".yaml")
 		if err := os.WriteFile(dest, out, 0o644); err != nil {
 			return count, err
 		}

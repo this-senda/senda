@@ -5,10 +5,16 @@ params:
     - key: page
       value: ""
       enabled: false
+      desc: The page number to return
     - key: limit
       value: ""
       enabled: false
+      desc: The number of items to return per page
 body:
     type: none
 auth:
     type: inherit
+docs: |-
+    **List existing bookings**
+
+    Returns a list of all trip bookings by the authenticated user.

@@ -5,3 +5,7 @@ body:
     type: none
 auth:
     type: inherit
+docs: |-
+    **Get a booking**
+
+    Returns the details of a specific booking.

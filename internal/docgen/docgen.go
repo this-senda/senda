@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"regexp"
 	"strings"
 
 	"senda/internal/model"
@@ -179,11 +180,19 @@ hr{border:none;border-top:1px solid #eee;margin:1.5rem 0}
 </head>
 <body>
 `)
-	// Simple md→html conversion for the generated content
+	buf.WriteString(RenderFragment(md))
+	buf.WriteString("</body></html>")
+	return buf.String()
+}
+
+// RenderFragment converts markdown to an HTML body fragment (no document
+// wrapper). Used by the desktop Docs preview so the in-app preview matches the
+// exported docs — same converter, one markdown implementation.
+func RenderFragment(md string) string {
+	var buf bytes.Buffer
 	for _, line := range strings.Split(md, "\n") {
 		buf.WriteString(mdLineToHTML(line) + "\n")
 	}
-	buf.WriteString("</body></html>")
 	return buf.String()
 }
 
@@ -225,19 +234,32 @@ func mdTableRowToHTML(line string) string {
 	return buf.String()
 }
 
+var (
+	boldRe   = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	italicRe = regexp.MustCompile(`\*([^*]+)\*`)
+)
+
+// emphasis applies **bold** and *italic* on already-escaped text. Bold runs
+// first so its <strong> wrapper hides the inner text from the italic pass.
+func emphasis(s string) string {
+	s = boldRe.ReplaceAllString(s, "<strong>$1</strong>")
+	s = italicRe.ReplaceAllString(s, "<em>$1</em>")
+	return s
+}
+
 func mdInlineToHTML(s string) string {
-	// Convert `code` spans and escape HTML
+	// Convert `code` spans, escape HTML, then apply bold/italic to non-code text.
 	var buf strings.Builder
 	for {
 		start := strings.Index(s, "`")
 		if start < 0 {
-			buf.WriteString(html.EscapeString(s))
+			buf.WriteString(emphasis(html.EscapeString(s)))
 			break
 		}
-		buf.WriteString(html.EscapeString(s[:start]))
+		buf.WriteString(emphasis(html.EscapeString(s[:start])))
 		end := strings.Index(s[start+1:], "`")
 		if end < 0 {
-			buf.WriteString(html.EscapeString(s[start:]))
+			buf.WriteString(emphasis(html.EscapeString(s[start:])))
 			break
 		}
 		end += start + 1

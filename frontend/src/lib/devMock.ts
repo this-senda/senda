@@ -52,6 +52,9 @@ function reqFor(path: string) {
     auth: isComments
       ? { type: "inherit" }
       : { type: "bearer", token: "{{token}}" },
+    docs: isComments
+      ? ""
+      : "# Create user\n\nCreates a new user account.\n\n- **Auth**: Bearer token\n",
   };
 }
 
@@ -64,6 +67,19 @@ export function installDevMock() {
     main: {
       App: {
         Ping: async () => "senda-dev-mock",
+        // Mirrors internal/docgen RenderFragment enough to exercise the Docs
+        // preview iframe (headings, bold, paragraphs).
+        RenderMarkdown: async (md: string) =>
+          String(md)
+            .split("\n")
+            .map((l) =>
+              l.startsWith("# ")
+                ? `<h1>${l.slice(2)}</h1>`
+                : l === ""
+                  ? "<br>"
+                  : `<p>${l.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")}</p>`,
+            )
+            .join("\n"),
         OpenCollection: async () => ({
           name: "demo-api",
           path: "/demo",

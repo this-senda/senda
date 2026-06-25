@@ -2,6 +2,7 @@ package importer
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"senda/internal/model"
@@ -293,10 +294,13 @@ paths:
   /users:
     get:
       operationId: listUsers
+      summary: List all users
+      description: Returns a paginated list of users.
       tags: [users]
       parameters:
         - name: page
           in: query
+          description: Page number to fetch.
     post:
       operationId: createUser
       tags: [users]
@@ -323,11 +327,17 @@ func TestOpenAPI(t *testing.T) {
 	if !ok {
 		t.Fatal("listUsers missing")
 	}
-	if lu.Request.URL != "https://api.test/v1/users" {
+	if lu.Request.URL != "{{baseUrl}}/users" {
 		t.Errorf("url = %q", lu.Request.URL)
 	}
 	if len(lu.Dir) != 1 || lu.Dir[0] != "users" {
 		t.Errorf("dir = %v", lu.Dir)
+	}
+	if !strings.Contains(lu.Request.Docs, "List all users") || !strings.Contains(lu.Request.Docs, "paginated list") {
+		t.Errorf("docs = %q, want summary + description", lu.Request.Docs)
+	}
+	if len(lu.Request.Params) != 1 || lu.Request.Params[0].Desc != "Page number to fetch." {
+		t.Errorf("param desc = %v, want page description", lu.Request.Params)
 	}
 	cu := byName["createUser"]
 	if cu.Request.Body.Type != model.BodyJSON {
@@ -335,6 +345,142 @@ func TestOpenAPI(t *testing.T) {
 	}
 	if cu.Request.Method != "POST" {
 		t.Errorf("method = %q", cu.Request.Method)
+	}
+}
+
+const openapiRichSample = `
+openapi: 3.0.0
+servers:
+  - url: https://api.test/v1
+security:
+  - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+paths:
+  /widgets/{id}:
+    get:
+      operationId: getWidget
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: fields
+          in: query
+          required: true
+          description: Comma-separated fields.
+          example: name,color
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not found
+    post:
+      operationId: createWidget
+      security: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                color: { type: string }
+      responses:
+        '201':
+          description: Created
+`
+
+func TestOpenAPIRichImport(t *testing.T) {
+	out, err := OpenAPI([]byte(openapiRichSample))
+	if err != nil {
+		t.Fatal(err)
+	}
+	byName := map[string]Imported{}
+	for _, im := range out {
+		byName[im.Request.Name] = im
+	}
+
+	gw := byName["getWidget"].Request
+	// Path param → {{id}} in URL; auth from document-level bearer scheme.
+	if gw.URL != "{{baseUrl}}/widgets/{{id}}" {
+		t.Errorf("url = %q, want {{baseUrl}} + {{id}} path var", gw.URL)
+	}
+	if gw.Auth.Type != model.AuthBearer {
+		t.Errorf("auth = %q, want bearer (inherited document security)", gw.Auth.Type)
+	}
+	// Required query param: enabled + example prefilled + desc kept.
+	if len(gw.Params) != 1 {
+		t.Fatalf("params = %v, want 1 (fields)", gw.Params)
+	}
+	if p := gw.Params[0]; !p.Enabled || p.Value != "name,color" || p.Desc == "" {
+		t.Errorf("fields param = %+v, want enabled + example value + desc", p)
+	}
+	// Lowest 2xx → status assert.
+	if len(gw.Asserts) != 1 || gw.Asserts[0].Value != "200" {
+		t.Errorf("asserts = %+v, want status==200", gw.Asserts)
+	}
+
+	cw := byName["createWidget"].Request
+	// Operation-level empty security overrides document default → no auth.
+	if cw.Auth.Type != model.AuthNone {
+		t.Errorf("auth = %q, want none (security: [])", cw.Auth.Type)
+	}
+	// Form body with rows from schema; required field enabled.
+	if cw.Body.Type != model.BodyForm {
+		t.Fatalf("body type = %q, want form", cw.Body.Type)
+	}
+	form := map[string]bool{}
+	for _, kv := range cw.Body.Form {
+		form[kv.Key] = kv.Enabled
+	}
+	if !form["name"] || form["color"] {
+		t.Errorf("form rows = %+v, want name enabled, color disabled", cw.Body.Form)
+	}
+	if len(cw.Asserts) != 1 || cw.Asserts[0].Value != "201" {
+		t.Errorf("asserts = %+v, want status==201", cw.Asserts)
+	}
+}
+
+func TestOpenAPIMeta(t *testing.T) {
+	spec := `
+openapi: 3.0.0
+info:
+  title: Train API
+  description: Book train trips.
+servers:
+  - url: https://api.test/v1
+    description: production
+  - url: https://staging.api.test/v1
+paths:
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        '200': { description: OK }
+`
+	desc, envs, err := OpenAPIMeta([]byte(spec))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(desc, "Train API") || !strings.Contains(desc, "Book train trips") {
+		t.Errorf("desc = %q", desc)
+	}
+	if len(envs) != 2 {
+		t.Fatalf("envs = %v, want 2", envs)
+	}
+	// First server named from its description; baseUrl carries the URL.
+	if envs[0].Name != "production" || envs[0].Vars[0].Value != "https://api.test/v1" {
+		t.Errorf("env[0] = %+v", envs[0])
+	}
+	// Second server has no description → named from host.
+	if envs[1].Name != "staging.api.test" {
+		t.Errorf("env[1] name = %q, want host-derived", envs[1].Name)
 	}
 }
 
@@ -408,8 +554,8 @@ func TestOpenAPITrainTravel(t *testing.T) {
 			t.Errorf("get-stations missing query param %q (got %v)", k, q)
 		}
 	}
-	// Base URL from first server, trailing slash trimmed.
-	if gs.Request.URL != "https://try.microcks.io/rest/Train+Travel+API/1.0.0/stations" {
+	// Requests reference {{baseUrl}}; the server URL becomes an environment.
+	if gs.Request.URL != "{{baseUrl}}/stations" {
 		t.Errorf("get-stations URL = %q", gs.Request.URL)
 	}
 	// requestBody example pulled into JSON body.

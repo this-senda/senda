@@ -27,3 +27,7 @@ body:
         }
 auth:
     type: inherit
+docs: |-
+    **Pay for a Booking**
+
+    A payment is an attempt to pay for the booking, which will confirm the booking for the user and enable them to get their tickets.
