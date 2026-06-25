@@ -7,6 +7,13 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.7](https://github.com/this-senda/senda/compare/v0.1.6...v0.1.7) (2026-06-25)
+
+
+### Bug Fixes
+
+* **ui:** lock shell from scrolling into void on Body/Docs tabs ([#47](https://github.com/this-senda/senda/issues/47)) ([7c550a2](https://github.com/this-senda/senda/commit/7c550a273c7728c7bdaf0e0f25bedfe023947fe1))
+
 ## [0.1.6](https://github.com/this-senda/senda/compare/v0.1.5...v0.1.6) (2026-06-25)
 
 
