@@ -6,6 +6,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 
+	"senda/internal/app"
 	"senda/internal/store"
 )
 
@@ -13,8 +14,8 @@ import (
 var assets embed.FS
 
 func main() {
-	backend := NewApp()
-	app := application.New(application.Options{
+	backend := app.NewApp()
+	wailsApp := application.New(application.Options{
 		Name:        "Senda",
 		Description: "API Development Tool",
 		Services: []application.Service{
@@ -24,9 +25,9 @@ func main() {
 			Handler: application.AssetFileServerFS(assets),
 		},
 	})
-	backend.wails = app // native dialogs need the running app handle
+	backend.SetApp(wailsApp) // native dialogs need the running app handle
 
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
+	wailsApp.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:     "Senda",
 		Width:     1280,
 		Height:    820,
@@ -34,7 +35,7 @@ func main() {
 		MinHeight: 600,
 	})
 
-	err := app.Run()
+	err := wailsApp.Run()
 
 	// Fold any archive-backed collection edits back into their .zip on exit.
 	if perr := store.PackOpen(); perr != nil {
