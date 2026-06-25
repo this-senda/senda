@@ -9,7 +9,7 @@
 // text, caret placed at the clicked token.
 import { createMemo, createResource, createSignal, For, Show } from "solid-js";
 import { request, setRequest, setDirty, activeEnv, activePath, collection } from "../lib/store";
-import { api } from "../lib/api";
+import { api, BodyType } from "../lib/api";
 import { sendActive } from "../lib/actions";
 import {
   buildScope,
@@ -249,7 +249,13 @@ export default function UrlField() {
           spellcheck={false}
           autocomplete="off"
           onInput={(e) => {
-            setRequest("url", e.currentTarget.value);
+            const v = e.currentTarget.value;
+            setRequest("url", v);
+            // ws://wss:// scheme is unambiguous → flip body to WebSocket so the tab/Connect
+            // appear. Only when body is None, so we never clobber an explicit body choice.
+            if (/^wss?:\/\//i.test(v) && request.body?.type === BodyType.BodyNone) {
+              setRequest("body", "type", BodyType.BodyWebSocket);
+            }
             setDirty(true);
             syncScroll();
             refreshAc();

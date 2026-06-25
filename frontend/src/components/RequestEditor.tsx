@@ -1,15 +1,16 @@
 // Request editing pane: method + URL + send, and tabs for params / headers /
 // body. Drives the shared request store.
-import { createResource, createSignal, For, Index, Match, onCleanup, onMount, Show, Switch } from "solid-js";
+import { createEffect, createResource, createSignal, For, Index, Match, on, onCleanup, onMount, Show, Switch } from "solid-js";
 import { buildClientSchema, getIntrospectionQuery, type GraphQLSchema } from "graphql";
 import { Check, Code2, Plus, Save as SaveIcon, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
-import { api, BodyType, type KV, type Request, type WSSession, type SSEEvent } from "../lib/api";
+import { api, BodyType, type KV, type Request, type SSEEvent } from "../lib/api";
 import { blankKV } from "../lib/factory";
 import { saveActive, sendActive } from "../lib/actions";
 import {
   activePath,
   activeEnv,
+  activeTabId,
   collection,
   dirty,
   request,
@@ -44,14 +45,108 @@ export default function RequestEditor() {
     (md) => api.renderMarkdown(md),
   );
 
-  const send = () => void sendActive();
+  // ws/sse requests aren't HTTP — route the Send button to their tab (Connect lives there)
+  // instead of firing a doomed http.Client call that errors "unsupported protocol scheme".
+  const streamTab = (): Tab | null =>
+    request.body?.type === BodyType.BodyWebSocket ? "ws"
+    : request.body?.type === BodyType.BodySSE ? "sse"
+    : null;
+  const send = () => {
+    const t = streamTab();
+    if (t) return void setTab(t);
+    void sendActive();
+  };
   const save = () => void saveActive();
+
+  // --- Interactive WebSocket ---
+  // State lives here (not in WebSocketPanel) so it survives switching sub-tabs:
+  // the panel unmounts on tab change, but the connection (held in the Go
+  // backend) and its message log persist. The connection is torn down only when
+  // the active request tab changes (effect below) or the editor unmounts.
+  type WSMsg = { direction: string; data: string; at: number };
+  const [wsId, setWsId] = createSignal<string | null>(null);
+  const [wsMessages, setWsMessages] = createSignal<WSMsg[]>([]);
+  const [wsConnecting, setWsConnecting] = createSignal(false);
+  const [wsError, setWsError] = createSignal("");
+  const [wsClosed, setWsClosed] = createSignal<number | null>(null);
+
+  const wsConnect = async () => {
+    const prev = wsId();
+    if (prev) void api.closeWebSocket(prev);
+    setWsId(null);
+    setWsMessages([]);
+    setWsError("");
+    setWsClosed(null);
+    setWsConnecting(true);
+    try {
+      const id = await api.openWebSocket(request, collection()?.path ?? "", activeEnv() ?? "");
+      setWsId(id);
+      // Optional initial message from body Raw is sent backend-side on open.
+      if (request.body?.raw) setWsMessages([{ direction: "sent", data: request.body.raw, at: Date.now() }]);
+    } catch (e) {
+      setWsError(String(e));
+    } finally {
+      setWsConnecting(false);
+    }
+  };
+
+  const wsSend = async (text: string) => {
+    const id = wsId();
+    if (!id || !text) return;
+    try {
+      await api.sendWebSocketMessage(id, text);
+      setWsMessages((p) => [...p, { direction: "sent", data: text, at: Date.now() }]);
+    } catch (e) {
+      setWsError(String(e));
+    }
+  };
+
+  const wsDisconnect = () => {
+    const id = wsId();
+    if (id) void api.closeWebSocket(id);
+  };
+
+  onMount(() => {
+    const unsub = Events.On("ws:event", (raw: any) => {
+      // Wails v3 wraps the payload: the emitted struct is in `.data`.
+      const e = raw.data as { id: string; message?: WSMsg; closed?: boolean; code?: number; error?: string };
+      if (e.id !== wsId()) return;
+      // A close event still carries a zero-value message struct (Go omitempty
+      // doesn't drop zero structs), so discriminate on direction, not data.
+      if (e.message?.direction) setWsMessages((p) => [...p, e.message as WSMsg]);
+      if (e.closed) {
+        setWsClosed(e.code ?? 0);
+        if (e.error) setWsError(e.error);
+        setWsId(null);
+      }
+    });
+    onCleanup(unsub);
+  });
+
+  // Switching request tabs ends the live connection — it belongs to one request.
+  // `on` tracks only activeTabId; defer skips the initial mount.
+  createEffect(on(activeTabId, () => {
+    const id = wsId();
+    if (id) {
+      void api.closeWebSocket(id);
+      setWsId(null);
+      setWsMessages([]);
+      setWsError("");
+      setWsClosed(null);
+    }
+  }, { defer: true }));
+  onCleanup(() => {
+    const id = wsId();
+    if (id) void api.closeWebSocket(id);
+  });
 
   return (
     <div class="request-editor">
       <div class="url-bar">
         <div class={`url-group method-${request.method.toLowerCase()}`}>
-          <MethodSelect />
+          <Show when={streamTab()} fallback={<MethodSelect />}>
+            {(t) => <span class="method-inline method-stream">{t() === "ws" ? "WS" : "SSE"}</span>}
+          </Show>
           <span class="url-divider" />
           <UrlField />
         </div>
@@ -216,7 +311,16 @@ export default function RequestEditor() {
             </div>
           </Match>
           <Match when={tab() === "ws"}>
-            <WebSocketPanel />
+            <WebSocketPanel
+              connected={!!wsId()}
+              connecting={wsConnecting()}
+              messages={wsMessages()}
+              error={wsError()}
+              closeCode={wsClosed()}
+              onConnect={wsConnect}
+              onSend={wsSend}
+              onDisconnect={wsDisconnect}
+            />
           </Match>
           <Match when={tab() === "sse"}>
             <SSEPanel />
@@ -670,7 +774,7 @@ function BodyEditor() {
           <div class="empty-hint">No body for this request.</div>
         </Match>
         <Match when={request.body.type === "websocket"}>
-          <div class="empty-hint">Switch to the WebSocket tab to connect and send messages.</div>
+          <div class="empty-hint">Connect and send messages from the WebSocket tab — no body needed here.</div>
         </Match>
         <Match when={request.body.type === "sse"}>
           <div class="empty-hint">Switch to the SSE tab to connect and stream events.</div>
@@ -680,56 +784,86 @@ function BodyEditor() {
   );
 }
 
-function WebSocketPanel() {
-  const [session, setSession] = createSignal<WSSession | null>(null);
-  const [connecting, setConnecting] = createSignal(false);
+function WebSocketPanel(props: {
+  connected: boolean;
+  connecting: boolean;
+  messages: { direction: string; data: string; at: number }[];
+  error: string;
+  closeCode: number | null;
+  onConnect: () => void;
+  onSend: (text: string) => void;
+  onDisconnect: () => void;
+}) {
+  const [draft, setDraft] = createSignal("");
 
-  const connect = async () => {
-    setConnecting(true);
-    try {
-      const s = await api.connectWebSocket(request, collection()?.path ?? "", activeEnv() ?? "");
-      setSession(s);
-    } finally {
-      setConnecting(false);
-    }
+  const send = () => {
+    const t = draft();
+    if (!t) return;
+    props.onSend(t);
+    setDraft("");
   };
 
   return (
     <div class="ws-panel">
       <div class="ws-toolbar">
-        <div class="ws-hint">Initial message is set in the body Raw field above. URL must be ws:// or wss://.</div>
-        <button class="send-btn" onClick={connect} disabled={connecting()}>
-          {connecting() ? "Connecting…" : session() ? "Reconnect" : "Connect"}
-        </button>
+        <span
+          class="ws-conn-dot"
+          classList={{ on: props.connected }}
+          title={props.connected ? "Connected" : "Disconnected"}
+        />
+        <span class="ws-conn-label">
+          {props.connecting ? "Connecting…" : props.connected ? "Connected" : "Not connected"}
+          <Show when={!props.connected && props.closeCode !== null}>
+            {" "}(closed {props.closeCode})
+          </Show>
+        </span>
+        <span class="ws-toolbar-spacer" />
+        <Show
+          when={props.connected}
+          fallback={
+            <button class="send-btn" onClick={() => props.onConnect()} disabled={props.connecting}>
+              {props.connecting ? "Connecting…" : props.closeCode !== null ? "Reconnect" : "Connect"}
+            </button>
+          }
+        >
+          <button class="ws-disconnect" onClick={() => props.onDisconnect()}>Disconnect</button>
+        </Show>
       </div>
-      <Show when={session()}>
-        {(s) => (
-          <div class="ws-session">
-            <div class="ws-meta">
-              <span classList={{ "ws-status-ok": !s().error, "ws-status-err": !!s().error }}>
-                {s().error ? `Error: ${s().error}` : `Done — ${s().messages?.length ?? 0} messages`}
-              </span>
-              <Show when={s().closeCode > 0}>
-                <span class="ws-duration">close {s().closeCode}</span>
-              </Show>
-            </div>
-            <div class="ws-messages">
-              <For each={s().messages ?? []}>
-                {(msg) => (
-                  <div class={`ws-msg ws-msg-${msg.direction}`}>
-                    <span class="ws-msg-dir">{msg.direction === "sent" ? "▲" : "▼"}</span>
-                    <pre class="ws-msg-data">{msg.data}</pre>
-                    <span class="ws-msg-time">{new Date(msg.at).toLocaleTimeString()}</span>
-                  </div>
-                )}
-              </For>
-            </div>
-          </div>
-        )}
+
+      <Show when={props.error}>
+        <div class="ws-error">{props.error}</div>
       </Show>
-      <Show when={!session() && !connecting()}>
-        <div class="empty-hint">Click Connect to open WebSocket connection.</div>
-      </Show>
+
+      <div class="ws-messages">
+        <Show when={props.messages.length} fallback={<div class="empty-hint">No messages yet.</div>}>
+          <For each={props.messages}>
+            {(msg) => (
+              <div class={`ws-msg ws-msg-${msg.direction}`}>
+                <span class="ws-msg-dir">{msg.direction === "sent" ? "▲" : "▼"}</span>
+                <pre class="ws-msg-data">{msg.data}</pre>
+                <span class="ws-msg-time">{new Date(msg.at).toLocaleTimeString()}</span>
+              </div>
+            )}
+          </For>
+        </Show>
+      </div>
+
+      <form
+        class="ws-compose"
+        onSubmit={(e) => {
+          e.preventDefault();
+          send();
+        }}
+      >
+        <input
+          class="ws-input"
+          placeholder={props.connected ? "Type a message, Enter to send" : "Connect to send messages"}
+          value={draft()}
+          disabled={!props.connected}
+          onInput={(e) => setDraft(e.currentTarget.value)}
+        />
+        <button type="submit" class="send-btn" disabled={!props.connected || !draft()}>Send</button>
+      </form>
     </div>
   );
 }
@@ -743,8 +877,9 @@ function SSEPanel() {
     setEvents([]);
     setError("");
     setConnecting(true);
-    const unsub = Events.On("sse:event", (data: unknown) => {
-      setEvents((prev) => [...prev, data as SSEEvent]);
+    const unsub = Events.On("sse:event", (raw: any) => {
+      // Wails v3 wraps the payload: the emitted SSEEvent is in `.data`.
+      setEvents((prev) => [...prev, raw.data as SSEEvent]);
     });
     try {
       const sess = await api.connectSSE(request, collection()?.path ?? "", activeEnv() ?? "");

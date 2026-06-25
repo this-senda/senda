@@ -1,5 +1,23 @@
-import { vi } from "vitest";
+import { afterAll, vi } from "vitest";
 import "@testing-library/jest-dom";
+
+// Belt-and-suspenders for the drag.js leak below: the module mock is racy (it
+// keys on one resolved path and can be slipped under some suite orderings),
+// letting the real ~5s setInterval poll survive into jsdom teardown and throw
+// "window is not defined", failing the whole run nondeterministically. Track
+// every interval and clear them when a file's tests finish — afterAll runs
+// before environment teardown, so no timer outlives the jsdom window.
+const realSetInterval = globalThis.setInterval;
+const liveIntervals = new Set<ReturnType<typeof setInterval>>();
+globalThis.setInterval = ((fn: TimerHandler, ms?: number, ...args: unknown[]) => {
+  const id = realSetInterval(fn as () => void, ms, ...args);
+  liveIntervals.add(id);
+  return id;
+}) as typeof setInterval;
+afterAll(() => {
+  for (const id of liveIntervals) clearInterval(id);
+  liveIntervals.clear();
+});
 
 // @wailsio/runtime/dist/drag.js is a side-effect-only module (no exports) that
 // schedules a window.setInterval at import; under jsdom that timer can fire

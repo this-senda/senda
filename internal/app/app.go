@@ -10,6 +10,7 @@ import (
 	"senda/internal/model"
 	"senda/internal/pipeline"
 	"senda/internal/store"
+	"senda/internal/wsclient"
 )
 
 // App is the Wails-bound facade. Every exported method is callable from the
@@ -19,11 +20,12 @@ type App struct {
 	session    *pipeline.Session
 	wails      *application.App   // set in main after application.New; nil in tests
 	mockServer *mockserver.Server // the running mock server, or nil when stopped
+	ws         *wsclient.Manager  // open interactive WebSocket connections
 }
 
 // NewApp constructs the application backend.
 func NewApp() *App {
-	return &App{session: pipeline.NewSession()}
+	return &App{session: pipeline.NewSession(), ws: wsclient.NewManager()}
 }
 
 // SetApp attaches the running Wails handle after application.New (native

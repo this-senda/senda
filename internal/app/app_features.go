@@ -357,6 +357,27 @@ func (a *App) ConnectWebSocket(ctx context.Context, req model.Request, collPath,
 	return wsclient.Connect(ctx, req, scope)
 }
 
+// OpenWebSocket opens an interactive WebSocket connection that stays alive
+// across calls. Received messages and the close event are emitted to the
+// frontend as "ws:event" so the connection survives switching request tabs.
+// Returns a connection id for SendWebSocketMessage / CloseWebSocket.
+func (a *App) OpenWebSocket(ctx context.Context, req model.Request, collPath, envName string) (string, error) {
+	scope := a.session.Scope(collPath, "", envName)
+	return a.ws.Open(ctx, req, scope, func(e wsclient.WSEvent) {
+		a.emit("ws:event", e)
+	})
+}
+
+// SendWebSocketMessage sends a text message over an open connection.
+func (a *App) SendWebSocketMessage(id, message string) error {
+	return a.ws.Send(id, message)
+}
+
+// CloseWebSocket closes an open connection. Unknown id is a no-op.
+func (a *App) CloseWebSocket(id string) error {
+	return a.ws.Close(id)
+}
+
 // ConnectSSE connects to an SSE endpoint and returns all events received
 // until the connection closes or ctx is cancelled. Events are also streamed
 // to the frontend as "sse:event" events for real-time display.
