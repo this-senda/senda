@@ -9,6 +9,9 @@
 /frontend/node_modules/
 /frontend/dist/
 /frontend/tests/visual/__screenshots__/
+# one-off verify/repro scripts — keep shoot/check-rail/mock-backend
+/frontend/tests/visual/verify-*.mjs
+/frontend/tests/visual/repro-*.mjs
 
 # Wails generated bindings (regenerated from Go)
 /frontend/wailsjs/
