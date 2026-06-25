@@ -2470,6 +2470,15 @@ body.dragging-splitter {
 .tag-remove:hover {
   color: var(--text);
 }
+/* Folder settings: give the body a consistent side gutter so fields don't run
+   to the modal edge (labels carry their own left pad, so zero it here). */
+.folder-settings-body {
+  padding: 0 14px 8px;
+}
+.folder-settings-body .modal-section-label {
+  padding-left: 0;
+  padding-right: 0;
+}
 .folder-desc {
   width: 100%;
   resize: vertical;

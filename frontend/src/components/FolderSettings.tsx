@@ -101,7 +101,7 @@ export default function FolderSettings(props: {
           </button>
         </div>
         <Show when={!loading()} fallback={<div class="modal-body">Loading…</div>}>
-          <div class="modal-body">
+          <div class="modal-body folder-settings-body">
             <div class="modal-section-label">Color</div>
             <div class="folder-color-picker">
               <button
