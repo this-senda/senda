@@ -38,6 +38,7 @@ export const ImportCurl = method("ImportCurl");
 export const ImportCollection = method("ImportCollection");
 export const GenerateMocksFromOpenAPI = method("GenerateMocksFromOpenAPI");
 export const GenerateCode = method("GenerateCode");
+export const RenderMarkdown = method("RenderMarkdown");
 export const CodegenTargets = method("CodegenTargets");
 export const RunFolder = method("RunFolder");
 export const RunLoad = method("RunLoad");
