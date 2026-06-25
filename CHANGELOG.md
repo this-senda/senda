@@ -7,6 +7,29 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.6](https://github.com/this-senda/senda/compare/v0.1.5...v0.1.6) (2026-06-25)
+
+
+### Features
+
+* **docs:** zoom run-card shots + walkthrough gif in lightbox ([#46](https://github.com/this-senda/senda/issues/46)) ([b416470](https://github.com/this-senda/senda/commit/b416470a2f683fdcb0054b3660855d3e7bb4f27f))
+* **editor:** workspace rail with icon-box collection switcher ([#35](https://github.com/this-senda/senda/issues/35)) ([d1d5383](https://github.com/this-senda/senda/commit/d1d5383e2044ad052dad2d1311e80407b9827aa0))
+* **openapi:** high-fidelity import + docs markdown preview ([#41](https://github.com/this-senda/senda/issues/41)) ([194ba62](https://github.com/this-senda/senda/commit/194ba62b3c8fed0fab51c8715d9960639970fc97))
+* **ui:** redesign request bar with verb rail + custom method dropdown ([#43](https://github.com/this-senda/senda/issues/43)) ([3116de8](https://github.com/this-senda/senda/commit/3116de8896b1417998d263f12bc3b206128b84a6))
+
+
+### Bug Fixes
+
+* **test:** correct stale Wails v3 bindings alias for e2e ([#42](https://github.com/this-senda/senda/issues/42)) ([e58446e](https://github.com/this-senda/senda/commit/e58446e3839c5b9d41d4fe56062091b4ba431664))
+* **test:** export RenderMarkdown in e2e app stub ([#45](https://github.com/this-senda/senda/issues/45)) ([2770259](https://github.com/this-senda/senda/commit/277025959639a740a0a172f1f3f037ac5bcbe084))
+* **test:** update webkit e2e for custom verb dropdown + sandboxed iframe ([#44](https://github.com/this-senda/senda/issues/44)) ([ebfb616](https://github.com/this-senda/senda/commit/ebfb616cb9301dfb7d6d20ac314c991dd7f793d5))
+
+
+### Documentation
+
+* **screenshots:** add workspace rail + faker autocomplete shots ([#37](https://github.com/this-senda/senda/issues/37)) ([94f03a6](https://github.com/this-senda/senda/commit/94f03a6b5383d9fd29914deb2cb568a0593805c6))
+* **site:** showcase workspace rail + faker, restyle gallery ([#38](https://github.com/this-senda/senda/issues/38)) ([d9ad13d](https://github.com/this-senda/senda/commit/d9ad13dad8ceacc1983ea6b894b1dde200cc7330))
+
 ## [0.1.5](https://github.com/this-senda/senda/compare/v0.1.4...v0.1.5) (2026-06-24)
 
 
