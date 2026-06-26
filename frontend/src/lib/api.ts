@@ -7,11 +7,13 @@ import * as mockserverModel from "../../bindings/senda/internal/mockserver/model
 import type { ScopeVar } from "../../bindings/senda/internal/app/models";
 import type { SyncState } from "../../bindings/senda/internal/security/models";
 import type { Activity } from "../../bindings/senda/internal/store/models";
+import type { Status as GitStatus, Diff as GitDiff, ChangedFile, FieldDiff } from "../../bindings/senda/internal/scm/models";
 
 export type { ScopeVar };
 
 export type { SyncState };
 export type { Activity };
+export type { GitStatus, GitDiff, ChangedFile, FieldDiff };
 
 export type Request = model.Request;
 export const BodyType = model.BodyType;
@@ -117,6 +119,10 @@ export const api = {
   syncSecurityTemplates: (collPath: string, url: string, ref: string) =>
     App.SyncSecurityTemplates(collPath, url, ref),
   securityTemplatesState: (collPath: string) => App.SecurityTemplatesState(collPath),
+
+  // source control: read-only git comparison (working tree vs HEAD)
+  gitStatus: (collPath: string) => App.GitStatus(collPath),
+  gitDiff: (collPath: string, path: string) => App.GitDiff(collPath, path),
 
   // tree ops
   renameNode: (path: string, newName: string) => App.RenameNode(path, newName),

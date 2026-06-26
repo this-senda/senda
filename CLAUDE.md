@@ -54,6 +54,7 @@ Specs drive real WebKit. Rename/retag any selector below → CI breaks. Touch ma
 - `.tabs button`(Docs) `.docs-toolbar button`(Edit/Preview) `.docs-hint` `iframe.docs-preview`(`sandbox=""`+`srcdoc`).
 - `.code-editor` — CM6 host (Body/Docs). `shell-no-scroll.spec` asserts clicking these tabs never scrolls window.
 - WebKit can't pierce `sandbox=""` srcdoc iframe → assert `srcdoc` attr, never `frameLocator().locator()` inside.
+- `.scm-open` `.scm-row` `.scm-badge` `.scm-section-head` `.scm-field-label` `.scm-old` `.scm-new` `.scm-raw` `.scm-diff-empty` — source-control (git comparison) modal (`SourceControlPanel.tsx`). `source-control.spec` drives them off mocked `GitStatus`/`GitDiff` in `tests/visual/mock-backend.mjs` — add a method to the mock when you add a bound `Git*` App method, or the panel renders empty.
 
 Critical paths — change one side, update the other in the SAME commit (each pairing below has bitten CI):
 

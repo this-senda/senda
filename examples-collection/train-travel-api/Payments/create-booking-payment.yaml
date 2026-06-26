@@ -1,6 +1,6 @@
 name: create-booking-payment
 method: POST
-url: https://try.microcks.io/rest/Train+Travel+API/1.0.0/bookings/{bookingId}/payment
+url: https://try.microcks.io/rest/Train+Travel+API/1.0.0/bookings/{{bookingId}}/payment
 headers:
     - key: Content-Type
       value: application/json

@@ -263,6 +263,29 @@ export function installCaptureMock() {
     SyncSecurityTemplates: async () => ({}),
     SecurityTemplatesState: async () => ({ present: false }),
 
+    // source control (read-only git comparison)
+    GitStatus: async () => ({
+      repo: true,
+      branch: "main",
+      files: [
+        { path: "users/create-user.yaml", display: "create-user", status: "modified", other: false },
+        { path: "users/list-users.yaml", display: "list-users", status: "untracked", other: false },
+        { path: ".gitignore", display: ".gitignore", status: "untracked", other: true },
+      ],
+    }),
+    GitDiff: async (_collPath, path) =>
+      path.endsWith(".gitignore")
+        ? { display: ".gitignore", fields: [], raw: "+node_modules/\n+dist/\n" }
+        : {
+            display: "create-user",
+            fields: [
+              { label: "Method", old: "GET", new: "POST", kind: "changed" },
+              { label: "URL", old: "https://api.demo.test/users", new: "https://api.demo.test/v2/users", kind: "changed" },
+              { label: "Headers", old: "", new: "- key: Content-Type\n  value: application/json", kind: "added" },
+            ],
+            raw: "",
+          },
+
     // history
     ListHistory: async () => [
       { method: "POST", url: "https://api.demo.test/users", status: 201, at: new Date(Date.now() - 60_000).toISOString() },
