@@ -38,6 +38,11 @@ try {
   await page.locator(".flow-panel").waitFor({ state: "visible", timeout: 5000 });
   // first flow auto-selects on open — graph should appear with no click.
   await page.locator(".flow-graph").waitFor({ state: "visible", timeout: 5000 });
+  // run it, then open the first request step's response.
+  await page.locator(".flow-run").click();
+  await page.locator(".flow-steps .flow-step.clickable").first().waitFor({ state: "visible", timeout: 5000 });
+  await page.locator(".flow-steps .flow-step.clickable").first().click();
+  await page.locator(".flow-step-body").waitFor({ state: "visible", timeout: 5000 });
   await page.locator(".flow-panel").screenshot({ path: "/tmp/senda-flows.png" });
   console.log("OK wrote /tmp/senda-flows.png");
 } finally {

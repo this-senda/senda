@@ -80,7 +80,8 @@ func runHeadless(args []string) {
 			if err != nil {
 				return req, model.Response{}, err
 			}
-			resp, _ := session.SendWithExtra(ctx, req, root, path, *env, extra)
+			resp, appliedURL := session.SendWithExtra(ctx, req, root, path, *env, extra)
+			req.URL = appliedURL // report the interpolated URL, not the raw template
 			return req, resp, nil
 		}
 	}
@@ -181,7 +182,8 @@ func runFlow(root, nameOrPath, env string, quiet bool, report, outFile string) {
 			if err != nil {
 				return req, model.Response{}, err
 			}
-			resp, _ := session.SendWithExtra(ctx, req, root, abs, env, extra)
+			resp, appliedURL := session.SendWithExtra(ctx, req, root, abs, env, extra)
+			req.URL = appliedURL // report the interpolated URL, not the raw template
 			return req, resp, nil
 		}
 	}

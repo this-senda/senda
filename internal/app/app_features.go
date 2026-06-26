@@ -281,6 +281,7 @@ func (a *App) RunFolder(ctx context.Context, folderPath, collPath, envName strin
 		// Record each request so the sidebar recency pills update after a folder
 		// run, the same as a single send does.
 		recordSend(collPath, req, resp, appliedURL)
+		req.URL = appliedURL // report the interpolated URL, not the raw template
 		return req, resp, nil
 	}
 	return runner.RunFolder(ctx, paths, send, func(res model.RunResult) {
@@ -319,6 +320,7 @@ func (a *App) RunFlow(ctx context.Context, flowPath, collPath, envName string) (
 			}
 			resp, appliedURL := a.session.SendWithExtra(ctx, req, collPath, abs, envName, extra)
 			recordSend(collPath, req, resp, appliedURL)
+			req.URL = appliedURL // report the interpolated URL, not the raw template
 			return req, resp, nil
 		}
 	}

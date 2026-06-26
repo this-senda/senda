@@ -107,8 +107,10 @@ export function installDevMock() {
           },
         }),
         RunFlow: async () => [
-          { nodeId: "login", type: "request", result: { name: "login", path: "auth/login.yaml", method: "POST", url: "https://api.demo.test/login", status: 200, durationMs: 31, sizeBytes: 64, ok: true, assertPass: 0, assertFail: 0 } },
-          { nodeId: "me", type: "request", result: { name: "me", path: "users/me.yaml", method: "GET", url: "https://api.demo.test/me", status: 200, durationMs: 18, sizeBytes: 80, ok: true, assertPass: 0, assertFail: 0 } },
+          { nodeId: "getPost", type: "request", result: { name: "Get post", path: "Chaining/get-post.yaml", method: "GET", url: "https://jsonplaceholder.typicode.com/posts/1", status: 200, durationMs: 31, sizeBytes: 292, ok: true, assertPass: 1, assertFail: 0, response: { status: 200, statusText: "OK", durationMs: 31, sizeBytes: 292, headers: { "Content-Type": ["application/json"] }, body: '{\n  "userId": 1,\n  "id": 1,\n  "title": "sunt aut facere"\n}', truncated: false } } },
+          { nodeId: "check", type: "branch", branch: "true" },
+          { nodeId: "setUid", type: "setvar" },
+          { nodeId: "getUser", type: "request", result: { name: "Get post author", path: "Chaining/get-user.yaml", method: "GET", url: "https://jsonplaceholder.typicode.com/users/1", status: 200, durationMs: 18, sizeBytes: 509, ok: true, assertPass: 2, assertFail: 0, response: { status: 200, statusText: "OK", durationMs: 18, sizeBytes: 509, headers: { "Content-Type": ["application/json"] }, body: '{\n  "id": 1,\n  "name": "Leanne Graham",\n  "email": "Sincere@april.biz"\n}', truncated: false } } },
         ],
         ReadRequest: async (path: string) => reqFor(path),
         ReadFolderMeta: async (path: string) => ({ name: String(path).split("/").pop() ?? "", path, color: "", tags: [], description: "", vars: [], auth: { type: "inherit" } }),

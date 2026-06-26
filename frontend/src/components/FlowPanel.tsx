@@ -4,7 +4,7 @@
 // (file-watch reloads); this panel only inspects and executes.
 import { createSignal, For, onMount, Show } from "solid-js";
 import { Events } from "@wailsio/runtime";
-import { X, Play, CornerDownRight, Workflow } from "lucide-solid";
+import { X, Play, CornerDownRight, Workflow, ChevronDown, ChevronRight } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { FlowInfo, FlowStep, Flow } from "../lib/api";
@@ -49,6 +49,7 @@ export default function FlowPanel(props: { onClose: () => void }) {
   const [def, setDef] = createSignal<Flow | null>(null);
   const [running, setRunning] = createSignal(false);
   const [steps, setSteps] = createSignal<FlowStep[]>([]);
+  const [expanded, setExpanded] = createSignal<number | null>(null);
   const [error, setError] = createSignal("");
 
   onMount(async () => {
@@ -63,6 +64,7 @@ export default function FlowPanel(props: { onClose: () => void }) {
     if (running()) return;
     setSelected(f);
     setSteps([]);
+    setExpanded(null);
     setError("");
     setDef(null);
     setDef(await api.readFlow(f.path));
@@ -73,6 +75,7 @@ export default function FlowPanel(props: { onClose: () => void }) {
     const f = selected();
     if (!coll || !f || running()) return;
     setSteps([]);
+    setExpanded(null);
     setError("");
     setRunning(true);
     const off = Events.On("flow:step", (e: any) =>
@@ -172,30 +175,47 @@ export default function FlowPanel(props: { onClose: () => void }) {
 
             <Show when={steps().length > 0}>
               <div class="flow-steps">
-                <div class="flow-steps-label">Run</div>
+                <div class="flow-steps-label">Run — click a request to open its response</div>
                 <For each={steps()}>
-                  {(s) => (
-                    <div class="flow-step">
-                      <span class="flow-step-id">{s.nodeId}</span>
-                      <Show
-                        when={s.result}
-                        fallback={
-                          <span class="flow-step-type">
-                            {s.type}
-                            <Show when={s.branch}> → {s.branch}</Show>
-                          </span>
-                        }
-                      >
-                        <span class={`status-badge ${statusClass(s.result!.status)}`}>
-                          {s.result!.status}
-                        </span>
-                        <span class="flow-step-url" title={s.result!.url}>{s.result!.url}</span>
-                      </Show>
-                      <Show when={s.err}>
-                        <span class="run-err" title={s.err}>err</span>
-                      </Show>
-                    </div>
-                  )}
+                  {(s, i) => {
+                    const body = () => s.result?.response?.body;
+                    const open = () => expanded() === i();
+                    return (
+                      <div class="flow-step-wrap">
+                        <div
+                          class={`flow-step ${body() ? "clickable" : ""}`}
+                          onClick={() => body() && setExpanded(open() ? null : i())}
+                        >
+                          <Show when={body()} fallback={<span class="flow-step-caret-spacer" />}>
+                            <Show when={open()} fallback={<ChevronRight size={ICON.xs} />}>
+                              <ChevronDown size={ICON.xs} />
+                            </Show>
+                          </Show>
+                          <span class="flow-step-id">{s.nodeId}</span>
+                          <Show
+                            when={s.result}
+                            fallback={
+                              <span class="flow-step-type">
+                                {s.type}
+                                <Show when={s.branch}> → {s.branch}</Show>
+                              </span>
+                            }
+                          >
+                            <span class={`status-badge ${statusClass(s.result!.status)}`}>
+                              {s.result!.status}
+                            </span>
+                            <span class="flow-step-url" title={s.result!.url}>{s.result!.url}</span>
+                          </Show>
+                          <Show when={s.err}>
+                            <span class="run-err" title={s.err}>err</span>
+                          </Show>
+                        </div>
+                        <Show when={open() && body()}>
+                          <pre class="flow-step-body">{body()}</pre>
+                        </Show>
+                      </div>
+                    );
+                  }}
                 </For>
               </div>
             </Show>

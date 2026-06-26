@@ -23,7 +23,7 @@ vi.mock("../lib/api", () => ({
         {
           nodeId: "login",
           type: "request",
-          result: { name: "login", path: "login.yaml", method: "GET", url: "https://x/login", status: 200, ok: true, assertPass: 0, assertFail: 0, durationMs: 1, sizeBytes: 0 },
+          result: { name: "login", path: "login.yaml", method: "GET", url: "https://x/login", status: 200, ok: true, assertPass: 0, assertFail: 0, durationMs: 1, sizeBytes: 0, response: { status: 200, body: '{"token":"sekret"}', headers: {}, durationMs: 1, sizeBytes: 0, truncated: false } },
         },
         { nodeId: "check", type: "branch", branch: "true" },
       ]),
@@ -64,6 +64,16 @@ describe("FlowPanel", () => {
     fireEvent.click(await screen.findByText("Run flow"));
     await waitFor(() => expect(screen.getByText("200")).toBeInTheDocument());
     expect(api.runFlow).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml", "/c", expect.anything());
+  });
+
+  it("opens a request step's response on click", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    fireEvent.click(await screen.findByText("signup"));
+    fireEvent.click(await screen.findByText("Run flow"));
+    const url = await screen.findByText("https://x/login");
+    expect(screen.queryByText(/sekret/)).not.toBeInTheDocument(); // collapsed by default
+    fireEvent.click(url);
+    await waitFor(() => expect(screen.getByText(/sekret/)).toBeInTheDocument());
   });
 
   it("shows an empty hint when there are no flows", async () => {

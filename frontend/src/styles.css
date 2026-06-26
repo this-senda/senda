@@ -2917,16 +2917,40 @@ body.dragging-splitter {
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border-soft);
 }
+.flow-step-wrap {
+  border-bottom: 1px solid var(--border-soft);
+}
+.flow-step-wrap:last-child {
+  border-bottom: none;
+}
 .flow-step {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 7px 14px;
-  border-bottom: 1px solid var(--border-soft);
   font-size: var(--fs-sm);
 }
-.flow-step:last-child {
-  border-bottom: none;
+.flow-step.clickable {
+  cursor: pointer;
+}
+.flow-step.clickable:hover {
+  background: var(--bg-elev);
+}
+.flow-step-caret-spacer {
+  width: 12px;
+  flex: none;
+}
+.flow-step-body {
+  margin: 0;
+  padding: 10px 14px 14px 32px;
+  max-height: 280px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  background: var(--bg);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 .flow-step-id {
   font-family: var(--mono);
