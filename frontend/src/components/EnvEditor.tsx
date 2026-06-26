@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import type { KV } from "../lib/api";
 import { collection, environments, setEnvironments } from "../lib/store";
 import { ENV_COLORS, envColor } from "../lib/envColor";
+import { promptDialog } from "../lib/dialog";
 import KVEditor from "./KVEditor";
 
 export default function EnvEditor(props: { onClose: () => void }) {
@@ -31,7 +32,7 @@ export default function EnvEditor(props: { onClose: () => void }) {
   };
 
   const addEnv = async () => {
-    const name = prompt("New environment name:", "dev");
+    const name = await promptDialog("New environment name:", "dev");
     if (!name) return;
     if (environments().some((e) => e.name === name)) {
       pick(name);

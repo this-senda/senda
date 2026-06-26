@@ -11,6 +11,15 @@ vi.mock("./api", () => ({
   },
 }));
 
+// saveActive's save-as path now asks for a name via the in-app dialog. Mock it
+// so the test controls the reply (string = entered name, null = cancelled).
+const dlg = vi.hoisted(() => ({ promptReply: "my-req" as string | null }));
+vi.mock("./dialog", () => ({
+  promptDialog: () => Promise.resolve(dlg.promptReply),
+  confirmDialog: () => Promise.resolve(true),
+  alertDialog: () => Promise.resolve(),
+}));
+
 import { api } from "./api";
 import { saveActive } from "./actions";
 import { activePath, dirty, newTab, setCollection, setDirty } from "./store";
@@ -25,7 +34,7 @@ describe("saveActive", () => {
     setCollection({ name: "c", path: "/c" } as any);
     newTab(); // fresh scratch tab, path === ""
     setDirty(true);
-    vi.stubGlobal("prompt", () => "my-req");
+    dlg.promptReply = "my-req";
 
     await saveActive();
 
@@ -34,31 +43,27 @@ describe("saveActive", () => {
     // tab is now backed by the new file and clean
     expect(activePath()).toBe("/c/my-req.yaml");
     expect(dirty()).toBe(false);
-
-    vi.unstubAllGlobals();
   });
 
   it("save-as: cancelling the prompt writes nothing", async () => {
     setCollection({ name: "c", path: "/c" } as any);
     newTab();
     setDirty(true);
-    vi.stubGlobal("prompt", () => null);
+    dlg.promptReply = null;
 
     await saveActive();
 
     expect(api.saveRequest).not.toHaveBeenCalled();
-    vi.unstubAllGlobals();
   });
 
   it("no collection open: save-as does nothing", async () => {
     setCollection(null);
     newTab();
     setDirty(true);
-    vi.stubGlobal("prompt", () => "x");
+    dlg.promptReply = "x";
 
     await saveActive();
 
     expect(api.saveRequest).not.toHaveBeenCalled();
-    vi.unstubAllGlobals();
   });
 });

@@ -18,6 +18,7 @@ import {
   setResponse,
   setSending,
 } from "./store";
+import { promptDialog } from "./dialog";
 
 // The in-flight send, kept so cancelSend can abort it (Wails calls are
 // cancellable promises that propagate ctx cancellation to the backend).
@@ -70,7 +71,7 @@ export async function saveActive() {
   if (!path) {
     const coll = collection();
     if (!coll) return; // no collection open: nowhere to save
-    const name = prompt("Request name:", request.name || "new-request");
+    const name = await promptDialog("Request name:", request.name || "new-request");
     if (!name) return;
     path = `${coll.path}/${name.replace(/\.ya?ml$/i, "")}.yaml`;
     await api.saveRequest(path, request);

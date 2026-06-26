@@ -11,6 +11,7 @@ import { refreshCollection } from "../lib/actions";
 import { fmtAgo, nodeRecency } from "../lib/recency";
 import { attachCtxDismiss } from "../lib/ctxMenu";
 import { blankRequest } from "../lib/factory";
+import { alertDialog, confirmDialog, promptDialog } from "../lib/dialog";
 import CollectionSettings from "./CollectionSettings";
 import FolderSettings from "./FolderSettings";
 import ImportDialog from "./ImportDialog";
@@ -125,7 +126,7 @@ export default function Sidebar() {
   const newRequest = async () => {
     const coll = collection();
     if (!coll) return;
-    const name = prompt("Request name:", "new-request");
+    const name = await promptDialog("Request name:", "new-request");
     if (!name) return;
     const path = `${coll.path}/${name}.yaml`;
     await api.saveRequest(path, blankRequest(name));
@@ -143,6 +144,9 @@ export default function Sidebar() {
   return (
     <aside class="sidebar">
       <div class="sidebar-head">
+        <Show when={collection()}>
+          <span class="sidebar-title" title={collection()!.path}>{collection()!.name}</span>
+        </Show>
         <div class="sidebar-actions">
           <button class="icon-btn" title="New request" onClick={newRequest} disabled={!collection()}>
             <Plus size={ICON.xl} />
@@ -300,20 +304,20 @@ function TreeRow(props: {
 
   const del = async (e: MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Delete ${props.node.name}?`)) return;
+    if (!(await confirmDialog(`Delete ${props.node.name}?`, { danger: true, okLabel: "Delete" }))) return;
     await api.deleteRequest(props.node.path);
     props.onRefresh();
   };
 
   const rename = async (e: MouseEvent) => {
     e.stopPropagation();
-    const next = prompt(`Rename ${props.node.name} to:`, props.node.name);
+    const next = await promptDialog(`Rename ${props.node.name} to:`, props.node.name);
     if (!next || next === props.node.name) return;
     try {
       await api.renameNode(props.node.path, next);
       props.onRefresh();
     } catch (err) {
-      alert("Rename failed: " + err);
+      await alertDialog("Rename failed: " + err);
     }
   };
 
@@ -327,7 +331,7 @@ function TreeRow(props: {
   // Delete a folder (recursively) after confirming.
   const delFolder = async (e: MouseEvent) => {
     e.stopPropagation();
-    if (!confirm(`Delete folder "${props.node.name}" and everything inside it?`)) return;
+    if (!(await confirmDialog(`Delete folder "${props.node.name}" and everything inside it?`, { danger: true, okLabel: "Delete" }))) return;
     await api.deleteNode(props.node.path);
     props.onRefresh();
   };
@@ -335,7 +339,7 @@ function TreeRow(props: {
   // Create a new request file directly inside this folder and open it.
   const newReqHere = async (e: MouseEvent) => {
     e.stopPropagation();
-    const name = prompt("Request name:", "new-request");
+    const name = await promptDialog("Request name:", "new-request");
     if (!name) return;
     const path = `${props.node.path}/${name}.yaml`;
     await api.saveRequest(path, blankRequest(name));
@@ -354,13 +358,13 @@ function TreeRow(props: {
   // Create a new sub-folder inside this folder.
   const newFolderHere = async (e: MouseEvent) => {
     e.stopPropagation();
-    const name = prompt("Folder name:", "new-folder");
+    const name = await promptDialog("Folder name:", "new-folder");
     if (!name) return;
     try {
       await api.createFolder(`${props.node.path}/${name}`);
       props.onRefresh();
     } catch (err) {
-      alert("Create folder failed: " + err);
+      await alertDialog("Create folder failed: " + err);
     }
   };
 
@@ -379,7 +383,7 @@ function TreeRow(props: {
       await api.moveNode(src, dst);
       props.onRefresh();
     } catch (err) {
-      alert("Move failed: " + err);
+      await alertDialog("Move failed: " + err);
     }
   };
   const startDrag = (e: MouseEvent) => trackDrag(e, props.node.path, onMoveDrop);

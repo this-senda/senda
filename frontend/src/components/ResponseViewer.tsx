@@ -8,6 +8,7 @@ import { collection, request, response, sending } from "../lib/store";
 import { cancelSend } from "../lib/actions";
 import { formatBytes, statusClass } from "../lib/factory";
 import { toBase64, toHex } from "../lib/format";
+import { alertDialog } from "../lib/dialog";
 import CodeEditor from "./CodeEditor";
 import JsonTree from "./JsonTree";
 import Timeline from "./Timeline";
@@ -162,7 +163,7 @@ export default function ResponseViewer() {
       setSavedMock(true);
       setTimeout(() => setSavedMock(false), 1500);
     } catch (e) {
-      alert("Could not save mock: " + e);
+      await alertDialog("Could not save mock: " + e);
     }
   };
 

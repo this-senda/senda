@@ -43,20 +43,20 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
 let failed = false;
 try {
   await page.goto(URL_BASE);
-  const box = page.locator(".ws-box").first();
+  const box = page.locator(".ws-avatar").first();
   await box.waitFor({ state: "visible", timeout: 15000 });
 
-  const mono = await offset(box, box.locator(".ws-box-mono"));
+  const mono = await offset(box, box.locator(".ws-avatar-mono"));
   console.log(`monogram: dx=${mono.dx.toFixed(2)} dy=${mono.dy.toFixed(2)}  box=${JSON.stringify(mono.b)}`);
 
-  await box.click({ button: "right" });
+  await page.locator(".ws-switch").click({ button: "right" });
   await page.locator(".ws-picker-cell").first().click();
-  const emojiLoc = box.locator(".ws-box-emoji");
+  const emojiLoc = box.locator(".ws-avatar-emoji");
   await emojiLoc.waitFor({ state: "visible", timeout: 5000 });
   const emo = await offset(box, emojiLoc);
   console.log(`emoji:    dx=${emo.dx.toFixed(2)} dy=${emo.dy.toFixed(2)}`);
 
-  await page.screenshot({ path: "/tmp/claude-1000/-home-sami-projects-senda/db3af21a-a064-4fe1-aeb6-d985202c0e73/scratchpad/rail.png", clip: { x: 0, y: 0, width: 320, height: 60 } });
+  await page.screenshot({ path: "/tmp/senda-rail.png", clip: { x: 0, y: 0, width: 1280, height: 56 } });
 
   const TOL = 2.5;
   for (const [name, o] of [["monogram", mono], ["emoji", emo]]) {

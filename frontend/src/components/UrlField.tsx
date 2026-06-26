@@ -7,8 +7,8 @@
 //     input can't color its own text) plus a "{{" autocomplete popup.
 // Clicking the read view (or pressing Enter on it) swaps to the raw editable
 // text, caret placed at the clicked token.
-import { createMemo, createResource, createSignal, For, Show } from "solid-js";
-import { request, setRequest, setDirty, activeEnv, activePath, collection } from "../lib/store";
+import { createEffect, createMemo, createResource, createSignal, For, on, Show } from "solid-js";
+import { request, setRequest, setDirty, activeEnv, activePath, collection, urlFocusTick } from "../lib/store";
 import { api, BodyType } from "../lib/api";
 import { sendActive } from "../lib/actions";
 import {
@@ -107,15 +107,20 @@ export default function UrlField() {
     seg.status === "found" ? seg.value : seg.status === "secret" ? "•••• (server-side secret)" : "unresolved";
 
   // activate switches to edit mode and drops the caret at pos (default: end).
-  const activate = (pos?: number) => {
+  // selectAll overrides pos and highlights the whole URL (Ctrl+L, browser-style).
+  const activate = (pos?: number, selectAll = false) => {
     setFocused(true);
     queueMicrotask(() => {
       if (!inputRef) return;
       inputRef.focus();
+      if (selectAll) return void inputRef.setSelectionRange(0, request.url.length);
       const p = pos ?? request.url.length;
       inputRef.setSelectionRange(p, p);
     });
   };
+
+  // Ctrl+L (App.tsx) bumps urlFocusTick → enter edit mode + select all.
+  createEffect(on(urlFocusTick, () => activate(undefined, true), { defer: true }));
 
   const syncScroll = () => {
     if (highlightRef && inputRef) highlightRef.scrollLeft = inputRef.scrollLeft;
@@ -248,6 +253,7 @@ export default function UrlField() {
           value={request.url}
           spellcheck={false}
           autocomplete="off"
+          onFocus={() => setFocused(true)}
           onInput={(e) => {
             const v = e.currentTarget.value;
             setRequest("url", v);

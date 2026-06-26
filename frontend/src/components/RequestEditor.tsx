@@ -2,22 +2,21 @@
 // body. Drives the shared request store.
 import { createEffect, createResource, createSignal, For, Index, Match, on, onCleanup, onMount, Show, Switch } from "solid-js";
 import { buildClientSchema, getIntrospectionQuery, type GraphQLSchema } from "graphql";
-import { Check, Code2, Plus, Save as SaveIcon, X } from "lucide-solid";
+import { Plus, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api, BodyType, type KV, type Request, type SSEEvent } from "../lib/api";
 import { blankKV } from "../lib/factory";
-import { saveActive, sendActive } from "../lib/actions";
 import {
   activePath,
   activeEnv,
   activeTabId,
   collection,
-  dirty,
   request,
+  reqTab,
   response,
-  sending,
   setDirty,
   setRequest,
+  setReqTab,
 } from "../lib/store";
 import { Events } from "@wailsio/runtime";
 import { docsSrcdoc } from "../lib/docsPreview";
@@ -25,18 +24,15 @@ import KVEditor from "./KVEditor";
 import CodeEditor from "./CodeEditor";
 import AuthEditor from "./AuthEditor";
 import AssertEditor from "./AssertEditor";
-import CodeGenDialog from "./CodeGenDialog";
-import UrlField from "./UrlField";
-
-const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
-type Tab = "params" | "headers" | "auth" | "body" | "tests" | "script" | "docs" | "ws" | "sse";
 
 // Auth types that don't actually send credentials — used to dim the tab badge.
 const PASSIVE_AUTH = new Set(["", "inherit", "none"]);
 
 export default function RequestEditor() {
-  const [tab, setTab] = createSignal<Tab>("params");
-  const [showCode, setShowCode] = createSignal(false);
+  // Active sub-tab lives in the store so the URL bar (now in the titlebar) can
+  // route ws/sse sends here.
+  const tab = reqTab;
+  const setTab = setReqTab;
   const [docsView, setDocsView] = createSignal<"edit" | "preview">("edit");
   // Render docs markdown to HTML via the Go docgen renderer (same one used for
   // exported docs) only while the preview tab is showing. Empty docs → skip.
@@ -44,19 +40,6 @@ export default function RequestEditor() {
     () => (docsView() === "preview" ? (request.docs ?? "") : null),
     (md) => api.renderMarkdown(md),
   );
-
-  // ws/sse requests aren't HTTP — route the Send button to their tab (Connect lives there)
-  // instead of firing a doomed http.Client call that errors "unsupported protocol scheme".
-  const streamTab = (): Tab | null =>
-    request.body?.type === BodyType.BodyWebSocket ? "ws"
-    : request.body?.type === BodyType.BodySSE ? "sse"
-    : null;
-  const send = () => {
-    const t = streamTab();
-    if (t) return void setTab(t);
-    void sendActive();
-  };
-  const save = () => void saveActive();
 
   // --- Interactive WebSocket ---
   // State lives here (not in WebSocketPanel) so it survives switching sub-tabs:
@@ -142,38 +125,6 @@ export default function RequestEditor() {
 
   return (
     <div class="request-editor">
-      <div class="url-bar">
-        <div class={`url-group method-${request.method.toLowerCase()}`}>
-          <Show when={streamTab()} fallback={<MethodSelect />}>
-            {(t) => <span class="method-inline method-stream">{t() === "ws" ? "WS" : "SSE"}</span>}
-          </Show>
-          <span class="url-divider" />
-          <UrlField />
-        </div>
-        <Show when={dirty()}>
-          <button
-            class="url-icon-btn dirty"
-            title={activePath() ? "Save changes (⌘S)" : "Save request (⌘S)"}
-            onClick={save}
-          >
-            <SaveIcon size={ICON.lg} />
-          </button>
-        </Show>
-        <button class="url-icon-btn" title="Generate code" onClick={() => setShowCode(true)}>
-          <Code2 size={ICON.lg} />
-        </button>
-        <button class="send-btn" onClick={send} disabled={sending()} title="Send (⏎)" aria-label="Send">
-          {sending() ? "…" : (
-            <svg width={ICON.lg} height={ICON.lg} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M3.4 20.4 21 12 3.4 3.6 3 10l12 2-12 2z" />
-            </svg>
-          )}
-        </button>
-      </div>
-      <Show when={showCode()}>
-        <CodeGenDialog onClose={() => setShowCode(false)} />
-      </Show>
-
       <div class="tabs">
         <button classList={{ active: tab() === "params" }} onClick={() => setTab("params")}>
           Params<Show when={request.params.length}> ({request.params.length})</Show>
@@ -327,54 +278,6 @@ export default function RequestEditor() {
           </Match>
         </Switch>
       </div>
-    </div>
-  );
-}
-
-// Custom verb dropdown — native <select> can't render per-option color rails +
-// check. Trigger shows the colored verb; menu lists all methods.
-function MethodSelect() {
-  const [open, setOpen] = createSignal(false);
-  let ref: HTMLDivElement | undefined;
-  const onDoc = (e: MouseEvent) => {
-    if (ref && !ref.contains(e.target as Node)) setOpen(false);
-  };
-  onMount(() => document.addEventListener("mousedown", onDoc));
-  onCleanup(() => document.removeEventListener("mousedown", onDoc));
-  const pick = (m: string) => {
-    setRequest("method", m);
-    setDirty(true);
-    setOpen(false);
-  };
-  return (
-    <div class="method-select" ref={ref}>
-      <button
-        class={`method-inline method-${request.method.toLowerCase()}`}
-        onClick={() => setOpen(!open())}
-        onKeyDown={(e) => e.key === "Escape" && setOpen(false)}
-      >
-        {request.method}
-      </button>
-      <Show when={open()}>
-        <div class="method-menu">
-          <div class="method-menu-head">Method</div>
-          <For each={METHODS}>
-            {(m) => (
-              <button
-                class={`method-opt method-${m.toLowerCase()}`}
-                classList={{ selected: request.method === m }}
-                onClick={() => pick(m)}
-              >
-                <span class="method-rail" />
-                <span class="method-opt-label">{m}</span>
-                <Show when={request.method === m}>
-                  <Check size={14} class="method-check" />
-                </Show>
-              </button>
-            )}
-          </For>
-        </div>
-      </Show>
     </div>
   );
 }
