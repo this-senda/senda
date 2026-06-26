@@ -15,7 +15,7 @@ import RunResults from "./components/RunResults";
 import StatusBar from "./components/StatusBar";
 import Dialog from "./components/Dialog";
 import { Events } from "@wailsio/runtime";
-import { Palette } from "lucide-solid";
+import { Palette, PanelRight, PanelRightClose } from "lucide-solid";
 import { ICON } from "./lib/icons";
 import { api } from "./lib/api";
 import { initTheme } from "./lib/theme";
@@ -62,6 +62,14 @@ export default function App() {
   const [split, setSplit] = createSignal(
     clamp(Number(localStorage.getItem("senda.split")) || 0.5, 0.2, 0.8)
   );
+  const [respCollapsed, setRespCollapsed] = createSignal(
+    localStorage.getItem("senda.respCollapsed") === "1"
+  );
+  const toggleResp = () => {
+    const next = !respCollapsed();
+    setRespCollapsed(next);
+    localStorage.setItem("senda.respCollapsed", next ? "1" : "0");
+  };
 
   const dragSplitter = (which: "side" | "mid") => (e: MouseEvent) => {
     e.preventDefault();
@@ -218,6 +226,17 @@ export default function App() {
           <EnvSwitcher />
           <button
             class="icon-btn"
+            title={respCollapsed() ? "Show response" : "Hide response"}
+            onClick={toggleResp}
+          >
+            {respCollapsed() ? (
+              <PanelRight size={ICON.xxl} />
+            ) : (
+              <PanelRightClose size={ICON.xxl} />
+            )}
+          </button>
+          <button
+            class="icon-btn"
             title="Appearance"
             onClick={() => setShowTheme(true)}
           >
@@ -228,7 +247,9 @@ export default function App() {
       <div
         class="panes"
         style={{
-          "grid-template-columns": `${sideW()}px 5px ${split()}fr 5px ${1 - split()}fr`,
+          "grid-template-columns": respCollapsed()
+            ? `${sideW()}px 5px 1fr`
+            : `${sideW()}px 5px ${split()}fr 5px ${1 - split()}fr`,
         }}
       >
         <Sidebar />
@@ -237,10 +258,12 @@ export default function App() {
           <TabBar />
           <RequestEditor />
         </main>
-        <div class="splitter" onMouseDown={dragSplitter("mid")} />
-        <section class="right">
-          <ResponseViewer />
-        </section>
+        <Show when={!respCollapsed()}>
+          <div class="splitter" onMouseDown={dragSplitter("mid")} />
+          <section class="right">
+            <ResponseViewer />
+          </section>
+        </Show>
       </div>
       <StatusBar />
       <Dialog />
