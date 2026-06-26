@@ -321,11 +321,6 @@ function TreeRow(props: {
     }
   };
 
-  const run = (e: MouseEvent) => {
-    e.stopPropagation();
-    props.onRun(props.node, "run");
-  };
-
   const [showSettings, setShowSettings] = createSignal(false);
 
   // Delete a folder (recursively) after confirming.
@@ -406,11 +401,8 @@ function TreeRow(props: {
             </span>
             <span class="leaf-name">{props.node.name}</span>
             <RecencyPill node={props.node} />
-            <button class="icon-btn tiny" onClick={rename} title="Rename">
-              <Pencil size={ICON.xxl} />
-            </button>
-            <button class="icon-btn tiny" onClick={del} title="Delete">
-              <X size={ICON.xxl} />
+            <button class="icon-btn tiny" onClick={openCtxMenu} title="More">
+              <MoreHorizontal size={ICON.xxl} />
             </button>
             <Show when={ctxMenu()}>
               <div
@@ -460,11 +452,8 @@ function TreeRow(props: {
             </span>
           </Show>
           <RecencyPill node={props.node} />
-          <button class="icon-btn tiny" onClick={run} title="Run folder">
-            <Play size={ICON.xxl} />
-          </button>
-          <button class="icon-btn tiny" onClick={rename} title="Rename">
-            <Pencil size={ICON.xxl} />
+          <button class="icon-btn tiny" onClick={openCtxMenu} title="More">
+            <MoreHorizontal size={ICON.xxl} />
           </button>
         </div>
 

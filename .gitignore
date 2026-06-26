@@ -1,5 +1,6 @@
-# Build output
-/build/bin/
+# ignore build but let ./build/config.yml
+/build/*
+!/build/config.yml
 
 # Go
 *.test
@@ -42,7 +43,6 @@ history.jsonl
 # Root-level built binary (anchored so it doesn't match the cmd/senda source
 # directory). `go build .` and `go build ./cmd/senda` both emit ./senda.
 /senda
-build/
 
 # Local screenshot-capture browser cache (Chrome-for-Testing)
 /.cache/

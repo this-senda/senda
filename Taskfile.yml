@@ -82,6 +82,12 @@ tasks:
     cmds:
       - go run .
 
+  dev:frontend:
+    desc: "Vite dev server for `wails3 dev` (background exec in build/config.yml). Binds WAILS_VITE_PORT so the Go shell can proxy to it."
+    dir: frontend
+    cmds:
+      - bun run dev
+
   build:senda:
     desc: Build the unified senda binary (TUI + headless run/mock/docs + gui launcher) into bin/, stripped. Pure Go — no frontend/webview. DEBUG=1 keeps symbols.
     cmds:

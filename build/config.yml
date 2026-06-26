@@ -1,0 +1,53 @@
+# wails3 project config. Read by `wails3 dev` / `wails3 build` BEFORE any Taskfile
+# target runs — it is the layer above the Taskfile, not a task itself. wails3
+# writes this once at `wails3 init`; nothing regenerates it, so it must be
+# committed (see .gitignore: only build/bin/ is ignored, not build/).
+version: '3'
+
+# Bundle/identity metadata. senda's darwin:bundle generates its own Info.plist
+# and .icns inline (taskfiles/Taskfile.darwin.yml), so these values are only used
+# by wails3's own asset/packaging helpers — kept in sync with the darwin taskfile.
+info:
+  companyName: "this-senda"
+  productName: "Senda"
+  productIdentifier: "io.github.this-senda.senda"
+  description: "Fast, git-native API client"
+  copyright: "(c) 2026, Senda"
+  comments: "Collections are plain folders of YAML."
+  version: "0.1.0"
+
+# Live-reload (`wails3 dev`). senda uses the stock wails dev mechanism: wails3
+# exports WAILS_VITE_PORT (vite binds it, see frontend/vite.config.ts) and
+# FRONTEND_DEVSERVER_URL (the embedded AssetFileServerFS in main.go proxies to it
+# instead of frontend/dist). Watch only Go here — vite owns frontend HMR.
+dev_mode:
+  root_path: .
+  log_level: warn
+  debounce: 1000
+  ignore:
+    dir:
+      - .git
+      - node_modules
+      - frontend
+      - bin
+    file:
+      - .DS_Store
+      - .gitignore
+      - .gitkeep
+      - "*_test.go"
+    watched_extension:
+      - "*.go"
+    git_ignore: true
+  executes:
+    # Build the frontend once so `//go:embed all:frontend/dist` compiles. In dev
+    # the running app proxies to the vite server, so this dist is just a stub the
+    # embed directive needs to resolve.
+    - cmd: wails3 task build:frontend
+      type: blocking
+    # Vite dev server (HMR). Binds WAILS_VITE_PORT; wails3 points the app at it.
+    - cmd: wails3 task dev:frontend
+      type: background
+    # The Go desktop shell. `go run .` builds + runs; the wails runtime sees
+    # FRONTEND_DEVSERVER_URL and serves from vite.
+    - cmd: wails3 task dev
+      type: primary
