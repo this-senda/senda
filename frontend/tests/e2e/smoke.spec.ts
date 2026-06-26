@@ -49,6 +49,42 @@ test("dragging a request starts a drag and highlights the drop folder", async ({
   await page.mouse.up();
 });
 
+test("collection settings: proxy + mTLS network config edits, browse-fills and persists", async ({ page }) => {
+  // Open the collection overflow menu → Collection settings (the root modal —
+  // proxy/TLS lives here, NOT in per-folder settings).
+  await page.locator(".coll-overflow").click();
+  await page.locator(".ctx-item", { hasText: "Collection settings" }).click();
+
+  // Network section renders (regression guard: it was first put in the wrong
+  // modal where it was unreachable).
+  await expect(page.locator(".modal-section-label", { hasText: "Network" })).toBeVisible();
+
+  // Type a proxy + a {{var}} cert path (free-text must stay editable).
+  await page.getByPlaceholder(/Proxy URL/).fill("http://corp:8080");
+  await page.getByPlaceholder(/Client cert file/).fill("{{certVar}}");
+
+  // Browse fills the key field from the native picker (mock returns a path).
+  await page
+    .locator(".net-file", { has: page.getByPlaceholder(/Client key file/) })
+    .locator("button", { hasText: "Browse" })
+    .click();
+  await expect(page.getByPlaceholder(/Client key file/)).toHaveValue("/picked/client-cert.pem");
+
+  // Toggle insecure, then save.
+  await page.locator(".net-insecure input[type=checkbox]").check();
+  await page.locator(".modal-foot .btn:not(.ghost)").click();
+  await expect(page.locator(".modal-title")).toHaveCount(0);
+
+  // Reopen → values persisted through the store (proves the save wired the new
+  // fields, and that they reload into the form).
+  await page.locator(".coll-overflow").click();
+  await page.locator(".ctx-item", { hasText: "Collection settings" }).click();
+  await expect(page.getByPlaceholder(/Proxy URL/)).toHaveValue("http://corp:8080");
+  await expect(page.getByPlaceholder(/Client cert file/)).toHaveValue("{{certVar}}");
+  await expect(page.getByPlaceholder(/Client key file/)).toHaveValue("/picked/client-cert.pem");
+  await expect(page.locator(".net-insecure input[type=checkbox]")).toBeChecked();
+});
+
 test("Ctrl+Shift+Tab switches to the previous tab", async ({ page }) => {
   // Open two requests → two tabs, second one active.
   await page.locator(".tree-leaf", { hasText: "comments" }).click();
