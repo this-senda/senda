@@ -1,7 +1,7 @@
 // Response pane: status line + body / headers tabs. Large bodies are flagged
 // and gated behind an explicit "show" action (escape hatch).
 import { createEffect, createMemo, createSignal, For, Index, Match, onCleanup, onMount, Show, Switch } from "solid-js";
-import { AlertTriangle, Check, Copy, Download, FilePlus, Search, X } from "lucide-solid";
+import { AlertTriangle, Check, Copy, Download, FilePlus, MoreHorizontal, Search, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api, BodyType } from "../lib/api";
 import { collection, request, response, sending } from "../lib/store";
@@ -70,6 +70,37 @@ function Sending() {
       <button class="btn resp-cancel" onClick={cancelSend}>
         Cancel
       </button>
+    </div>
+  );
+}
+
+// Kebab overflow menu for the response action buttons, so the status line
+// doesn't wrap when the pane is narrow.
+function OverflowMenu(props: { items: { icon: () => any; label: string; onClick: () => void }[] }) {
+  const [open, setOpen] = createSignal(false);
+  let root!: HTMLDivElement;
+  const onDocDown = (e: MouseEvent) => {
+    if (open() && root && !root.contains(e.target as HTMLElement)) setOpen(false);
+  };
+  onMount(() => document.addEventListener("mousedown", onDocDown));
+  onCleanup(() => document.removeEventListener("mousedown", onDocDown));
+  return (
+    <div class="viewmode" ref={root}>
+      <button class="icon-btn" title="More actions" onClick={() => setOpen(!open())}>
+        <MoreHorizontal size={ICON.sm} />
+      </button>
+      <Show when={open()}>
+        <div class="viewmode-menu">
+          <For each={props.items}>
+            {(it) => (
+              <button class="viewmode-item" onClick={() => { it.onClick(); setOpen(false); }}>
+                {it.label}
+                {it.icon()}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
     </div>
   );
 }
@@ -212,22 +243,6 @@ export default function ResponseViewer() {
                   </Show>
                   <span class="status-spacer" />
                   <Show when={tab() === "body"}>
-                    <button class="icon-btn" title="Copy body" onClick={copyBody}>
-                      <Copy size={ICON.sm} />
-                    </button>
-                    <button class="icon-btn" title="Save body to file" onClick={saveBody}>
-                      <Download size={ICON.sm} />
-                    </button>
-                    <button
-                      class="icon-btn"
-                      title="Save response as a mock"
-                      onClick={() => void saveAsMock()}
-                      classList={{ active: savedMock() }}
-                    >
-                      <Show when={savedMock()} fallback={<FilePlus size={ICON.sm} />}>
-                        <Check size={ICON.sm} />
-                      </Show>
-                    </button>
                     <button
                       class="icon-btn"
                       title="Search in body (Ctrl+F)"
@@ -237,6 +252,17 @@ export default function ResponseViewer() {
                       <Search size={ICON.sm} />
                     </button>
                     <ViewModeMenu value={mode()} options={MODES} onChange={setMode} />
+                    <OverflowMenu
+                      items={[
+                        { label: "Copy body", icon: () => <Copy size={ICON.sm} />, onClick: copyBody },
+                        { label: "Save body to file", icon: () => <Download size={ICON.sm} />, onClick: saveBody },
+                        {
+                          label: savedMock() ? "Saved as mock" : "Save as mock",
+                          icon: () => (savedMock() ? <Check size={ICON.sm} /> : <FilePlus size={ICON.sm} />),
+                          onClick: () => void saveAsMock(),
+                        },
+                      ]}
+                    />
                   </Show>
                 </div>
                 <Show when={searchOpen() && tab() === "body"}>

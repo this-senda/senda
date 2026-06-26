@@ -1773,6 +1773,8 @@ body.dragging-splitter {
   padding: 3px 8px;
   border-radius: 5px;
   background: var(--bg-elev2);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .status-badge.ok {
   color: var(--ok);
@@ -1787,6 +1789,8 @@ body.dragging-splitter {
   color: var(--text-dim);
   font-family: var(--mono);
   font-size: var(--fs-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .meta.warn {
   color: var(--warn);
