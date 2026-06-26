@@ -23,7 +23,9 @@ export default defineConfig({
   },
   projects: [{ name: "webkit", use: { ...devices["Desktop Safari"] } }],
   webServer: {
-    command: "bun run dev:mock",
+    // CI runs bun directly; run-podman.sh overrides with a node-launched vite
+    // (the playwright image has no bun).
+    command: process.env.PW_WEB_CMD ?? "bun run dev:mock",
     url: "http://localhost:5173",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

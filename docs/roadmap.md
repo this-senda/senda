@@ -21,7 +21,7 @@ The v0.1 line is feature-complete for everyday API work:
 - **AI assist** — optional LLM-suggested assertions from a response (bring your own key; Anthropic or any OpenAI-compatible endpoint).
 - **Mock server** — YAML-defined routes, scenarios, stateful CRUD resources, proxy passthrough, hot-reload.
 - **Protocols** — HTTP/HTTPS, WebSocket, and Server-Sent Events.
-- **And more** — security scanning, JSON Schema response validation, import (curl / Postman / OpenAPI), code generation, doc generation, 13 themes, command palette, request history, file watch, cookie jar — plus a headless CLI and a terminal UI.
+- **And more** — security scanning, JSON Schema response validation, import (curl / Postman / OpenAPI), code generation, doc generation, 13 themes, command palette, request history, file watch, cookie jar, read-only source-control diff (working tree vs `HEAD`) — plus a headless CLI and a terminal UI.
 
 See the [CHANGELOG](https://github.com/this-senda/senda/blob/main/CHANGELOG.md) for the full v0.1 detail.
 
@@ -42,7 +42,7 @@ Bigger bets, not yet committed:
 - **Visual test orchestration** — branching and data-driven runs beyond the sequential folder runner.
 - **OpenAPI spec editor** — edit a linked spec and pull request-body schema hints into the editor.
 - **GraphQL introspection** — fetch `__schema` to drive query autocomplete.
-- **In-app change history** — surface `git log --follow` for a request, since collections are already plain files in git.
+- **In-app change history** — the read-only source-control diff (working tree vs `HEAD`) shipped in v0.1; next is surfacing `git log --follow` history for a request.
 
 ## Non-goals
 

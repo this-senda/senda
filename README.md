@@ -201,6 +201,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 - **Keyboard shortcuts**: `Ctrl+T` new tab, `Ctrl+N` new request, `Ctrl+W` close tab, `Ctrl+S` save, `Ctrl+Enter` send, `Ctrl+Tab` / `Page Up` / `Page Down` cycle tabs
 - **History**: every sent request logged to `.senda/history.jsonl`; browsable in the history panel
 - **File watch**: auto-refreshes when a YAML file is edited externally (`git pull`, `$EDITOR`)
+- **Source control**: a read-only panel showing working-tree-vs-`HEAD` changes for the collection — status-badged file list with a semantic per-field diff (URL / method / header changed) for request YAML, raw text diff for everything else; shells the system `git`
 - **Drag-and-drop**: reorder requests and folders in the tree
 - **Cookie jar**: persistent session cookies across sends and runs
 - **One binary, three modes**: `senda` is pure Go (no webview) — bare `senda` opens the terminal UI, `senda run` is the headless CI runner, `senda gui` launches the desktop app. All share the same send pipeline.
@@ -462,6 +463,7 @@ senda/
 │   ├── security/                 # Nuclei-compatible security scanner
 │   ├── wsclient/ · sseclient/    # WebSocket + Server-Sent Events clients
 │   ├── history/                  # JSONL-based request history
+│   ├── scm/                      # Read-only git diff (working tree vs HEAD), semantic per-field for request YAML
 │   ├── aigen/                    # Optional LLM-assisted assertion suggestions
 │   ├── tui/                      # Terminal UI (Bubble Tea; same pipeline, no webview)
 │   ├── termimg/                  # Pure-Go TUI screenshot/GIF renderer (docs)
