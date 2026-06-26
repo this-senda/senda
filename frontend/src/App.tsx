@@ -15,7 +15,7 @@ import RunResults from "./components/RunResults";
 import StatusBar from "./components/StatusBar";
 import Dialog from "./components/Dialog";
 import { Events } from "@wailsio/runtime";
-import { Palette } from "lucide-solid";
+import { Palette, PanelRight, PanelRightClose } from "lucide-solid";
 import { ICON } from "./lib/icons";
 import { api } from "./lib/api";
 import { initTheme } from "./lib/theme";
@@ -35,6 +35,8 @@ import {
   setActiveEnv,
   showMockPanel,
   setShowMockPanel,
+  respCollapsed,
+  toggleResp,
   runPanelTarget,
   showRunPanel,
   setShowRunPanel,
@@ -218,6 +220,17 @@ export default function App() {
           <EnvSwitcher />
           <button
             class="icon-btn"
+            title={respCollapsed() ? "Show response" : "Hide response"}
+            onClick={() => toggleResp()}
+          >
+            {respCollapsed() ? (
+              <PanelRight size={ICON.xxl} />
+            ) : (
+              <PanelRightClose size={ICON.xxl} />
+            )}
+          </button>
+          <button
+            class="icon-btn"
             title="Appearance"
             onClick={() => setShowTheme(true)}
           >
@@ -228,7 +241,9 @@ export default function App() {
       <div
         class="panes"
         style={{
-          "grid-template-columns": `${sideW()}px 5px ${split()}fr 5px ${1 - split()}fr`,
+          "grid-template-columns": respCollapsed()
+            ? `${sideW()}px 5px 1fr`
+            : `${sideW()}px 5px ${split()}fr 5px ${1 - split()}fr`,
         }}
       >
         <Sidebar />
@@ -237,10 +252,12 @@ export default function App() {
           <TabBar />
           <RequestEditor />
         </main>
-        <div class="splitter" onMouseDown={dragSplitter("mid")} />
-        <section class="right">
-          <ResponseViewer />
-        </section>
+        <Show when={!respCollapsed()}>
+          <div class="splitter" onMouseDown={dragSplitter("mid")} />
+          <section class="right">
+            <ResponseViewer />
+          </section>
+        </Show>
       </div>
       <StatusBar />
       <Dialog />

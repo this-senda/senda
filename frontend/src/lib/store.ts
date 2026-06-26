@@ -39,6 +39,16 @@ export async function refreshActivity(collPath: string) {
 export const [mockServerAddr, setMockServerAddr] = createSignal("");   // "" = stopped
 export const [showMockPanel, setShowMockPanel] = createSignal(false);
 
+// Response pane collapsed state, persisted across launches.
+export const [respCollapsed, setRespCollapsed] = createSignal(
+  localStorage.getItem("senda.respCollapsed") === "1"
+);
+export function toggleResp(force?: boolean) {
+  const next = force ?? !respCollapsed();
+  setRespCollapsed(next);
+  localStorage.setItem("senda.respCollapsed", next ? "1" : "0");
+}
+
 export type RunPanelTarget = { folderPath: string; folderName: string; initialTab: "run" | "load" };
 export const [runPanelTarget, setRunPanelTarget] = createSignal<RunPanelTarget | null>(null);
 export const [showRunPanel, setShowRunPanel] = createSignal(false);

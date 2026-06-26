@@ -17,6 +17,7 @@ import {
   setEnvironments,
   setResponse,
   setSending,
+  toggleResp,
 } from "./store";
 import { promptDialog, confirmDialog, alertDialog } from "./dialog";
 
@@ -80,6 +81,7 @@ export async function sendActive() {
   // ws/sse aren't HTTP — sending one fires a doomed http.Client call
   // ("unsupported protocol scheme"). Connect/send happens in their tab instead.
   if (request.body?.type === BodyType.BodyWebSocket || request.body?.type === BodyType.BodySSE) return;
+  toggleResp(false); // reveal the response pane so the result is visible
   setSending(true);
   setResponse(null);
   try {
