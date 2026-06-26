@@ -67,9 +67,14 @@ func (m *tuiModel) closeTab() {
 	for i, o := range m.open {
 		if o.path == m.curPath {
 			m.open = append(m.open[:i], m.open[i+1:]...)
+			m.disconnectWS()
+			m.ws = nil
+			delete(m.buf, m.curPath)
+			delete(m.dirty, m.curPath)
 			m.loaded = false
 			m.curPath = ""
 			m.cur = model.Request{}
+			m.editing, m.ac.open = false, false
 			m.refreshReqView()
 			return
 		}
@@ -122,17 +127,42 @@ func (m *tuiModel) onCursorMove() tea.Cmd {
 	m.clampTreeScroll()
 	r, ok := m.currentRow()
 	if !ok || r.node.IsDir {
+		m.flush()
 		m.curPath = ""
 		m.loaded = false
 		m.refreshReqView()
 		return nil
 	}
-	if r.node.Path == m.curPath {
+	return m.openKey(r.node.Path)
+}
+
+// flush stashes the active tab's in-memory request into buf when it has unsaved
+// edits (dirty) or is an unsaved scratch, so switching away never loses them.
+func (m *tuiModel) flush() {
+	if m.loaded && m.curPath != "" && (m.dirty[m.curPath] || isScratch(m.curPath)) {
+		m.buf[m.curPath] = m.cur
+	}
+}
+
+// openKey switches the active tab to key: it reuses the in-memory buffer for
+// dirty/scratch tabs (preserving unsaved edits) and otherwise reloads from disk.
+func (m *tuiModel) openKey(key string) tea.Cmd {
+	if key == m.curPath {
 		return nil
 	}
-	m.curPath = r.node.Path
+	m.flush()
+	m.disconnectWS() // tear down any live websocket on the tab we're leaving
+	m.ws = nil
+	m.curPath = key
+	m.editing, m.ac.open = false, false
+	if req, ok := m.buf[key]; ok && (m.dirty[key] || isScratch(key)) {
+		m.cur = req
+		m.loaded = true
+		m.refreshReqView()
+		return nil
+	}
 	m.loaded = false
-	return loadRequestCmd(r.node.Path)
+	return loadRequestCmd(key)
 }
 
 // activate toggles a folder or loads+marks a request for sending.
@@ -147,9 +177,7 @@ func (m tuiModel) activate() (tea.Model, tea.Cmd) {
 		m.clampTreeScroll()
 		return m, nil
 	}
-	m.curPath = r.node.Path
-	m.loaded = false
-	return m, loadRequestCmd(r.node.Path)
+	return m, m.openKey(r.node.Path)
 }
 
 // nextFocus advances pane focus by dir (±1), skipping the tree pane while in

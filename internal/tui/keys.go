@@ -5,6 +5,14 @@ import tea "charm.land/bubbletea/v2"
 func (m tuiModel) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	s := msg.String()
 
+	// Inline editor and save prompt own all keystrokes while active.
+	if m.editing {
+		return m.handleEdit(s, msg)
+	}
+	if m.saveOpen {
+		return m.handleSave(s, msg)
+	}
+
 	// Overlays consume keys first.
 	if m.showHelp {
 		switch s {
@@ -29,6 +37,14 @@ func (m tuiModel) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m.handleBrowse(s)
 	}
 
+	// WebSocket connection pane owns most keys (compose typing, connect, send)
+	// but lets navigation/quit fall through to the global keys below.
+	if m.wsView() {
+		if mm, cmd, handled := m.handleWSKey(s, msg); handled {
+			return mm, cmd
+		}
+	}
+
 	// Global keys.
 	switch s {
 	case "ctrl+c":
@@ -40,6 +56,10 @@ func (m tuiModel) handleKey(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case "q":
 		return m, tea.Quit
+	case "n":
+		return m.newScratch()
+	case "ctrl+s":
+		return m.startSave()
 	case "?":
 		m.showHelp = true
 		return m, nil
@@ -175,6 +195,21 @@ func (m tuiModel) handleTreeKey(s string) (tea.Model, tea.Cmd) {
 
 func (m tuiModel) handleReqKey(s string, msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	switch s {
+	case "i":
+		if m.wsView() { // WS pane reserves i for compose, not field editing
+			return m, nil
+		}
+		if m.reqTab == tabBody {
+			return m.startEditBody()
+		}
+		return m.startEditURL()
+	case "t":
+		if m.wsView() {
+			return m, nil
+		}
+		if m.reqTab == tabBody {
+			return m.cycleBodyType()
+		}
 	case "left", "h":
 		m.reqTab = (m.reqTab + reqTabCount - 1) % reqTabCount
 		m.refreshReqView()

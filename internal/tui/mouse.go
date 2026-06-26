@@ -10,7 +10,7 @@ import (
 // handleMouseClick routes a left-click at screen (x,y) to the element under it:
 // open-request tabs, tree rows, or the request/response sub-tab strips.
 func (m tuiModel) handleMouseClick(x, y int) (tea.Model, tea.Cmd) {
-	if m.showHelp || m.pickerOpen || m.paletteOpen || m.envMgrOpen || m.browseOpen {
+	if m.showHelp || m.pickerOpen || m.paletteOpen || m.envMgrOpen || m.browseOpen || m.editing || m.saveOpen {
 		return m, nil
 	}
 	if y == 1 { // open-request tab bar
@@ -122,8 +122,7 @@ func (m tuiModel) clickOpenTab(x int) (tea.Model, tea.Cmd) {
 		}
 		segW := 1 + lipgloss.Width(method) + lipgloss.Width(o.name) + 2 + 2
 		if x >= xx && x < xx+segW {
-			m.curPath = o.path
-			m.loaded = false
+			cmd := m.openKey(o.path)
 			m.focus = focusReq
 			for i, r := range m.rows { // sync the tree cursor to the opened request
 				if r.node.Path == o.path {
@@ -132,7 +131,7 @@ func (m tuiModel) clickOpenTab(x int) (tea.Model, tea.Cmd) {
 					break
 				}
 			}
-			return m, loadRequestCmd(o.path)
+			return m, cmd
 		}
 		xx += segW
 	}

@@ -72,6 +72,10 @@ func (m tuiModel) render() string {
 		return m.composite(screen, m.browseBox(), false)
 	case m.paletteOpen:
 		return m.composite(screen, m.paletteBox(), true)
+	case m.saveOpen:
+		return m.composite(screen, m.saveBox(), true)
+	case m.ac.open:
+		return m.composite(screen, m.acBox(), true)
 	}
 	return screen
 }
@@ -146,9 +150,13 @@ func (m tuiModel) reqTabsBar() string {
 			nameFg = colFg
 		}
 		st := lipgloss.NewStyle().Background(bg)
+		close := st.Foreground(colDim).Render("× ")
+		if m.dirty[o.path] {
+			close = st.Foreground(colWarn).Render("● ")
+		}
 		seg := st.Foreground(methodColor(method)).Bold(true).Render(" "+method) +
 			st.Foreground(nameFg).Render(" "+o.name+" ") +
-			st.Foreground(colDim).Render("× ")
+			close
 		parts = append(parts, seg)
 	}
 	parts = append(parts, appbg.Foreground(colDim).Render(" + "))
@@ -177,6 +185,15 @@ func modeChip(label string, bg color.Color) string {
 }
 
 func (m tuiModel) statusBar() string {
+	if m.editing {
+		field := "url"
+		commit := "↵/esc"
+		if m.editMode == editBody {
+			field, commit = "body", "esc"
+		}
+		hint := keyHint("{{", "vars/faker") + appbg.Render("   ") + keyHint(commit, "commit") + appbg.Render(" ")
+		return m.statusLine(modeChip("INSERT", colWarn)+appbg.Foreground(colDim).Render("  "+field), hint)
+	}
 	if m.status != "" {
 		return appbg.Foreground(colBad).Width(m.w).Render(" " + truncate(m.status, m.w-2))
 	}
@@ -252,7 +269,7 @@ func (m tuiModel) contextHints() string {
 	var pairs [][2]string
 	switch m.focus {
 	case focusReq:
-		pairs = [][2]string{{"h/l", "tab"}, {"s", "send"}, {"e", "edit"}, {"x", "export"}, {"?", "help"}}
+		pairs = [][2]string{{"i", "edit url"}, {"s", "send"}, {"^S", "save"}, {"n", "new"}, {"?", "help"}}
 	case focusResp:
 		pairs = [][2]string{{"^K", "jump"}, {"↵", "send"}, {"^\\", "panes"}, {"gd", "docs"}, {"?", "help"}}
 	default:

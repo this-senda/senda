@@ -122,6 +122,10 @@ func (m tuiModel) helpBox() string {
 		{"h / l  ← / →", "tree: collapse/expand · pane: switch tab"},
 		{"1–7", "jump to tab"},
 		{"enter", "expand folder / load request"},
+		{"n", "new (scratch) request"},
+		{"i", "edit field inline — URL, or body on Body tab ({{ vars/faker)"},
+		{"t", "Body tab: change body type (json/raw/form/…)"},
+		{"ctrl+s", "save request (prompts name if scratch)"},
 		{"s", "send request"},
 		{"e", "edit request in $EDITOR"},
 		{"x", "export request as code"},
@@ -179,6 +183,40 @@ func (m tuiModel) browseBox() string {
 	}
 	b.WriteString("\n" + styleDim.Render("↑/↓ select · → enter folder · ← up · ↵ open · o open current · esc cancel"))
 	return styleBorderFoc.Padding(1, 2).Render(b.String())
+}
+
+// acBox renders the {{var}}/faker autocomplete popup for the inline editor.
+func (m tuiModel) acBox() string {
+	var b strings.Builder
+	b.WriteString(styleDim.Render("insert variable / faker") + "\n")
+	const max = 8
+	for i, it := range m.ac.items {
+		if i >= max {
+			b.WriteString(styleDim.Render(fmt.Sprintf("  … %d more", len(m.ac.items)-max)) + "\n")
+			break
+		}
+		label := "{{" + it.insert + "}}"
+		line := "  " + padRight(label, 28)
+		if it.detail != "" {
+			line += styleDim.Render(truncate(it.detail, 20))
+		}
+		if i == m.ac.idx {
+			line = styleSel.Render(padRight("▸ "+label, 30)) + " " + styleDim.Render(truncate(it.detail, 20))
+		}
+		b.WriteString(line + "\n")
+	}
+	b.WriteString("\n" + styleDim.Render("↑/↓ select · ↵/tab insert · esc close"))
+	return styleBorderFoc.Padding(1, 2).Render(b.String())
+}
+
+// saveBox renders the scratch save-as name prompt.
+func (m tuiModel) saveBox() string {
+	var b strings.Builder
+	b.WriteString(styleTitle.Render("save request") + "\n")
+	b.WriteString(styleDim.Render(truncate(m.collPath, 50)+"/") + "\n\n")
+	b.WriteString(lipgloss.NewStyle().Foreground(colFg).Render(m.saveInput.View()) + "\n")
+	b.WriteString("\n" + styleDim.Render("↵ save · esc cancel"))
+	return styleBorderFoc.Padding(1, 2).Width(46).Render(b.String())
 }
 
 // pickerBox renders the environment selection overlay.

@@ -3,9 +3,16 @@ package tui
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"charm.land/lipgloss/v2"
 )
+
+// fmtUptime renders a connection duration as "Nm SSs".
+func fmtUptime(d time.Duration) string {
+	s := int(d.Seconds())
+	return fmt.Sprintf("%dm %02ds", s/60, s%60)
+}
 
 // paneWsConnection renders the websocket CONNECTION pane: status header, the
 // message log (↑ sent / ↓ received), and a compose input pinned to the bottom.
@@ -28,13 +35,22 @@ func (m tuiModel) paneWsConnection(w, h int) string {
 	if !ws.connected {
 		state = "disconnected"
 	}
+	uptime := ws.uptime
+	if ws.connected && !ws.since.IsZero() {
+		uptime = fmtUptime(time.Since(ws.since))
+	}
 	header := dot + base.Foreground(colGood).Render(" "+state) +
 		styleDim.Render("   url ") + base.Foreground(colFg).Render(ws.url) +
 		styleDim.Render("   msgs ") + base.Foreground(colFg).Render(fmt.Sprintf("%d", ws.msgs)) +
-		styleDim.Render("   up ") + base.Foreground(colFg).Render(ws.uptime)
+		styleDim.Render("   up ") + base.Foreground(colFg).Render(uptime)
 
-	rows := []string{m.paneLabel("CONNECTION", focused), header, base.Render(""),
-		styleDim.Render("— handshake complete · 101 switching protocols —")}
+	statusRow := styleDim.Render("— handshake complete · 101 switching protocols —")
+	if ws.err != "" {
+		statusRow = base.Foreground(colBad).Render("● error: " + ws.err)
+	} else if !ws.connected {
+		statusRow = styleDim.Render("● disconnected · ^R to connect")
+	}
+	rows := []string{m.paneLabel("CONNECTION", focused), header, base.Render(""), statusRow}
 	for _, f := range ws.frames {
 		arrow := base.Foreground(colGood).Render("↓")
 		if f.out {

@@ -68,6 +68,10 @@ func (m tuiModel) urlRow(w int) string {
 	if urlW < 8 {
 		urlW = 8
 	}
+	if m.editing && m.editMode == editURL {
+		field := base.Background(bgInput).Render(" ") + base.Background(bgInput).Render(m.input.View())
+		return pill + base.Render(" ") + field + base.Render(" ") + send
+	}
 	raw := truncate(m.cur.URL, urlW-1)
 	content := colorizeVars(raw, m.urlScope(), bgInput)
 	if pad := urlW - 1 - lipgloss.Width(raw); pad > 0 {
@@ -280,7 +284,19 @@ func (m tuiModel) renderBodyTab(w int) string {
 	if t == "" {
 		t = model.BodyNone
 	}
-	header := styleDim.Render("type: ") + string(t)
+	// While editing the body, the textarea owns the pane.
+	if m.editing && m.editMode == editBody {
+		return styleDim.Render("type: ") + string(t) + "\n" + m.body.View()
+	}
+	hint := ""
+	if m.focus == focusReq {
+		hint = styleDim.Render("   (t change type")
+		if bodyRawTypes[t] {
+			hint += styleDim.Render(" · i edit")
+		}
+		hint += styleDim.Render(")")
+	}
+	header := styleDim.Render("type: ") + string(t) + hint
 	switch t {
 	case model.BodyNone:
 		return header
@@ -293,7 +309,10 @@ func (m tuiModel) renderBodyTab(w int) string {
 		}
 		return out
 	default: // json, raw, websocket, sse
-		return numberedCode(prettyJSON(bd.Raw))
+		if strings.TrimSpace(bd.Raw) == "" {
+			return header + "\n\n" + styleDim.Render("(empty — press i to edit)")
+		}
+		return header + "\n\n" + numberedCode(prettyJSON(bd.Raw))
 	}
 }
 

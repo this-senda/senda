@@ -83,7 +83,10 @@ func (m tuiModel) handlePalette(s string) (tea.Model, tea.Cmd) {
 		}
 		return m.runPalette(items[m.paletteIdx])
 	}
-	// Printable single char extends the query.
+	// Printable single char extends the query (space arrives as "space").
+	if s == "space" {
+		s = " "
+	}
 	if len(s) == 1 && s[0] >= ' ' {
 		m.paletteQuery += s
 		m.paletteIdx = 0

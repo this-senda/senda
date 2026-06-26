@@ -2,13 +2,17 @@ package tui
 
 import (
 	"strings"
+	"time"
 
 	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/textarea"
+	"charm.land/bubbles/v2/textinput"
 	"charm.land/bubbles/v2/viewport"
 	tea "charm.land/bubbletea/v2"
 
 	"senda/internal/model"
 	"senda/internal/pipeline"
+	"senda/internal/wsclient"
 )
 
 // focus identifies which pane receives navigation/scroll keys.
@@ -115,6 +119,26 @@ type tuiModel struct {
 
 	open []openReq // open-request tabs, in open order
 
+	// In-memory edit buffers, keyed by tab key (curPath, or a scratch sentinel
+	// for unsaved requests). Only dirty/scratch tabs are cached here so unsaved
+	// edits survive tab switches; clean tabs still reload from disk.
+	buf      map[string]model.Request
+	dirty    map[string]bool
+	scratchN int // counter for unique scratch tab keys
+
+	// inline edit mode. When editing, the active widget owns keystrokes.
+	editing  bool
+	editMode editMode        // which field is being edited (URL or body)
+	input    textinput.Model // single-line URL editor
+	body     textarea.Model  // multi-line body editor
+	ac       autocomplete    // {{var}}/faker completion popup
+
+	// save-as prompt for scratch tabs (ctrl+s on an unsaved request)
+	saveOpen  bool
+	saveInput textinput.Model
+
+	fakeCache []acItem // cached faker tokens for autocomplete (built lazily)
+
 	resp    *model.Response
 	respErr string
 
@@ -152,7 +176,10 @@ type tuiModel struct {
 	browseErr  string
 
 	// websocket session (populated when a WS request is connected)
-	ws *wsState
+	ws       *wsState
+	wsMgr    *wsclient.Manager     // lazily created on first connect
+	wsEvents chan wsclient.WSEvent // live frames from the read pump
+	wsID     string                // active connection id for Send/Close
 
 	w, h   int
 	status string
@@ -172,6 +199,8 @@ type wsState struct {
 	url       string
 	msgs      int
 	uptime    string
+	since     time.Time // connect time; uptime is derived from it while live
+	err       string    // dial/close error, shown in the header
 	frames    []wsFrame
 	compose   string
 	// last inbound frame inspector fields
@@ -182,7 +211,18 @@ type wsState struct {
 // wsView reports whether the loaded request is a websocket request (its panes
 // replace request/response with the connection log and frame inspector).
 func (m tuiModel) wsView() bool {
-	return m.loaded && !m.exportOpen && strings.EqualFold(m.cur.Method, "WS")
+	return m.loaded && !m.exportOpen && !m.editing && m.isWSRequest()
+}
+
+// isWSRequest reports whether the active request is a websocket: method WS, or a
+// ws://-/wss://-scheme URL. The scheme check is what makes the connection pane
+// appear as soon as a wss:// URL is typed.
+func (m tuiModel) isWSRequest() bool {
+	if strings.EqualFold(m.cur.Method, "WS") {
+		return true
+	}
+	u := strings.ToLower(strings.TrimSpace(m.cur.URL))
+	return strings.HasPrefix(u, "ws://") || strings.HasPrefix(u, "wss://")
 }
 
 func newModel(coll model.Collection, collPath string, envs []model.Environment, initialEnv string) tuiModel {
@@ -194,6 +234,8 @@ func newModel(coll model.Collection, collPath string, envs []model.Environment, 
 		envs:     envs,
 		envIdx:   -1,
 		expanded: map[string]bool{},
+		buf:      map[string]model.Request{},
+		dirty:    map[string]bool{},
 		reqVp:    viewport.New(),
 		vp:       viewport.New(),
 		spin:     sp,
@@ -248,6 +290,7 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.cur = msg.req
 		m.status = msg.err
 		if m.loaded {
+			m.buf[msg.path] = msg.req
 			m.openTab(msg.path, msg.req.Method)
 		}
 		m.refreshReqView()
@@ -269,6 +312,18 @@ func (m tuiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, loadRequestCmd(msg.path)
+
+	case wsConnectedMsg:
+		return m, m.onWSConnected(msg)
+
+	case wsEventMsg:
+		return m, m.onWSEvent(msg)
+
+	case wsTickMsg:
+		if m.ws != nil && m.ws.connected {
+			return m, wsTick() // keep the uptime clock ticking
+		}
+		return m, nil
 
 	case spinner.TickMsg:
 		if !m.sending {
