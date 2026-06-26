@@ -207,13 +207,18 @@ button {
   letter-spacing: 0.04em;
   color: var(--text-faint);
 }
-.ws-menu-item {
+.coll-menu-item.ws-menu-item {
   flex-direction: row;
   align-items: center;
   gap: 8px;
 }
-.ws-menu-active .coll-menu-item-name {
-  color: var(--accent);
+.coll-menu-item.ws-menu-active,
+.coll-menu-item.ws-menu-active:hover {
+  background: var(--accent);
+}
+.ws-menu-active .coll-menu-item-name,
+.ws-menu-active .ws-menu-check {
+  color: var(--accent-fg);
 }
 .ws-menu-check {
   margin-left: auto;
