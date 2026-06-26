@@ -581,6 +581,26 @@ body.dragging-splitter {
 .recency-pill.err .recency-dot {
   background: var(--err);
 }
+.coll-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 8px 0;
+  padding: 2px 2px 2px 8px;
+}
+.coll-header-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coll-header .icon-btn.tiny {
+  opacity: 1;
+}
 .tree-search {
   display: flex;
   align-items: center;

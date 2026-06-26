@@ -39,16 +39,6 @@ func GenerateMarkdown(collPath, subPath string) (string, error) {
 	return b.String(), nil
 }
 
-// GenerateHTML produces a self-contained single-file HTML page for the
-// collection.
-func GenerateHTML(collPath, subPath string) (string, error) {
-	md, err := GenerateMarkdown(collPath, subPath)
-	if err != nil {
-		return "", err
-	}
-	return wrapHTML(md), nil
-}
-
 // loadRequests reads all request files under target.
 func loadRequests(collPath, subPath string) ([]model.Request, error) {
 	target := collPath
@@ -154,35 +144,6 @@ func prettyJSON(s string, t model.BodyType) string {
 		return s
 	}
 	return string(out)
-}
-
-func wrapHTML(md string) string {
-	var buf bytes.Buffer
-	buf.WriteString(`<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>API Reference</title>
-<style>
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:900px;margin:0 auto;padding:2rem;color:#222;background:#fff}
-h1{border-bottom:2px solid #eee;padding-bottom:.5rem}
-h2{margin-top:2rem;padding:.3rem .6rem;background:#f6f8fa;border-left:4px solid #0066cc}
-h3{color:#555;font-size:1rem}
-table{border-collapse:collapse;width:100%;margin:.5rem 0}
-th,td{border:1px solid #ddd;padding:.4rem .7rem;text-align:left;font-size:.9rem}
-th{background:#f6f8fa}
-code{background:#f0f0f0;padding:.1rem .3rem;border-radius:3px;font-size:.88em}
-pre{background:#f6f8fa;padding:1rem;border-radius:4px;overflow-x:auto}
-pre code{background:none;padding:0}
-hr{border:none;border-top:1px solid #eee;margin:1.5rem 0}
-</style>
-</head>
-<body>
-`)
-	buf.WriteString(RenderFragment(md))
-	buf.WriteString("</body></html>")
-	return buf.String()
 }
 
 // RenderFragment converts markdown to an HTML body fragment (no document

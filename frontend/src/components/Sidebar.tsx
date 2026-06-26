@@ -2,7 +2,7 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, Folder, FolderPlus, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
@@ -103,6 +103,17 @@ export default function Sidebar() {
   const [scanTarget, setScanTarget] = createSignal<TreeNode | null>(null);
   const [search, setSearch] = createSignal("");
 
+  // Collection-level actions menu (right-click the header row or click its ⋯).
+  const [collMenu, setCollMenu] = createSignal<{ x: number; y: number } | null>(null);
+  let closeCollCtx: (() => void) | null = null;
+  const openCollMenu = (e: MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCollMenu({ x: e.clientX, y: e.clientY });
+    closeCollCtx = attachCtxDismiss(() => setCollMenu(null));
+  };
+  onCleanup(() => closeCollCtx?.());
+
   const visibleTree = createMemo(() => {
     const tree = collection()?.tree;
     if (!tree) return null;
@@ -120,6 +131,13 @@ export default function Sidebar() {
     await api.saveRequest(path, blankRequest(name));
     await refresh(coll.path);
     openInTab(blankRequest(name), path);
+  };
+
+  const exportDocs = async () => {
+    const coll = collection();
+    if (!coll) return;
+    const html = await api.exportDocsHtml(coll.path);
+    await api.exportFile(`${coll.name || "api"}-docs.html`, html);
   };
 
   return (
@@ -185,6 +203,26 @@ export default function Sidebar() {
         />
       </Show>
       <Show when={collection()}>
+        <div class="coll-header" onContextMenu={openCollMenu}>
+          <span class="coll-header-name" title={collection()!.path}>{collection()!.name}</span>
+          <button class="icon-btn tiny" title="Collection actions" onClick={openCollMenu}>
+            <MoreHorizontal size={ICON.lg} />
+          </button>
+          <Show when={collMenu()}>
+            <div
+              class="ctx-menu"
+              style={{ left: `${collMenu()!.x}px`, top: `${collMenu()!.y}px` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button class="ctx-item" onClick={() => { closeCollCtx?.(); exportDocs(); }}>
+                <FileText size={ICON.sm} /> Export docs
+              </button>
+              <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSettings(true); }}>
+                <Settings size={ICON.sm} /> Collection settings
+              </button>
+            </div>
+          </Show>
+        </div>
         <div class="tree-search">
           <Search size={ICON.xs} />
           <input
@@ -311,6 +349,14 @@ function TreeRow(props: {
     await api.saveRequest(path, blankRequest(name));
     props.onRefresh();
     openInTab(blankRequest(name), path);
+  };
+
+  // Export docs for just this folder's subtree (backend scopes by subPath).
+  const exportDocs = async () => {
+    const coll = collection();
+    if (!coll) return;
+    const html = await api.exportDocsHtml(coll.path, props.node.path);
+    await api.exportFile(`${props.node.name}-docs.html`, html);
   };
 
   // Create a new sub-folder inside this folder.
@@ -460,6 +506,9 @@ function TreeRow(props: {
             </button>
             <button class="ctx-item" onClick={(e) => { closeCtx?.(); rename(e); }}>
               <Pencil size={ICON.sm} /> Rename
+            </button>
+            <button class="ctx-item" onClick={() => { closeCtx?.(); exportDocs(); }}>
+              <FileText size={ICON.sm} /> Export docs
             </button>
             <button class="ctx-item" onClick={() => { closeCtx?.(); setShowSettings(true); }}>
               <Settings size={ICON.sm} /> Folder settings

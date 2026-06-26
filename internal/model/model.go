@@ -11,6 +11,10 @@ type KV struct {
 	Enabled bool   `yaml:"enabled" json:"enabled"`
 	Desc    string `yaml:"desc,omitempty" json:"desc,omitempty"`
 	File    bool   `yaml:"file,omitempty" json:"file,omitempty"`
+	// Type is the documented schema type (string, integer, object…) for params
+	// and body fields. Doc-only: surfaced in generated API docs, ignored when
+	// sending. Empty for plain rows (headers, env vars).
+	Type string `yaml:"type,omitempty" json:"type,omitempty"`
 }
 
 // BodyType enumerates the supported request body encodings.
@@ -35,6 +39,10 @@ type Body struct {
 	Raw       string   `yaml:"raw,omitempty" json:"raw,omitempty"`
 	Form      []KV     `yaml:"form,omitempty" json:"form,omitempty"`
 	Variables string   `yaml:"variables,omitempty" json:"variables,omitempty"`
+	// Fields documents a json body's top-level properties (KV.Key=name,
+	// Type=schema type, Enabled=required, Desc=description). Doc-only: the sent
+	// payload is Raw; this just feeds the generated API docs' body-param table.
+	Fields []KV `yaml:"fields,omitempty" json:"fields,omitempty"`
 }
 
 // AuthType enumerates the supported authentication schemes. Empty is treated
@@ -120,19 +128,21 @@ type AssertResult struct {
 // PostScript runs after the response arrives (typically extracts values into
 // runtime vars for later requests).
 type Request struct {
-	Name           string   `yaml:"name" json:"name"`
-	Method         string   `yaml:"method" json:"method"`
-	URL            string   `yaml:"url" json:"url"`
-	Params         []KV     `yaml:"params,omitempty" json:"params"`
-	Headers        []KV     `yaml:"headers,omitempty" json:"headers"`
-	Body           Body     `yaml:"body,omitempty" json:"body"`
-	Auth           Auth     `yaml:"auth,omitempty" json:"auth"`
-	Asserts        []Assert `yaml:"asserts,omitempty" json:"asserts"`
-	PreScript      string   `yaml:"preScript,omitempty" json:"preScript"`
-	PostScript     string   `yaml:"postScript,omitempty" json:"postScript"`
-	Docs           string   `yaml:"docs,omitempty" json:"docs"`
-	ResponseSchema string   `yaml:"responseSchema,omitempty" json:"responseSchema,omitempty"` // inline JSON Schema
-	OnFail         string   `yaml:"onFail,omitempty" json:"onFail,omitempty"`                 // stop | continue | jump:<folder>
+	Name            string   `yaml:"name" json:"name"`
+	Method          string   `yaml:"method" json:"method"`
+	URL             string   `yaml:"url" json:"url"`
+	Params          []KV     `yaml:"params,omitempty" json:"params"`
+	PathParams      []KV     `yaml:"pathParams,omitempty" json:"pathParams,omitempty"` // doc-only: {path} params (KV.Type/Desc), not sent — the URL carries them as {{vars}}
+	Headers         []KV     `yaml:"headers,omitempty" json:"headers"`
+	Body            Body     `yaml:"body,omitempty" json:"body"`
+	Auth            Auth     `yaml:"auth,omitempty" json:"auth"`
+	Asserts         []Assert `yaml:"asserts,omitempty" json:"asserts"`
+	PreScript       string   `yaml:"preScript,omitempty" json:"preScript"`
+	PostScript      string   `yaml:"postScript,omitempty" json:"postScript"`
+	Docs            string   `yaml:"docs,omitempty" json:"docs"`
+	ResponseSchema  string   `yaml:"responseSchema,omitempty" json:"responseSchema,omitempty"`   // inline JSON Schema (validation + schema reference)
+	ResponseExample string   `yaml:"responseExample,omitempty" json:"responseExample,omitempty"` // doc-only: example success response body
+	OnFail          string   `yaml:"onFail,omitempty" json:"onFail,omitempty"`                   // stop | continue | jump:<folder>
 }
 
 // Environment is a named set of variables (e.g. dev, prod).

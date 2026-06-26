@@ -161,6 +161,16 @@ func (a *App) RenderMarkdown(md string) string {
 	return docgen.RenderFragment(md)
 }
 
+// ExportDocsHTML renders the collection (optionally a sub-folder) as a
+// self-contained HTML docs site. Frontend pairs this with ExportFile to let
+// the user pick a save location. Pass subPath "" for the whole collection.
+func (a *App) ExportDocsHTML(collPath, subPath string) (string, error) {
+	if collPath == "" {
+		return "", fmt.Errorf("no collection open")
+	}
+	return docgen.GenerateHTML(collPath, subPath)
+}
+
 // GenerateMocksFromOpenAPI parses an OpenAPI 3 document and writes one mock
 // definition file per operation into collPath/.senda/mocks/, so the mock server can
 // serve the API straight from its documented responses/examples. Returns the

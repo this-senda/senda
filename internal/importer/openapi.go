@@ -89,13 +89,14 @@ func convertOpenAPI(base, path, method string, op *v3.Operation, pathParams []*v
 		name = strings.ToLower(method) + "-" + strings.Trim(path, "/")
 	}
 	req := model.Request{
-		Name:    sanitize(name),
-		Method:  strings.ToUpper(method),
-		URL:     base + pathToVars(path),
-		Auth:    authForOp(op, schemes, globalSec),
-		Body:    model.Body{Type: model.BodyNone},
-		Docs:    docsFromOp(op),
-		Asserts: assertsForOp(op),
+		Name:            sanitize(name),
+		Method:          strings.ToUpper(method),
+		URL:             base + pathToVars(path),
+		Auth:            authForOp(op, schemes, globalSec),
+		Body:            model.Body{Type: model.BodyNone},
+		Docs:            docsFromOp(op),
+		Asserts:         assertsForOp(op),
+		ResponseExample: responseExample(op),
 	}
 	// Operation parameters override path-level ones with the same name+location.
 	seen := map[string]bool{}
@@ -110,12 +111,15 @@ func convertOpenAPI(base, path, method string, op *v3.Operation, pathParams []*v
 		seen[key] = true
 		// Required params are enabled with their example/default prefilled; the
 		// path itself already carries path params as {{vars}}.
-		kv := model.KV{Key: pr.Name, Value: paramValue(pr), Enabled: paramRequired(pr), Desc: pr.Description}
+		kv := model.KV{Key: pr.Name, Value: paramValue(pr), Enabled: paramRequired(pr), Desc: pr.Description, Type: paramType(pr)}
 		switch pr.In {
 		case "query":
 			req.Params = append(req.Params, kv)
 		case "header":
 			req.Headers = append(req.Headers, kv)
+		case "path":
+			kv.Enabled = true // path params are always required
+			req.PathParams = append(req.PathParams, kv)
 		}
 	}
 	for _, pr := range op.Parameters {
@@ -190,15 +194,16 @@ func bodyForOp(rb *v3.RequestBody) (model.Body, string) {
 		return model.Body{Type: model.BodyNone}, ""
 	}
 	if mt := jsonMediaType(rb.Content); mt != nil {
+		fields := bodyFields(mt)
 		if v, ok := mediaTypeExample(mt); ok {
 			if raw, err := marshalJSON(v); err == nil {
-				return model.Body{Type: model.BodyJSON, Raw: raw}, "application/json"
+				return model.Body{Type: model.BodyJSON, Raw: raw, Fields: fields}, "application/json"
 			}
 		}
 		if raw, ok := schemaJSON(mt.Schema); ok {
-			return model.Body{Type: model.BodyJSON, Raw: raw}, "application/json"
+			return model.Body{Type: model.BodyJSON, Raw: raw, Fields: fields}, "application/json"
 		}
-		return model.Body{Type: model.BodyJSON}, "application/json"
+		return model.Body{Type: model.BodyJSON, Fields: fields}, "application/json"
 	}
 	if mt := rb.Content.GetOrZero("application/x-www-form-urlencoded"); mt != nil {
 		return model.Body{Type: model.BodyForm, Form: formRows(mt)}, ""
@@ -227,6 +232,96 @@ func formRows(mt *v3.MediaType) []model.KV {
 		rows = append(rows, model.KV{Key: name, Enabled: required[name]})
 	}
 	return rows
+}
+
+// bodyFields documents a JSON body's top-level properties (name, type, required,
+// description) for the generated docs' body-param table. Doc-only — the actual
+// payload is the example/skeleton in Body.Raw.
+func bodyFields(mt *v3.MediaType) []model.KV {
+	if mt == nil || mt.Schema == nil {
+		return nil
+	}
+	sc := mt.Schema.Schema()
+	if sc == nil || sc.Properties == nil {
+		return nil
+	}
+	required := map[string]bool{}
+	for _, r := range sc.Required {
+		required[r] = true
+	}
+	var fields []model.KV
+	for name, prop := range sc.Properties.FromOldest() {
+		f := model.KV{Key: name, Enabled: required[name]}
+		if prop != nil {
+			if ps := prop.Schema(); ps != nil {
+				f.Type = schemaTypeName(ps)
+				f.Desc = ps.Description
+			}
+		}
+		fields = append(fields, f)
+	}
+	return fields
+}
+
+// paramType is the documented type of a parameter's schema (string, integer…).
+func paramType(pr *v3.Parameter) string {
+	if pr.Schema == nil {
+		return ""
+	}
+	return schemaTypeName(pr.Schema.Schema())
+}
+
+// schemaTypeName renders a schema's primary type for docs, suffixing arrays with
+// their item type (e.g. "string[]").
+func schemaTypeName(sc *base.Schema) string {
+	if sc == nil || len(sc.Type) == 0 {
+		return ""
+	}
+	t := sc.Type[0]
+	if t == "array" && sc.Items != nil && sc.Items.IsA() {
+		if it := sc.Items.A.Schema(); it != nil && len(it.Type) > 0 {
+			return it.Type[0] + "[]"
+		}
+	}
+	return t
+}
+
+// responseExample returns the documented example body of the success response
+// (lowest 2xx, else default) as JSON. Only explicit spec examples are used —
+// nothing is synthesised, so re-imports stay byte-stable for git.
+func responseExample(op *v3.Operation) string {
+	if op == nil || op.Responses == nil {
+		return ""
+	}
+	var best *v3.Response
+	bestCode := 0
+	if op.Responses.Codes != nil {
+		for code, resp := range op.Responses.Codes.FromOldest() {
+			st, ok := statusCode(code)
+			if !ok || st < 200 || st >= 300 {
+				continue
+			}
+			if bestCode == 0 || st < bestCode {
+				bestCode, best = st, resp
+			}
+		}
+	}
+	if best == nil {
+		best = op.Responses.Default
+	}
+	if best == nil || best.Content == nil {
+		return ""
+	}
+	mt := jsonMediaType(best.Content)
+	if mt == nil {
+		return ""
+	}
+	if v, ok := mediaTypeExample(mt); ok {
+		if raw, err := marshalJSON(v); err == nil {
+			return raw
+		}
+	}
+	return ""
 }
 
 // assertsForOp seeds a status-code assertion from the documented success

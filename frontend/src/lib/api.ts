@@ -93,6 +93,7 @@ export const api = {
 
   // export
   exportFile: (filename: string, content: string) => App.ExportFile(filename, content),
+  exportDocsHtml: (collPath: string, subPath = "") => App.ExportDocsHTML(collPath, subPath),
 
   // import / codegen
   importCurl: (cmd: string) => App.ImportCurl(cmd),
