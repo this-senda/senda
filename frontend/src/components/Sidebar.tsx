@@ -2,7 +2,7 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
@@ -17,6 +17,7 @@ import FolderSettings from "./FolderSettings";
 import ImportDialog from "./ImportDialog";
 import HistoryPanel from "./HistoryPanel";
 import SecurityScan from "./SecurityScan";
+import SourceControlPanel from "./SourceControlPanel";
 
 const refresh = refreshCollection;
 
@@ -101,6 +102,7 @@ export default function Sidebar() {
   const [showSettings, setShowSettings] = createSignal(false);
   const [showImport, setShowImport] = createSignal(false);
   const [showHistory, setShowHistory] = createSignal(false);
+  const [showScm, setShowScm] = createSignal(false);
   const [scanTarget, setScanTarget] = createSignal<TreeNode | null>(null);
   const [search, setSearch] = createSignal("");
 
@@ -169,6 +171,14 @@ export default function Sidebar() {
           >
             <Clock size={ICON.xl} />
           </button>
+          <button
+            class="icon-btn scm-open"
+            title="Source control — compare changes"
+            onClick={() => setShowScm(true)}
+            disabled={!collection()}
+          >
+            <GitCompare size={ICON.xl} />
+          </button>
           {/* Overflow: all collection-scoped actions live under one menu so the
               toolbar stays just the frequent tree verbs (see commit). */}
           <button
@@ -210,6 +220,9 @@ export default function Sidebar() {
       </Show>
       <Show when={showHistory()}>
         <HistoryPanel onClose={() => setShowHistory(false)} />
+      </Show>
+      <Show when={showScm()}>
+        <SourceControlPanel onClose={() => setShowScm(false)} />
       </Show>
       <Show when={scanTarget()}>
         <SecurityScan

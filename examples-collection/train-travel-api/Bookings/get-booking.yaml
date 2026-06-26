@@ -1,6 +1,6 @@
 name: get-booking
 method: GET
-url: https://try.microcks.io/rest/Train+Travel+API/1.0.0/bookings/{bookingId}
+url: https://try.microcks.io/rest/Train+Travel+API/1.0.0/bookings/1
 body:
     type: none
 auth:

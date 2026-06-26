@@ -3900,3 +3900,157 @@ body.dragging-node * {
 .status-bar-build:hover {
   color: var(--text, #c9d1d9);
 }
+
+/* ---- source control: read-only git comparison modal ---- */
+.scm-modal {
+  width: 880px;
+  height: 80vh;
+}
+.scm-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.modal-title .scm-branch {
+  font-family: var(--mono);
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 8px;
+}
+/* override modal-body's scroll: this body is a fixed two-column split */
+.scm-body {
+  display: flex;
+  overflow: hidden;
+  padding: 0;
+}
+.scm-list {
+  width: 300px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-soft);
+  overflow: auto;
+  padding: 4px 0;
+}
+.scm-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: var(--fs-sm);
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.scm-row:hover {
+  background: var(--bg-elev2);
+}
+.scm-row.active {
+  background: var(--accent-dim);
+}
+.scm-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.scm-row .scm-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.scm-section-head {
+  padding: 10px 12px 4px;
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-faint);
+}
+.scm-badge {
+  font-size: var(--fs-2xs);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 1px 6px;
+  border: 1px solid;
+}
+.scm-modified,
+.scm-changed {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.scm-added,
+.scm-untracked {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.scm-deleted,
+.scm-removed {
+  color: var(--err);
+  border-color: var(--err);
+}
+.scm-renamed {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.scm-diff {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+  min-width: 0;
+}
+.scm-diff-empty {
+  color: var(--text-faint);
+  font-size: var(--fs-sm);
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.scm-diff-title {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.scm-field {
+  margin-bottom: 14px;
+}
+.scm-field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.scm-field pre {
+  margin: 2px 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-left: 3px solid;
+}
+.scm-old {
+  background: rgba(248, 81, 73, 0.08);
+  border-left-color: var(--err) !important;
+  color: var(--text-dim);
+}
+.scm-new {
+  background: rgba(63, 185, 80, 0.08);
+  border-left-color: var(--ok) !important;
+  color: var(--text);
+}
+.scm-raw {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-dim);
+}

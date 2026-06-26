@@ -112,6 +112,27 @@ export function installDevMock() {
             truncated: false,
           };
         },
+        GitStatus: async () => ({
+          repo: true,
+          branch: "main",
+          files: [
+            { path: "users/create-user.yaml", display: "create-user", status: "modified", other: false },
+            { path: "users/list-users.yaml", display: "list-users", status: "untracked", other: false },
+            { path: ".gitignore", display: ".gitignore", status: "untracked", other: true },
+          ],
+        }),
+        GitDiff: async (_collPath: string, path: string) =>
+          String(path).endsWith(".gitignore")
+            ? { display: ".gitignore", fields: [], raw: "+node_modules/\n+dist/\n" }
+            : {
+                display: "create-user",
+                fields: [
+                  { label: "Method", old: "GET", new: "POST", kind: "changed" },
+                  { label: "URL", old: "https://api.demo.test/users", new: "https://api.demo.test/v2/users", kind: "changed" },
+                  { label: "Headers", old: "", new: "- key: Content-Type\n  value: application/json", kind: "added" },
+                ],
+                raw: "",
+              },
       },
     },
   };
