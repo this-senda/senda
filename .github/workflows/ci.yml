@@ -54,6 +54,15 @@ jobs:
         if: steps.cache-wails3.outputs.cache-hit != 'true'
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha2.104
 
+      # This job and `backend` share one setup-go module cache (key = go.sum
+      # hash), and setup-go won't overwrite an existing key. `wails3 generate`
+      # only compiles the desktop app graph, which never imports internal/tui —
+      # so without this, whichever job saves first can freeze a cache missing
+      # the TUI/charm deps, and `backend`'s `go vet ./...` re-downloads them
+      # every run. Download the full module graph so the saved cache is complete.
+      - name: Prime full module cache (shared with Go tests job)
+        run: go mod download
+
       - name: Generate TypeScript bindings
         run: TERM=dumb wails3 generate bindings -clean -ts
 
