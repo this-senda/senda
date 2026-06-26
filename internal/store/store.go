@@ -44,6 +44,8 @@ func ReadMeta(dir string) model.Collection {
 			c.Description = meta.Description
 			c.Vars = meta.Vars
 			c.Auth = meta.Auth
+			c.Proxy = meta.Proxy
+			c.TLS = meta.TLS
 		}
 	}
 	return c
@@ -86,6 +88,8 @@ func SaveCollection(c model.Collection) error {
 		Description: c.Description,
 		Vars:        c.Vars,
 		Auth:        c.Auth,
+		Proxy:       c.Proxy,
+		TLS:         c.TLS,
 	}
 	data, err := yaml.Marshal(meta)
 	if err != nil {

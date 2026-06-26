@@ -86,6 +86,23 @@ func (s *Session) Scope(collPath, reqPath, envName string) *vars.Scope {
 	return vars.Build(layers...)
 }
 
+// collectionNetConfig reads the collection root's proxy/TLS settings and
+// resolves {{var}} references through scope. Returns the zero NetConfig for
+// ad-hoc sends (no collPath), which resets the client to Go's defaults.
+func collectionNetConfig(collPath string, scope *vars.Scope) httpclient.NetConfig {
+	if collPath == "" {
+		return httpclient.NetConfig{}
+	}
+	m := store.ReadMeta(collPath)
+	return httpclient.NetConfig{
+		Proxy:    scope.Apply(m.Proxy),
+		CertFile: scope.Apply(m.TLS.CertFile),
+		KeyFile:  scope.Apply(m.TLS.KeyFile),
+		CAFile:   scope.Apply(m.TLS.CAFile),
+		Insecure: m.TLS.Insecure,
+	}
+}
+
 // effectiveAuth resolves request auth for empty/inherit types by walking the
 // folder chain from the deepest folder up to the collection root: the first
 // folder declaring a concrete auth wins, then the collection root's auth, and
@@ -146,6 +163,9 @@ func (s *Session) SendWithExtra(ctx context.Context, req model.Request, collPath
 
 	// Scope built after the pre-script so freshly set runtime vars interpolate.
 	scope := s.Scope(collPath, reqPath, envName)
+	if err := s.HTTP.Configure(collectionNetConfig(collPath, scope)); err != nil {
+		return model.Response{Error: err.Error(), ScriptLogs: scriptLogs}, req.URL
+	}
 	req.Auth = effectiveAuth(collPath, reqPath, req.Auth)
 	resp := s.HTTP.Send(ctx, req, scope)
 	if resp.Error == "" {

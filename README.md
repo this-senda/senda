@@ -204,6 +204,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 - **Source control**: a read-only panel showing working-tree-vs-`HEAD` changes for the collection — status-badged file list with a semantic per-field diff (URL / method / header changed) for request YAML, raw text diff for everything else; shells the system `git`
 - **Drag-and-drop**: reorder requests and folders in the tree
 - **Cookie jar**: persistent session cookies across sends and runs
+- **Proxy & mTLS**: per-collection upstream proxy and client certificate (cert/key/CA, optional verify-skip); proxy URL and cert paths support `{{var}}` so machine-specific values stay out of git
 - **One binary, three modes**: `senda` is pure Go (no webview) — bare `senda` opens the terminal UI, `senda run` is the headless CI runner, `senda gui` launches the desktop app. All share the same send pipeline.
 - **Terminal UI**: `senda` (or `senda tui`) — interactive 3-pane TUI (tree | request | response) for working entirely in the terminal
 - **CLI runner**: `senda run` — same send pipeline as the desktop app, scriptable in CI

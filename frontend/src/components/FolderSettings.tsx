@@ -8,8 +8,11 @@ import { createSignal, For, onMount, Show } from "solid-js";
 import { X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
-import type { Auth, Collection, KV } from "../lib/api";
+import type { Auth, Collection, KV, TLSConfig } from "../lib/api";
+import { collection } from "../lib/store";
 import { blankAuth } from "../lib/factory";
+
+const blankTLS = (): TLSConfig => ({ certFile: "", keyFile: "", caFile: "", insecure: false });
 import AuthEditor from "./AuthEditor";
 import KVEditor from "./KVEditor";
 
@@ -38,7 +41,13 @@ export default function FolderSettings(props: {
   const [description, setDescription] = createSignal("");
   const [vars, setVars] = createSignal<KV[]>([]);
   const [auth, setAuth] = createSignal<Auth>(blankAuth());
+  const [proxy, setProxy] = createSignal("");
+  const [tls, setTls] = createSignal<TLSConfig>(blankTLS());
   const [name, setName] = createSignal(props.name);
+  // Proxy/TLS apply only at the collection root (pipeline reads them off the
+  // opened collection, not sub-folders), so the Network section is root-only.
+  const isRoot = () => props.path === collection()?.path;
+  const patchTls = (p: Partial<TLSConfig>) => setTls({ ...tls(), ...p });
   const [loading, setLoading] = createSignal(true);
   const [saving, setSaving] = createSignal(false);
   const [error, setError] = createSignal("");
@@ -52,6 +61,8 @@ export default function FolderSettings(props: {
       setDescription(meta.description ?? "");
       setVars(meta.vars ?? []);
       setAuth((meta.auth && meta.auth.type ? meta.auth : blankAuth()) as Auth);
+      setProxy(meta.proxy ?? "");
+      setTls(meta.tls ? { ...blankTLS(), ...meta.tls } : blankTLS());
     } catch (e) {
       setError(String(e));
     } finally {
@@ -79,6 +90,8 @@ export default function FolderSettings(props: {
         description: description(),
         vars: vars(),
         auth: auth(),
+        proxy: isRoot() ? proxy() : "",
+        tls: isRoot() ? tls() : blankTLS(),
         tree: null as any,
       };
       await api.saveCollection(meta);
@@ -170,6 +183,52 @@ export default function FolderSettings(props: {
             <div class="modal-section-label">Default authentication</div>
             <p class="modal-hint">Requests set to “Inherit” use this (falling back to the collection).</p>
             <AuthEditor auth={auth()} onChange={setAuth} allowInherit={true} />
+
+            <Show when={isRoot()}>
+              <div class="modal-section-label">Network</div>
+              <p class="modal-hint">
+                Proxy and client certificate for this collection's requests. Values support{" "}
+                <code>{"{{var}}"}</code> so machine-specific URLs and paths stay out of git.
+              </p>
+              <input
+                class="net-input"
+                type="text"
+                placeholder="Proxy URL (e.g. http://host:8080) — blank uses system/env"
+                value={proxy()}
+                onInput={(e) => setProxy(e.currentTarget.value)}
+              />
+              <div class="net-row">
+                <input
+                  class="net-input"
+                  type="text"
+                  placeholder="Client cert file (.pem)"
+                  value={tls().certFile}
+                  onInput={(e) => patchTls({ certFile: e.currentTarget.value })}
+                />
+                <input
+                  class="net-input"
+                  type="text"
+                  placeholder="Client key file"
+                  value={tls().keyFile}
+                  onInput={(e) => patchTls({ keyFile: e.currentTarget.value })}
+                />
+              </div>
+              <input
+                class="net-input"
+                type="text"
+                placeholder="Custom CA bundle (.pem) — blank uses system roots"
+                value={tls().caFile}
+                onInput={(e) => patchTls({ caFile: e.currentTarget.value })}
+              />
+              <label class="net-insecure">
+                <input
+                  type="checkbox"
+                  checked={tls().insecure}
+                  onChange={(e) => patchTls({ insecure: e.currentTarget.checked })}
+                />
+                Skip TLS verification (insecure — like <code>curl -k</code>)
+              </label>
+            </Show>
           </div>
         </Show>
         <Show when={error()}>
