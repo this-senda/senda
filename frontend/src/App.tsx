@@ -35,6 +35,8 @@ import {
   setActiveEnv,
   showMockPanel,
   setShowMockPanel,
+  respCollapsed,
+  toggleResp,
   runPanelTarget,
   showRunPanel,
   setShowRunPanel,
@@ -62,14 +64,6 @@ export default function App() {
   const [split, setSplit] = createSignal(
     clamp(Number(localStorage.getItem("senda.split")) || 0.5, 0.2, 0.8)
   );
-  const [respCollapsed, setRespCollapsed] = createSignal(
-    localStorage.getItem("senda.respCollapsed") === "1"
-  );
-  const toggleResp = () => {
-    const next = !respCollapsed();
-    setRespCollapsed(next);
-    localStorage.setItem("senda.respCollapsed", next ? "1" : "0");
-  };
 
   const dragSplitter = (which: "side" | "mid") => (e: MouseEvent) => {
     e.preventDefault();
@@ -227,7 +221,7 @@ export default function App() {
           <button
             class="icon-btn"
             title={respCollapsed() ? "Show response" : "Hide response"}
-            onClick={toggleResp}
+            onClick={() => toggleResp()}
           >
             {respCollapsed() ? (
               <PanelRight size={ICON.xxl} />
