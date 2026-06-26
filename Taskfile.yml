@@ -94,6 +94,12 @@ tasks:
     cmds:
       - "{{.BIN_DIR}}/senda tui {{.CLI_ARGS}}"
 
+  test:e2e:
+    desc: "Run WebKit e2e in the official playwright container (local-only; for Arch/rolling distros where system libs don't match playwright's pinned WebKit). CLI_ARGS passed to playwright test."
+    dir: frontend
+    cmds:
+      - ./tests/e2e/run-podman.sh {{.CLI_ARGS}}
+
   shots:
     desc: "Regenerate documentation screenshots + GIF (Playwright drives `vite --mode test`; copies into docs/screenshots/). SENDA_CHROME=path uses a custom Chrome where Playwright's browser download is blocked."
     deps: [install]
