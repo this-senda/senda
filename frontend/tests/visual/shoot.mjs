@@ -209,7 +209,8 @@ await dismiss(page);
 
 // 12 — mock server panel, running, with routes + request log (newest feature).
 await shot(page, "12-mock-server.png", async () => {
-  await page.locator('button[title="Mock server"]').click();
+  await page.locator('button[title="Collection actions"]').click();
+  await page.getByText("Mock server", { exact: true }).click();
   await page.getByText("Mock Server", { exact: true }).waitFor({ timeout: 4000 });
   await page.getByRole("button", { name: "Start", exact: true }).click();
   await page.getByText("● Running", { exact: false }).waitFor({ timeout: 4000 });
@@ -231,7 +232,8 @@ await dismiss(page);
 
 // 16 — import dialog.
 await shot(page, "16-import.png", async () => {
-  await page.locator('button[title="Import"]').click();
+  await page.locator('button[title="Collection actions"]').click();
+  await page.getByText("Import collection", { exact: true }).click();
   await wait(500);
 });
 await dismiss(page);

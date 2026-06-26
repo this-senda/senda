@@ -206,6 +206,9 @@ export default function App() {
           <span class="brand">Senda</span>
           <WorkspaceRail />
         </div>
+        <Show when={collection()}>
+          <span class="titlebar-title" title={collection()!.path}>{collection()!.name}</span>
+        </Show>
         <div class="titlebar-actions">
           <EnvSwitcher />
           <button

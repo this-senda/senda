@@ -108,6 +108,7 @@ button {
 
 /* ---- titlebar ---- */
 .titlebar {
+  position: relative;
   height: 42px;
   flex-shrink: 0;
   display: flex;
@@ -116,6 +117,21 @@ button {
   padding: 0 14px;
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
+}
+/* Active collection name as a centered titlebar label. Absolute + pointer-events
+   none so it never steals clicks from the rail/actions it visually overlaps. */
+.titlebar-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 40%;
+  font-weight: 600;
+  font-size: var(--fs-base);
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 .brand {
   font-weight: 700;
@@ -581,25 +597,8 @@ body.dragging-splitter {
 .recency-pill.err .recency-dot {
   background: var(--err);
 }
-.coll-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 6px 8px 0;
-  padding: 2px 2px 2px 8px;
-}
-.coll-header-name {
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.coll-header .icon-btn.tiny {
-  opacity: 1;
+.coll-overflow {
+  margin-left: auto;
 }
 .tree-search {
   display: flex;

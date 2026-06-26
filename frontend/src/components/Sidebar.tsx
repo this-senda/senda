@@ -147,9 +147,6 @@ export default function Sidebar() {
           <button class="icon-btn" title="New request" onClick={newRequest} disabled={!collection()}>
             <Plus size={ICON.xl} />
           </button>
-          <button class="icon-btn" title="Import" onClick={() => setShowImport(true)}>
-            <Download size={ICON.xl} />
-          </button>
           <button
             class="icon-btn"
             title={treeExpanded() ? "Collapse all" : "Expand all"}
@@ -168,23 +165,38 @@ export default function Sidebar() {
           >
             <Clock size={ICON.xl} />
           </button>
+          {/* Overflow: all collection-scoped actions live under one menu so the
+              toolbar stays just the frequent tree verbs (see commit). */}
           <button
-            class="icon-btn"
-            title="Collection settings"
-            onClick={() => setShowSettings(true)}
+            class="icon-btn coll-overflow"
+            title="Collection actions"
+            onClick={openCollMenu}
             disabled={!collection()}
           >
-            <Settings size={ICON.xl} />
-          </button>
-          <button
-            class="icon-btn"
-            title="Mock server"
-            onClick={() => setShowMockPanel(true)}
-            disabled={!collection()}
-          >
-            <Server size={ICON.xl} />
+            <MoreHorizontal size={ICON.xl} />
           </button>
         </div>
+        <Show when={collMenu()}>
+          <div
+            class="ctx-menu"
+            style={{ left: `${collMenu()!.x}px`, top: `${collMenu()!.y}px` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowImport(true); }}>
+              <Download size={ICON.sm} /> Import collection
+            </button>
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowMockPanel(true); }}>
+              <Server size={ICON.sm} /> Mock server
+            </button>
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); exportDocs(); }}>
+              <FileText size={ICON.sm} /> Export docs
+            </button>
+            <div class="ctx-sep" />
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSettings(true); }}>
+              <Settings size={ICON.sm} /> Collection settings
+            </button>
+          </div>
+        </Show>
       </div>
       <Show when={showSettings()}>
         <CollectionSettings onClose={() => setShowSettings(false)} />
@@ -203,26 +215,6 @@ export default function Sidebar() {
         />
       </Show>
       <Show when={collection()}>
-        <div class="coll-header" onContextMenu={openCollMenu}>
-          <span class="coll-header-name" title={collection()!.path}>{collection()!.name}</span>
-          <button class="icon-btn tiny" title="Collection actions" onClick={openCollMenu}>
-            <MoreHorizontal size={ICON.lg} />
-          </button>
-          <Show when={collMenu()}>
-            <div
-              class="ctx-menu"
-              style={{ left: `${collMenu()!.x}px`, top: `${collMenu()!.y}px` }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button class="ctx-item" onClick={() => { closeCollCtx?.(); exportDocs(); }}>
-                <FileText size={ICON.sm} /> Export docs
-              </button>
-              <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSettings(true); }}>
-                <Settings size={ICON.sm} /> Collection settings
-              </button>
-            </div>
-          </Show>
-        </div>
         <div class="tree-search">
           <Search size={ICON.xs} />
           <input
