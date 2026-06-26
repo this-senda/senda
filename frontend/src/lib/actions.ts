@@ -18,7 +18,57 @@ import {
   setResponse,
   setSending,
 } from "./store";
-import { promptDialog } from "./dialog";
+import { promptDialog, confirmDialog, alertDialog } from "./dialog";
+
+// Collections already git-checked this session — avoid re-nagging on every
+// external-change reload of the same folder.
+const gitChecked = new Set<string>();
+
+// maybeGuardGit warns, once per collection per session, when a git-tracked
+// collection has secret/history files that aren't protected from commits, and
+// offers to add them to .gitignore. Runs fire-and-forget so it never delays the
+// open. Best-effort: any backend error is swallowed.
+async function maybeGuardGit(path: string) {
+  if (gitChecked.has(path)) return;
+  gitChecked.add(path);
+  let st: Awaited<ReturnType<typeof api.gitGuardStatus>>;
+  try {
+    st = await api.gitGuardStatus(path);
+  } catch {
+    return;
+  }
+  if (!st?.inGit) return;
+  const unignored = st.unignored ?? [];
+  const tracked = st.tracked ?? [];
+
+  // Already-committed secrets: .gitignore won't remove them, only warn.
+  if (!unignored.length) {
+    if (tracked.length) {
+      await alertDialog(
+        `These secret/history files are already committed to git:\n${tracked
+          .map((f) => "  " + f)
+          .join("\n")}\n\nRemove them from tracking with:\n  git rm --cached <file>`,
+      );
+    }
+    return;
+  }
+
+  let msg = `This collection is in git, but these secret/history files aren't ignored:\n${unignored
+    .map((f) => "  " + f)
+    .join("\n")}\n\nAdd them to .gitignore?`;
+  if (tracked.length) {
+    msg += `\n\nNote: ${tracked.join(
+      ", ",
+    )} are already committed — .gitignore won't remove them (use git rm --cached).`;
+  }
+  if (await confirmDialog(msg, { okLabel: "Add to .gitignore" })) {
+    try {
+      await api.gitGuardIgnore(path);
+    } catch {
+      /* best-effort */
+    }
+  }
+}
 
 // The in-flight send, kept so cancelSend can abort it (Wails calls are
 // cancellable promises that propagate ctx cancellation to the backend).
@@ -91,6 +141,7 @@ export async function refreshCollection(path: string) {
   rememberRecent(coll.name, path);
   ensurePinned(coll.name, path);
   void refreshActivity(path);
+  void maybeGuardGit(path);
 }
 
 // openCollectionDialog shows the native folder picker and loads the collection.

@@ -11,7 +11,23 @@ Senda — fast, git-native API client. Collections = plain folders of YAML. Buil
 
 ### Go packages (`internal/`)
 
-`httpclient` build/send requests, timing/size. `store` read/write/walk collection dirs, YAML, file watch. `model` core structs (Collection, Request, Environment, Response). `vars` resolve `{{var}}`. `auth`, `assert`, `script` (Goja JS sandbox), `runner`, `pipeline`, `history`, `importer`, `codegen`, `docgen`, `schemaval`, `security`, `mockserver`, `load`, `sseclient`, `wsclient`, `aigen`, `buildinfo`. App-bound API surface in root `app*.go`.
+`httpclient` build/send requests, timing/size. `store` read/write/walk collection dirs, YAML, file watch. `model` core structs (Collection, Request, Environment, Response). `vars` resolve `{{var}}`. `auth`, `assert`, `script` (Goja JS sandbox), `runner`, `pipeline`, `history`, `importer`, `codegen`, `docgen`, `schemaval`, `security`, `mockserver`, `load`, `sseclient`, `wsclient`, `aigen`, `gitguard`, `buildinfo`. App-bound API surface lives on one `*App` struct (`internal/app/app*.go`).
+
+### Collection layout (`.senda/`)
+
+A collection root is identified by a `.senda/` dir (`store.isCollectionRoot`). Top level holds only request YAML + request folders; **everything else lives under `.senda/`** (`store.ConfigDirName`):
+
+- `senda.meta.yaml` — collection/folder metadata (name, color, vars, auth). Sub-folders keep their `senda.meta.yaml` inline, not in `.senda/`.
+- `environments/<name>.yaml` — shareable env (`store.EnvironmentsDir`). Secret overlay sibling `<name>.secret.yaml`.
+- `senda.secret.yaml` — collection-level secret overlay (vars only). **Secrets = any `*.secret.yaml`/`.yml`** (`store.isSecretFile`); excluded from the request tree.
+- `history.jsonl` — append-only run log, 500-cap (`internal/history`).
+- `mocks/`, `security/` — mock defs, security templates (`security/templates/` is a synced git checkout).
+
+`store.Migrate` (runs on open) moves legacy root-level config into `.senda/`. Secret + history files are the local-only ones git must not see → `internal/gitguard` checks this on open.
+
+### Adding a frontend-callable backend method
+
+Round-trip, all in one change: (1) exported method on `*App` in an `app*.go` file; (2) `task generate:bindings` (regens `frontend/bindings/`, gitignored); (3) wrapper in `frontend/src/lib/api.ts`; (4) stub line in `frontend/src/test-stubs/app.ts` (vitest/dev-mock alias bindings to stubs — missing stub = `undefined` at runtime). `refreshCollection` (`lib/actions.ts`) is the single choke point every collection-open path funnels through. Git = `go-git/v5` library only, never the `git` binary.
 
 ## Build & run
 

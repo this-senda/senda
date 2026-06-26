@@ -77,6 +77,8 @@ export const api = {
   send: (req: Request, collPath: string, reqPath: string, envName: string) =>
     App.SendRequest(req, collPath, reqPath, envName),
   openCollection: (path: string) => App.OpenCollection(path),
+  gitGuardStatus: (path: string) => App.GitGuardStatus(path),
+  gitGuardIgnore: (path: string) => App.GitGuardIgnore(path),
   saveCollection: (coll: Collection) => App.SaveCollection(coll),
   readFolderMeta: (path: string) => App.ReadFolderMeta(path),
   resolveScope: (collPath: string, reqPath: string, envName: string) =>
