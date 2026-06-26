@@ -11,8 +11,6 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("a new scratch request can be saved (save-as prompt)", async ({ page }) => {
-  page.on("dialog", (d) => d.accept("smoke-req"));
-
   // Fresh scratch tab, titled "New request".
   await page.locator(".tab-new").click();
   const activeTitle = page.locator(".tab.active .tab-title");
@@ -24,8 +22,11 @@ test("a new scratch request can be saved (save-as prompt)", async ({ page }) => 
   await page.locator(".method-menu .method-opt", { hasText: "PUT" }).click();
   await expect(page.locator(".url-icon-btn.dirty")).toBeVisible();
 
-  // Save → prompt → write. The tab adopts the new name and goes clean.
+  // Save → in-app prompt (custom <Dialog/>, not native window.prompt) → write.
+  // Fill the dialog input and confirm; the tab adopts the new name and goes clean.
   await page.keyboard.press("Control+s");
+  await page.locator(".dlg-input").fill("smoke-req");
+  await page.locator(".dlg-ok").click();
   await expect(activeTitle).toHaveText("smoke-req");
   await expect(page.locator(".tab.active .tab-dot.on")).toHaveCount(0);
 });

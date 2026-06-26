@@ -50,9 +50,16 @@ Specs drive real WebKit. Rename/retag any selector below → CI breaks. Touch ma
 - `.tab-new` `.tab.active .tab-title` `.tab.active .tab-dot.on` — TabBar.
 - `button.method-inline` + `.method-menu .method-opt` — verb picker = custom dropdown, NOT `<select>`. Open button, click `.method-opt`.
 - `.url-icon-btn.dirty` — dirty/Save reveal.
+- `.dlg-input` `.dlg-ok` (Cancel = first `.dlg-btn`) — in-app modal (`components/Dialog.tsx` driven by `lib/dialog.ts`). Replaced native `window.prompt`/`confirm`/`alert` (commit `0bc185f`). Specs must drive these, NOT `page.on("dialog")` (native only, never fires).
 - `.tabs button`(Docs) `.docs-toolbar button`(Edit/Preview) `.docs-hint` `iframe.docs-preview`(`sandbox=""`+`srcdoc`).
 - `.code-editor` — CM6 host (Body/Docs). `shell-no-scroll.spec` asserts clicking these tabs never scrolls window.
 - WebKit can't pierce `sandbox=""` srcdoc iframe → assert `srcdoc` attr, never `frameLocator().locator()` inside.
+
+Critical paths — change one side, update the other in the SAME commit (each pairing below has bitten CI):
+
+- Swap a native `window.prompt`/`confirm`/`alert` → in-app `lib/dialog.ts` helper (or back): grep specs for `page.on("dialog")` and switch them to `.dlg-input`/`.dlg-ok`. Native handler never fires on the custom modal → tab/state never updates → silent assert timeout.
+- Rename/retag any selector in the list above: fix the matching spec in the same change (specs match by class, no fallback).
+- Add a new `promptDialog`/`confirmDialog` call on a tested flow: the spec must drive `<Dialog/>`, never assume a native popup.
 
 Shell invariant: window must never scroll. `.panes` needs definite `grid-template-rows`; `html,body` stay `overflow:hidden`. height:100% child (CM6) of indefinite parent overflows shell into void. Guarded by `shell-no-scroll.spec`.
 
