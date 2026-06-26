@@ -255,6 +255,25 @@ export function installCaptureMock() {
     ImportCollection: async () => ({ imported: 4 }),
     GenerateMocksFromOpenAPI: async () => ({ written: 6 }),
 
+    // flows
+    ListFlows: async () => [
+      { name: "Fetch post author", path: "/demo/.senda/flows/fetch-post-author.flow.yaml" },
+      { name: "Public data snapshot", path: "/demo/.senda/flows/public-data-snapshot.flow.yaml" },
+      { name: "Fetch posts (loop)", path: "/demo/.senda/flows/fetch-posts-loop.flow.yaml" },
+    ],
+    ReadFlow: async () => ({
+      name: "Fetch post author",
+      path: "/demo/.senda/flows/fetch-post-author.flow.yaml",
+      start: "getPost",
+      nodes: {
+        getPost: { type: "request", request: "Chaining/get-post.yaml", next: "check" },
+        check: { type: "branch", cond: { left: "{{res.get-post.status}}", op: "eq", right: "200" }, onTrue: "setUid", onFalse: "" },
+        setUid: { type: "setvar", var: "uid", from: "{{res.get-post.json.userId}}", next: "getUser" },
+        getUser: { type: "request", request: "Chaining/get-user.yaml" },
+      },
+    }),
+    RunFlow: async () => [],
+
     // runner / load / security
     RunFolder: async () => [],
     RunLoad: async () => ({}),

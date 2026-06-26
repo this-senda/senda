@@ -91,15 +91,19 @@ export function installDevMock() {
           { name: "prod", vars: [{ key: "baseUrl", value: "https://api.demo.test", enabled: true }] },
         ],
         ListFlows: async () => [
-          { name: "signup", path: "/demo/.senda/flows/signup.flow.yaml" },
+          { name: "Fetch post author", path: "/demo/.senda/flows/fetch-post-author.flow.yaml" },
+          { name: "Public data snapshot", path: "/demo/.senda/flows/public-data-snapshot.flow.yaml" },
+          { name: "Fetch posts (loop)", path: "/demo/.senda/flows/fetch-posts-loop.flow.yaml" },
         ],
         ReadFlow: async () => ({
-          name: "signup",
-          path: "/demo/.senda/flows/signup.flow.yaml",
-          start: "login",
+          name: "Fetch post author",
+          path: "/demo/.senda/flows/fetch-post-author.flow.yaml",
+          start: "getPost",
           nodes: {
-            login: { type: "request", request: "auth/login.yaml", next: "me" },
-            me: { type: "request", request: "users/me.yaml" },
+            getPost: { type: "request", request: "Chaining/get-post.yaml", next: "check" },
+            check: { type: "branch", cond: { left: "{{res.get-post.status}}", op: "eq", right: "200" }, onTrue: "setUid", onFalse: "" },
+            setUid: { type: "setvar", var: "uid", from: "{{res.get-post.json.userId}}", next: "getUser" },
+            getUser: { type: "request", request: "Chaining/get-user.yaml" },
           },
         }),
         RunFlow: async () => [

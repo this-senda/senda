@@ -7,6 +7,17 @@ vi.mock("../lib/api", () => ({
     listFlows: vi.fn(() =>
       Promise.resolve([{ name: "signup", path: "/c/.senda/flows/signup.flow.yaml" }]),
     ),
+    readFlow: vi.fn(() =>
+      Promise.resolve({
+        name: "signup",
+        path: "/c/.senda/flows/signup.flow.yaml",
+        start: "login",
+        nodes: {
+          login: { type: "request", request: "auth/login.yaml", next: "check" },
+          check: { type: "branch", cond: { left: "{{res.login.status}}", op: "eq", right: "200" }, onTrue: "", onFalse: "" },
+        },
+      }),
+    ),
     runFlow: vi.fn(() =>
       Promise.resolve([
         {
@@ -37,13 +48,21 @@ describe("FlowPanel", () => {
     expect(api.listFlows).toHaveBeenCalledWith("/c");
   });
 
-  it("runs a flow and renders its steps", async () => {
+  it("shows a flow's node graph before running", async () => {
     render(() => <FlowPanel onClose={() => {}} />);
-    const runBtn = await screen.findByText("signup");
-    fireEvent.click(runBtn);
-    // request step shows its status badge; branch step shows the taken edge.
+    fireEvent.click(await screen.findByText("signup"));
+    // graph renders the start badge + the branch summary, no run yet.
+    await waitFor(() => expect(screen.getByText("start")).toBeInTheDocument());
+    expect(screen.getByText(/eq 200/)).toBeInTheDocument();
+    expect(api.readFlow).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml");
+    expect(api.runFlow).not.toHaveBeenCalled();
+  });
+
+  it("runs the selected flow and renders its steps", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    fireEvent.click(await screen.findByText("signup"));
+    fireEvent.click(await screen.findByText("Run flow"));
     await waitFor(() => expect(screen.getByText("200")).toBeInTheDocument());
-    expect(screen.getByText("login")).toBeInTheDocument();
     expect(api.runFlow).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml", "/c", expect.anything());
   });
 

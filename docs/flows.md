@@ -62,7 +62,7 @@ follows each node's outgoing edge (`next`, or `onTrue`/`onFalse` for a branch)
 until a node has none.
 
 ```yaml
-name: chain
+name: Fetch post author
 start: getPost
 nodes:
   getPost:
@@ -109,14 +109,14 @@ steps stream in.
 Headless / CI — same binary, same pipeline:
 
 ```bash
-senda run -collection ./my-api -flow chain            # by name (under .senda/flows)
+senda run -collection ./my-api -flow signup           # by name (under .senda/flows)
 senda run -collection ./my-api -flow ./path/to.flow.yaml
-senda run -collection ./my-api -flow chain --report junit -o flow.xml
+senda run -collection ./my-api -flow signup --report junit -o flow.xml
 ```
 
 Exit code is `0` when every request step passes, `1` otherwise. Try the bundled
 example:
 
 ```bash
-senda run -collection examples-collection/public-api -flow chain
+senda run -collection examples-collection/public-api -flow fetch-post-author
 ```
