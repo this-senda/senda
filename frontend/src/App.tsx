@@ -26,6 +26,7 @@ import {
   closeTab,
   collection,
   cycleTab,
+  focusUrl,
   lastCollection,
   lastEnv,
   newTab,
@@ -118,6 +119,10 @@ export default function App() {
       case "s":
         e.preventDefault();
         void saveActive();
+        break;
+      case "l":
+        e.preventDefault();
+        focusUrl();
         break;
       case "enter":
         e.preventDefault();

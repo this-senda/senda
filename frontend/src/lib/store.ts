@@ -118,6 +118,11 @@ export const [dirty, setDirty] = createSignal(false);
 export const [response, setResponse] = createSignal<Response | null>(null);
 export const [sending, setSending] = createSignal(false);
 
+// Bumped by Ctrl+L to focus the URL bar from anywhere (UrlField, in the
+// titlebar, listens for the change). Counter, not boolean: every press fires.
+export const [urlFocusTick, setUrlFocusTick] = createSignal(0);
+export const focusUrl = () => setUrlFocusTick((n) => n + 1);
+
 // Active sub-tab of the request editor (params/headers/… plus ws/sse). Lifted
 // to the store so the URL bar — which now lives in the titlebar, outside
 // RequestEditor — can still route ws/sse sends to the right tab.
