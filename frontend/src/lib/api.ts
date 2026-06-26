@@ -23,6 +23,7 @@ export type Environment = model.Environment;
 export type TreeNode = model.TreeNode;
 export type KV = model.KV;
 export type Auth = model.Auth;
+export type TLSConfig = model.TLSConfig;
 export type Assert = model.Assert;
 export type AssertResult = model.AssertResult;
 export type RunResult = model.RunResult;

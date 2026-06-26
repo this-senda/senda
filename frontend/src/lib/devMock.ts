@@ -99,6 +99,7 @@ export function installDevMock() {
         CreateFolder: async () => {},
         SaveCollection: async () => {},
         SaveEnvironment: async () => {},
+        PickFile: async () => "/picked/client-cert.pem",
         SendRequest: async (req: any) => {
           const big = String(req?.url ?? "").includes("comments");
           const payload = big ? body : '{\n  "id": "usr_8f2a",\n  "created": true\n}';

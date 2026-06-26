@@ -79,6 +79,8 @@ export default function FolderSettings(props: {
         description: description(),
         vars: vars(),
         auth: auth(),
+        proxy: "", // root-only; folders never carry proxy/tls
+        tls: { certFile: "", keyFile: "", caFile: "", insecure: false },
         tree: null as any,
       };
       await api.saveCollection(meta);

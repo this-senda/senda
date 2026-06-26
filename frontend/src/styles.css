@@ -2895,6 +2895,41 @@ body.dragging-splitter {
   font: inherit;
   font-size: var(--fs-sm);
 }
+.net-fields {
+  padding: 8px 12px 4px; /* match section-label / auth-editor 12px inset */
+}
+.net-input {
+  width: 100%;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 6px 8px;
+  font: inherit;
+  font-size: var(--fs-sm);
+  margin-bottom: 6px;
+}
+.net-file {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.net-file .net-input {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+.net-file .btn {
+  flex: none;
+  white-space: nowrap;
+}
+.net-insecure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
 
 /* ---- asserts (Tests tab) ---- */
 .assert-op {

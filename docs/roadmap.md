@@ -31,7 +31,6 @@ Near-term, roughly in priority order:
 
 - **Secrets editing UI** — manage `*.secret.yaml` from the app, with auto-gitignore on the first secret.
 - **Rendered markdown** in the per-request docs tab (today it shows raw source).
-- **Proxy + client certificates** — upstream proxy config and mTLS for outgoing requests.
 - **gRPC** — first-class gRPC requests alongside HTTP and GraphQL.
 
 ## Later / exploring

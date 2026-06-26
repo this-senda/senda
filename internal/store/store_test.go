@@ -164,6 +164,26 @@ func TestFolderMetaRoundTrip(t *testing.T) {
 	}
 }
 
+func TestProxyTLSRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	meta := model.Collection{
+		Path:  dir,
+		Name:  "Root",
+		Proxy: "{{corpProxy}}",
+		TLS:   model.TLSConfig{CertFile: "{{cert}}", KeyFile: "/k.pem", CAFile: "/ca.pem", Insecure: true},
+	}
+	if err := SaveCollection(meta); err != nil {
+		t.Fatal(err)
+	}
+	got := ReadMeta(dir)
+	if got.Proxy != "{{corpProxy}}" {
+		t.Errorf("proxy not preserved: %q", got.Proxy)
+	}
+	if got.TLS != meta.TLS {
+		t.Errorf("tls not preserved: %+v", got.TLS)
+	}
+}
+
 func TestMigrateMovesRootConfigIntoSenda(t *testing.T) {
 	root := t.TempDir()
 	// Legacy layout: config sits at the collection root.

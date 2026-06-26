@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -42,12 +43,84 @@ var DefaultUserAgent = "SendaRuntime/" + buildinfo.Version
 type Client struct {
 	hc  *http.Client
 	jar *cookiejar.Jar
+	net NetConfig // last-applied transport config; see Configure
+}
+
+// NetConfig is the resolved (post-{{var}}) network configuration for a
+// collection: an optional proxy URL and TLS client-cert / CA / insecure
+// settings. The zero value means "Go defaults" (env proxy, system roots).
+// All fields are comparable so Configure can skip rebuilding an unchanged
+// transport — preserving the connection pool across sends.
+type NetConfig struct {
+	Proxy    string
+	CertFile string
+	KeyFile  string
+	CAFile   string
+	Insecure bool
 }
 
 // New returns a Client with a sane default timeout and a fresh cookie jar.
 func New() *Client {
 	jar, _ := cookiejar.New(nil) // only errors on bad options; nil is fine
 	return &Client{hc: &http.Client{Timeout: 60 * time.Second, Jar: jar}, jar: jar}
+}
+
+// Configure applies a collection's proxy/TLS settings to the transport. It is
+// a no-op when cfg matches the last-applied config (so the pooled connections
+// survive repeated sends). The cookie jar lives on the *http.Client and is
+// untouched by transport swaps.
+func (c *Client) Configure(cfg NetConfig) error {
+	if cfg == c.net {
+		return nil
+	}
+	tr, err := buildTransport(cfg)
+	if err != nil {
+		return err
+	}
+	if tr == nil {
+		c.hc.Transport = nil // untyped nil => http.DefaultTransport (avoid typed-nil interface)
+	} else {
+		c.hc.Transport = tr
+	}
+	c.net = cfg
+	return nil
+}
+
+// buildTransport returns a transport for cfg, or nil for the zero config so
+// the client falls back to http.DefaultTransport.
+func buildTransport(cfg NetConfig) (*http.Transport, error) {
+	if cfg == (NetConfig{}) {
+		return nil, nil
+	}
+	tr := http.DefaultTransport.(*http.Transport).Clone()
+	if cfg.Proxy != "" {
+		u, err := url.Parse(cfg.Proxy)
+		if err != nil {
+			return nil, fmt.Errorf("invalid proxy URL %q: %w", cfg.Proxy, err)
+		}
+		tr.Proxy = http.ProxyURL(u)
+	}
+	tlsCfg := &tls.Config{InsecureSkipVerify: cfg.Insecure} // gated behind explicit insecure:true
+	if cfg.CertFile != "" || cfg.KeyFile != "" {
+		cert, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
+		if err != nil {
+			return nil, fmt.Errorf("client certificate: %w", err)
+		}
+		tlsCfg.Certificates = []tls.Certificate{cert}
+	}
+	if cfg.CAFile != "" {
+		pem, err := os.ReadFile(cfg.CAFile)
+		if err != nil {
+			return nil, fmt.Errorf("CA file: %w", err)
+		}
+		pool := x509.NewCertPool()
+		if !pool.AppendCertsFromPEM(pem) {
+			return nil, fmt.Errorf("CA file %q: no certificates found", cfg.CAFile)
+		}
+		tlsCfg.RootCAs = pool
+	}
+	tr.TLSClientConfig = tlsCfg
+	return tr, nil
 }
 
 // Cookies returns the jar's cookies that would be sent to rawURL.

@@ -198,7 +198,9 @@ type TreeNode struct {
 // metadata and tree. The same struct is the on-disk senda.meta.yaml schema for
 // both the collection root and any sub-folder. Color/Tags/Description are
 // purely organisational; Vars/Auth participate in the resolution chain
-// (request -> folder(s) -> collection root).
+// (request -> folder(s) -> collection root). Proxy/TLS apply only at the
+// collection root (pipeline reads them off the opened collection, not folders);
+// both support {{var}} so machine-specific URLs and cert paths stay out of git.
 type Collection struct {
 	Name        string    `yaml:"name,omitempty" json:"name"`
 	Path        string    `yaml:"-" json:"path"`
@@ -207,7 +209,20 @@ type Collection struct {
 	Description string    `yaml:"description,omitempty" json:"description,omitempty"`
 	Vars        []KV      `yaml:"vars,omitempty" json:"vars"`
 	Auth        Auth      `yaml:"auth,omitempty" json:"auth"`
+	Proxy       string    `yaml:"proxy,omitempty" json:"proxy"`
+	TLS         TLSConfig `yaml:"tls,omitempty" json:"tls"`
 	Tree        *TreeNode `yaml:"-" json:"tree"`
+}
+
+// TLSConfig configures the transport for a collection's sends: a client
+// certificate (mTLS), a custom CA bundle, and an opt-out of verification.
+// All path fields support {{var}} so they resolve from env/OS vars at send
+// time. The zero value means "use Go's defaults".
+type TLSConfig struct {
+	CertFile string `yaml:"certFile,omitempty" json:"certFile"`
+	KeyFile  string `yaml:"keyFile,omitempty" json:"keyFile"`
+	CAFile   string `yaml:"caFile,omitempty" json:"caFile"`
+	Insecure bool   `yaml:"insecure,omitempty" json:"insecure"` // skip server cert verification
 }
 
 // RunResult is the outcome of sending one request during a folder run.
