@@ -7,6 +7,27 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.9](https://github.com/this-senda/senda/compare/v0.1.8...v0.1.9) (2026-06-26)
+
+
+### Features
+
+* **docgen:** rich param tables, baked response example, scoped export ([#55](https://github.com/this-senda/senda/issues/55)) ([6875d0f](https://github.com/this-senda/senda/commit/6875d0f8634e3c931a501fea49b5d2c350dfe97d))
+* **tui:** scratch requests, inline edit + faker, live websocket ([#54](https://github.com/this-senda/senda/issues/54)) ([56992f0](https://github.com/this-senda/senda/commit/56992f0cc3e719f9585b72b26be6bbfef9ab8179))
+* **ui:** consolidate sidebar toolbar into overflow menu ([#56](https://github.com/this-senda/senda/issues/56)) ([dc3ccc8](https://github.com/this-senda/senda/commit/dc3ccc85764d8229fd8ad3c7e868419d69ba15f1))
+* **ui:** titlebar UrlBar + shared Dialog + workspace rail ([#58](https://github.com/this-senda/senda/issues/58)) ([3004d3b](https://github.com/this-senda/senda/commit/3004d3b04403b4b21c100494bb8c6681c08b95e1))
+
+
+### Bug Fixes
+
+* **ui:** workspace menu rows stacked + active row low-contrast ([#60](https://github.com/this-senda/senda/issues/60)) ([2bc7474](https://github.com/this-senda/senda/commit/2bc7474effdbae199781d07bfd210feda4ae0ca1))
+
+
+### Documentation
+
+* refresh screenshots and walkthrough gif ([#52](https://github.com/this-senda/senda/issues/52)) ([9cbade5](https://github.com/this-senda/senda/commit/9cbade59089a7583956856a7e19738eee1f618d8))
+* refresh screenshots and walkthrough gif ([#62](https://github.com/this-senda/senda/issues/62)) ([102f4aa](https://github.com/this-senda/senda/commit/102f4aac6de62b810fde521f7068098bfa1eca96))
+
 ## [0.1.8](https://github.com/this-senda/senda/compare/v0.1.7...v0.1.8) (2026-06-25)
 
 
