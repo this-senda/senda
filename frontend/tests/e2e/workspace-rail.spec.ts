@@ -1,11 +1,11 @@
 import { test, expect } from "@playwright/test";
 
-// Visual-geometry checks for the workspace rail, in a real WebKit engine —
+// Visual-geometry checks for the workspace switcher, in a real WebKit engine —
 // the kind of "is the glyph actually centered" question jsdom can't answer.
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
-  // Mock seeds /demo as lastCollection → it auto-pins one box on boot.
-  await expect(page.locator(".ws-box").first()).toBeVisible();
+  // Mock seeds /demo as lastCollection → it opens as the active workspace.
+  await expect(page.locator(".ws-switch")).toBeVisible();
 });
 
 // Assert the rendered glyph's center sits on the box's center.
@@ -19,23 +19,23 @@ async function assertCentered(box: any, glyph: any, tol = 2.5) {
   expect(Math.abs(dy), `dy=${dy.toFixed(2)}`).toBeLessThan(tol);
 }
 
-test("monogram is centered in its box", async ({ page }) => {
-  const box = page.locator(".ws-box").first();
-  await assertCentered(box, box.locator(".ws-box-mono"));
+test("monogram is centered in the switcher avatar", async ({ page }) => {
+  const avatar = page.locator(".ws-avatar").first();
+  await assertCentered(avatar, avatar.locator(".ws-avatar-mono"));
 });
 
-test("a chosen emoji is centered in its box", async ({ page }) => {
-  const box = page.locator(".ws-box").first();
-  await box.click({ button: "right" });
+test("a chosen emoji is centered in the avatar", async ({ page }) => {
+  const avatar = page.locator(".ws-avatar").first();
+  await page.locator(".ws-switch").click({ button: "right" });
   const cell = page.locator(".ws-picker-cell").first();
   await expect(cell).toBeVisible();
   await cell.click();
-  const emoji = box.locator(".ws-box-emoji");
+  const emoji = avatar.locator(".ws-avatar-emoji");
   await expect(emoji).toBeVisible();
-  await assertCentered(box, emoji);
+  await assertCentered(avatar, emoji);
 });
 
-test("the + menu opens and shows Open collection (regression)", async ({ page }) => {
-  await page.locator(".ws-add-box").click();
+test("the dropdown opens and shows Open collection (regression)", async ({ page }) => {
+  await page.locator(".ws-switch").click();
   await expect(page.getByText("Open collection…")).toBeVisible();
 });

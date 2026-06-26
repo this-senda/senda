@@ -1,7 +1,0 @@
-name: Postman Echo
-vars:
-    - key: HOST
-      value: https://postman-echo.com/basic
-      enabled: true
-auth:
-    type: inherit

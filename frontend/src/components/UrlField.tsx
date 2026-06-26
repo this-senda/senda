@@ -248,6 +248,7 @@ export default function UrlField() {
           value={request.url}
           spellcheck={false}
           autocomplete="off"
+          onFocus={() => setFocused(true)}
           onInput={(e) => {
             const v = e.currentTarget.value;
             setRequest("url", v);

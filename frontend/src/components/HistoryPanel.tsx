@@ -7,6 +7,7 @@ import { api } from "../lib/api";
 import type { HistoryEntry } from "../lib/api";
 import { collection } from "../lib/store";
 import { statusClass } from "../lib/factory";
+import { confirmDialog } from "../lib/dialog";
 
 export default function HistoryPanel(props: { onClose: () => void }) {
   const [entries, setEntries] = createSignal<HistoryEntry[]>([]);
@@ -26,7 +27,7 @@ export default function HistoryPanel(props: { onClose: () => void }) {
 
   const clear = async () => {
     const coll = collection();
-    if (!coll || !confirm("Clear request history?")) return;
+    if (!coll || !(await confirmDialog("Clear request history?", { danger: true, okLabel: "Clear" }))) return;
     await api.clearHistory(coll.path);
     setEntries([]);
   };

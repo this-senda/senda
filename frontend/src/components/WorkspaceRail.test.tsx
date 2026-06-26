@@ -33,29 +33,30 @@ describe("monogram", () => {
 });
 
 describe("WorkspaceRail", () => {
-  it("renders a box per open collection as a monogram", () => {
+  it("shows the active collection as the switcher pill", () => {
     ensurePinned("train-travel-api", "/a");
-    ensurePinned("petstore", "/b");
+    setCollection({ name: "train-travel-api", path: "/a" } as any);
     render(() => <WorkspaceRail />);
-    expect(screen.getByText("TT")).toBeInTheDocument();
-    expect(screen.getByText("PE")).toBeInTheDocument();
+    expect(screen.getByText("TT")).toBeInTheDocument(); // avatar monogram
+    expect(screen.getByText("train-travel-api")).toBeInTheDocument(); // pill name
   });
 
-  it("clicking a box switches to that collection", async () => {
+  it("opening the dropdown and clicking another workspace switches", async () => {
     ensurePinned("train-travel-api", "/a");
     ensurePinned("petstore", "/b");
     setCollection({ name: "train-travel-api", path: "/a" } as any);
     render(() => <WorkspaceRail />);
 
-    fireEvent.click(screen.getByText("PE"));
+    fireEvent.click(screen.getByTitle("Switch workspace"));
+    fireEvent.click(screen.getByText("petstore"));
     await waitFor(() => expect(api.openCollection).toHaveBeenCalledWith("/b"));
   });
 
-  // Regression guard: the + menu must open and actually trigger the folder
+  // Regression guard: the dropdown must open and actually trigger the folder
   // picker (a CSS overflow:hidden once clipped this menu invisible).
-  it("the + menu opens and 'Open collection…' invokes the picker", async () => {
+  it("the dropdown opens and 'Open collection…' invokes the picker", async () => {
     render(() => <WorkspaceRail />);
-    fireEvent.click(screen.getByTitle("Open collection"));
+    fireEvent.click(screen.getByTitle("Switch workspace"));
     fireEvent.click(screen.getByText("Open collection…"));
     await waitFor(() => expect(api.pickDirectory).toHaveBeenCalled());
     await waitFor(() => expect(api.openCollection).toHaveBeenCalledWith("/new/coll"));
@@ -63,8 +64,9 @@ describe("WorkspaceRail", () => {
 
   it("right-click sets an emoji icon that replaces the monogram", () => {
     ensurePinned("petstore", "/p");
+    setCollection({ name: "petstore", path: "/p" } as any);
     render(() => <WorkspaceRail />);
-    fireEvent.contextMenu(screen.getByText("PE"));
+    fireEvent.contextMenu(screen.getByText("PE")); // right-click the pill avatar
     fireEvent.click(screen.getByText("🚆"));
     expect(collectionIcon("/p")).toBe("🚆");
     expect(screen.queryByText("PE")).not.toBeInTheDocument();

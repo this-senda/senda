@@ -118,6 +118,12 @@ export const [dirty, setDirty] = createSignal(false);
 export const [response, setResponse] = createSignal<Response | null>(null);
 export const [sending, setSending] = createSignal(false);
 
+// Active sub-tab of the request editor (params/headers/… plus ws/sse). Lifted
+// to the store so the URL bar — which now lives in the titlebar, outside
+// RequestEditor — can still route ws/sse sends to the right tab.
+export type ReqSubTab = "params" | "headers" | "auth" | "body" | "tests" | "script" | "docs" | "ws" | "sse";
+export const [reqTab, setReqTab] = createSignal<ReqSubTab>("params");
+
 // --- open request tabs ----------------------------------------------------
 export type Tab = {
   id: string;

@@ -6,12 +6,14 @@ import RequestEditor from "./components/RequestEditor";
 import ResponseViewer from "./components/ResponseViewer";
 import EnvSwitcher from "./components/EnvSwitcher";
 import WorkspaceRail from "./components/WorkspaceRail";
+import UrlBar from "./components/UrlBar";
 import FpsMeter from "./components/FpsMeter";
 import CommandPalette from "./components/CommandPalette";
 import ThemeSettings from "./components/ThemeSettings";
 import MockServerPanel from "./components/MockServerPanel";
 import RunResults from "./components/RunResults";
 import StatusBar from "./components/StatusBar";
+import Dialog from "./components/Dialog";
 import { Events } from "@wailsio/runtime";
 import { Palette } from "lucide-solid";
 import { ICON } from "./lib/icons";
@@ -206,9 +208,7 @@ export default function App() {
           <span class="brand">Senda</span>
           <WorkspaceRail />
         </div>
-        <Show when={collection()}>
-          <span class="titlebar-title" title={collection()!.path}>{collection()!.name}</span>
-        </Show>
+        <UrlBar />
         <div class="titlebar-actions">
           <EnvSwitcher />
           <button
@@ -238,6 +238,7 @@ export default function App() {
         </section>
       </div>
       <StatusBar />
+      <Dialog />
       <Show when={showMockPanel()}>
         <MockServerPanel onClose={() => setShowMockPanel(false)} />
       </Show>

@@ -245,9 +245,9 @@ await shot(page, "17-history.png", async () => {
 });
 await dismiss(page);
 
-// 18 — workspace rail: right-click a box to reveal the icon picker.
+// 18 — workspace switcher: right-click the pill to reveal the icon picker.
 await shot(page, "18-workspace-rail.png", async () => {
-  await page.locator(".ws-box").first().click({ button: "right" });
+  await page.locator(".ws-switch").click({ button: "right" });
   await page.locator(".ws-picker").waitFor({ timeout: 4000 });
   await wait(300);
 });
@@ -406,8 +406,8 @@ async function captureGif() {
   await injectCursor();
   await dwell(800); // collection open
 
-  // workspace rail: right-click the active box and pick a new emoji icon
-  const wsBox = gp.locator(".ws-box").first();
+  // workspace switcher: right-click the active pill and pick a new emoji icon
+  const wsBox = gp.locator(".ws-switch").first();
   const wsC = await centerOf(wsBox);
   if (wsC) {
     await glide(wsC.x, wsC.y);
