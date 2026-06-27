@@ -36,6 +36,40 @@ const tree = {
   ],
 };
 
+// A tiny OpenAPI spec backing the dev spec-editor + body schema hints.
+const demoSpec = `openapi: 3.0.0
+info:
+  title: Demo API
+  version: 1.0.0
+paths:
+  /users:
+    post:
+      operationId: createUser
+      summary: Create user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                email: { type: string }
+                age: { type: integer }
+      responses:
+        "201": { description: created }
+`;
+
+const demoBodySchema = JSON.stringify({
+  type: "object",
+  required: ["name"],
+  properties: {
+    name: { type: "string" },
+    email: { type: "string" },
+    age: { type: "integer" },
+  },
+});
+
 function reqFor(path: string) {
   const isComments = path.includes("comments");
   return {
@@ -55,6 +89,7 @@ function reqFor(path: string) {
     docs: isComments
       ? ""
       : "# Create user\n\nCreates a new user account.\n\n- **Auth**: Bearer token\n",
+    spec: isComments ? undefined : { file: "demo-api.yaml", operationId: "createUser" },
   };
 }
 
@@ -159,6 +194,39 @@ export function installDevMock() {
                 ],
                 raw: "",
               },
+        ListSpecs: async () => ["demo-api.yaml"],
+        ReadSpec: async () => demoSpec,
+        WriteSpec: async () => {},
+        ValidateSpec: async (data: string) =>
+          String(data).includes("openapi") ? [] : [{ line: 0, message: "missing openapi version" }],
+        SpecOperations: async () => [
+          { operationId: "createUser", method: "POST", path: "/users", summary: "Create user" },
+        ],
+        SpecOperationDetail: async () => ({
+          operationId: "createUser",
+          method: "POST",
+          path: "/users",
+          summary: "Create user",
+          description: "Creates a new user account.",
+          hasBody: true,
+          bodyFields: [
+            { name: "name", type: "string", required: true, desc: "" },
+            { name: "email", type: "string", required: false, desc: "" },
+            { name: "age", type: "integer", required: false, desc: "" },
+          ],
+        }),
+        UpdateSpecOperation: async () => demoSpec,
+        RequestBodySchema: async () => demoBodySchema,
+        ValidateJSONSchema: async (_schema: string, body: string) => {
+          try {
+            const obj = JSON.parse(body);
+            return obj && typeof obj.name === "string"
+              ? [{ target: "schema", op: "valid", pass: true }]
+              : [{ target: "schema.name", op: "valid", pass: false, error: "name is required" }];
+          } catch {
+            return [{ target: "schema", op: "valid", pass: false, error: "invalid JSON" }];
+          }
+        },
       },
     },
   };

@@ -4,6 +4,7 @@
 import * as App from "../../bindings/senda/internal/app/app";
 import * as model from "../../bindings/senda/internal/model/models";
 import * as mockserverModel from "../../bindings/senda/internal/mockserver/models";
+import type { SpecOp, SpecError, SpecOpDetail, SpecField } from "../../bindings/senda/internal/importer/models";
 import type { StepResult as FlowStepResult } from "../../bindings/senda/internal/flow/models";
 import type { ScopeVar } from "../../bindings/senda/internal/app/models";
 import type { SyncState } from "../../bindings/senda/internal/security/models";
@@ -44,6 +45,8 @@ export type SSEEvent = model.SSEEvent;
 export type MockLogEntry = mockserverModel.LogEntry;
 export type MockRouteInfo = mockserverModel.RouteInfo;
 export type MockInfo = mockserverModel.Info;
+export type { SpecOp, SpecError, SpecOpDetail, SpecField };
+export type SpecLink = model.SpecLink;
 // SecurityCheck is emitted as a Wails event (not a binding return type) so
 // it is not in the generated models. Mirror the Go struct here.
 export interface SecurityCheck {
@@ -117,6 +120,20 @@ export const api = {
   generateCode: (req: Request, target: string) => App.GenerateCode(req, target),
   renderMarkdown: (md: string) => App.RenderMarkdown(md),
   codegenTargets: () => App.CodegenTargets(),
+
+  // OpenAPI spec editor
+  listSpecs: (collPath: string) => App.ListSpecs(collPath),
+  readSpec: (collPath: string, file: string) => App.ReadSpec(collPath, file),
+  writeSpec: (collPath: string, file: string, data: string) => App.WriteSpec(collPath, file, data),
+  validateSpec: (data: string) => App.ValidateSpec(data),
+  specOperations: (data: string) => App.SpecOperations(data),
+  specOperationDetail: (data: string, operationId: string) =>
+    App.SpecOperationDetail(data, operationId),
+  updateSpecOperation: (collPath: string, file: string, operationId: string, detail: SpecOpDetail) =>
+    App.UpdateSpecOperation(collPath, file, operationId, detail),
+  requestBodySchema: (collPath: string, file: string, operationId: string) =>
+    App.RequestBodySchema(collPath, file, operationId),
+  validateJsonSchema: (schema: string, body: string) => App.ValidateJSONSchema(schema, body),
 
   // runner
   runFolder: (folderPath: string, collPath: string, envName: string) =>

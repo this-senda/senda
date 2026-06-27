@@ -2,11 +2,11 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, Workflow, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileCode, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, Workflow, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
-import { activePath, activity, collection, openInTab, setShowMockPanel, setRunPanelTarget, setShowRunPanel } from "../lib/store";
+import { activePath, activity, collection, openInTab, setShowMockPanel, setShowSpecPanel, setRunPanelTarget, setShowRunPanel } from "../lib/store";
 import { refreshCollection } from "../lib/actions";
 import { fmtAgo, nodeRecency } from "../lib/recency";
 import { attachCtxDismiss } from "../lib/ctxMenu";
@@ -206,6 +206,9 @@ export default function Sidebar() {
             </button>
             <button class="ctx-item flow-open" onClick={() => { closeCollCtx?.(); setShowFlows(true); }}>
               <Workflow size={ICON.sm} /> Flows
+            </button>
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSpecPanel(true); }}>
+              <FileCode size={ICON.sm} /> OpenAPI specs
             </button>
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); exportDocs(); }}>
               <FileText size={ICON.sm} /> Export docs

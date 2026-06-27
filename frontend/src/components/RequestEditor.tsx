@@ -4,7 +4,7 @@ import { createEffect, createResource, createSignal, For, Index, Match, on, onCl
 import { buildClientSchema, getIntrospectionQuery, type GraphQLSchema } from "graphql";
 import { Plus, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
-import { api, BodyType, type KV, type Request, type SSEEvent } from "../lib/api";
+import { api, BodyType, type KV, type Request, type SSEEvent, type SpecOp, type AssertResult } from "../lib/api";
 import { blankKV } from "../lib/factory";
 import {
   activePath,
@@ -603,6 +603,77 @@ function BodyEditor() {
   ];
   const [fmtError, setFmtError] = createSignal("");
 
+  // --- OpenAPI spec link: body schema hints (validation + autocomplete) ---
+  const coll = () => collection();
+  const link = () => request.spec;
+
+  // The linked operation's requestBody JSON Schema (refs inlined server-side).
+  // str feeds validation; obj feeds the autocomplete source.
+  const [schema] = createResource(
+    () => {
+      const l = link();
+      const c = coll();
+      return l?.file && l?.operationId && c ? { coll: c.path, file: l.file, op: l.operationId } : null;
+    },
+    async (k) => {
+      try {
+        const raw = await api.requestBodySchema(k.coll, k.file, k.op);
+        if (!raw) return null;
+        let obj: unknown = null;
+        try { obj = JSON.parse(raw); } catch { /* keep str for validation */ }
+        return { str: raw, obj };
+      } catch {
+        return null;
+      }
+    },
+  );
+
+  // Debounce body edits so validation doesn't fire on every keystroke.
+  const [debouncedRaw, setDebouncedRaw] = createSignal(request.body.raw ?? "");
+  let debTimer: number | undefined;
+  createEffect(() => {
+    const r = request.body.raw ?? "";
+    clearTimeout(debTimer);
+    debTimer = window.setTimeout(() => setDebouncedRaw(r), 400);
+  });
+  onCleanup(() => clearTimeout(debTimer));
+
+  const [validation] = createResource(
+    () => {
+      const s = schema();
+      if (!s?.str || request.body.type !== "json") return null;
+      const body = debouncedRaw();
+      return body.trim() ? { str: s.str, body } : null;
+    },
+    (k) => api.validateJsonSchema(k.str, k.body),
+  );
+  const failures = () => (validation() ?? []).filter((r: AssertResult) => !r.pass);
+  const valid = () => (validation() ?? []).length > 0 && failures().length === 0;
+
+  // Relink dropdowns: list specs in the collection, and operations of the chosen
+  // spec, so any request can be (re)linked to an operation by hand.
+  const [specs] = createResource(() => coll()?.path ?? null, (p) => api.listSpecs(p));
+  const [ops, setOps] = createSignal<SpecOp[]>([]);
+  const loadOps = async (file: string) => {
+    const c = coll();
+    if (!c || !file) { setOps([]); return; }
+    try {
+      const text = await api.readSpec(c.path, file);
+      setOps((await api.specOperations(text)) ?? []);
+    } catch {
+      setOps([]);
+    }
+  };
+  createEffect(() => {
+    const f = link()?.file;
+    if (f) void loadOps(f);
+    else setOps([]);
+  });
+  const setLink = (file: string, operationId: string) => {
+    setRequest("spec", file ? { file, operationId } : undefined);
+    setDirty(true);
+  };
+
   const format = () => {
     try {
       const pretty = JSON.stringify(JSON.parse(request.body.raw ?? ""), null, 2);
@@ -645,6 +716,30 @@ function BodyEditor() {
             </button>
           </span>
         </Show>
+        <Show when={request.body.type === "json" && (specs()?.length ?? 0) > 0}>
+          <span class="spec-link" title="Link this body to an OpenAPI operation for schema hints">
+            <select
+              class="body-type-select"
+              value={link()?.file ?? ""}
+              onChange={(e) => setLink(e.currentTarget.value, "")}
+            >
+              <option value="">no spec</option>
+              <For each={specs() ?? []}>{(f) => <option value={f}>{f}</option>}</For>
+            </select>
+            <Show when={link()?.file}>
+              <select
+                class="body-type-select"
+                value={link()?.operationId ?? ""}
+                onChange={(e) => setLink(link()!.file, e.currentTarget.value)}
+              >
+                <option value="">operation…</option>
+                <For each={ops()}>
+                  {(o) => <option value={o.operationId}>{o.method} {o.path}</option>}
+                </For>
+              </select>
+            </Show>
+          </span>
+        </Show>
       </div>
       <Switch>
         <Match when={request.body.type === "json" || request.body.type === "raw"}>
@@ -652,11 +747,27 @@ function BodyEditor() {
             value={request.body.raw ?? ""}
             language={request.body.type === "json" ? "json" : "text"}
             varComplete
+            bodySchema={request.body.type === "json" ? (schema()?.obj ?? undefined) : undefined}
             onChange={(v) => {
               setRequest("body", "raw", v);
               setDirty(true);
             }}
           />
+          <Show when={request.body.type === "json" && schema()?.str}>
+            <div class="schema-validate">
+              <Show when={valid()}>
+                <span class="schema-ok">✓ matches schema</span>
+              </Show>
+              <For each={failures()}>
+                {(f) => (
+                  <div class="schema-fail">
+                    <span class="schema-field">{f.target}</span>
+                    <span class="schema-msg">{f.error}</span>
+                  </div>
+                )}
+              </For>
+            </div>
+          </Show>
         </Match>
         <Match when={request.body.type === "form"}>
           <KVEditor

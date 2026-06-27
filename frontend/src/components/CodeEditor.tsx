@@ -14,6 +14,7 @@ import {
 import { json } from "@codemirror/lang-json";
 import { buildScope, triggerAt } from "../lib/vars";
 import { fakerTokens } from "../lib/faker";
+import { makeBodySchemaSource } from "../lib/jsonSchemaComplete";
 import { graphql, updateSchema } from "cm6-graphql";
 import type { GraphQLSchema } from "graphql";
 import { HighlightStyle, syntaxHighlighting, bracketMatching } from "@codemirror/language";
@@ -30,6 +31,11 @@ type Props = {
   // When set, typing "{{" offers collection/env variable completions. Used for
   // request bodies. Reads the client scope (secrets excluded, server-side).
   varComplete?: boolean;
+  // When the request is linked to an OpenAPI operation, its requestBody JSON
+  // Schema (refs inlined). Drives JSON-body key autocomplete. Read live so a
+  // schema that loads after mount still applies.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  bodySchema?: any;
 };
 
 // varCompletionSource feeds {{var}} names into CM autocomplete. Fires only
@@ -208,7 +214,11 @@ export default function CodeEditor(props: Props) {
         ? []
         : [
             history(),
-            autocompletion(props.varComplete ? { override: [varCompletionSource] } : undefined),
+            autocompletion(
+              props.varComplete
+                ? { override: [varCompletionSource, makeBodySchemaSource(() => props.bodySchema)] }
+                : undefined,
+            ),
             keymap.of([...completionKeymap, ...defaultKeymap, ...historyKeymap]),
             EditorView.lineWrapping,
           ]),

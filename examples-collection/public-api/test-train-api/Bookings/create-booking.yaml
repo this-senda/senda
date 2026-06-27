@@ -1,0 +1,66 @@
+name: create-booking
+method: POST
+url: '{{baseUrl}}/bookings'
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: '{"description":"A booking for a train trip.","properties":{"has_bicycle":{"description":"Indicates whether the passenger has a bicycle.","type":"boolean"},"has_dog":{"description":"Indicates whether the passenger has a dog.","type":"boolean"},"id":{"description":"Unique identifier for the booking","examples":["3f3e3e1-c824-4d63-b37a-d8d698862f1d"],"format":"uuid","readOnly":true,"type":"string"},"passenger_name":{"description":"Name of the passenger","examples":["John Doe"],"type":"string"},"trip_id":{"description":"Identifier of the booked trip","examples":["4f4e4e1-c824-4d63-b37a-d8d698862f1d"],"format":"uuid","type":"string"}},"type":"object","xml":{"name":"booking"}}'
+    fields:
+        - key: id
+          value: ""
+          enabled: false
+          desc: Unique identifier for the booking
+          type: string
+        - key: trip_id
+          value: ""
+          enabled: false
+          desc: Identifier of the booked trip
+          type: string
+        - key: passenger_name
+          value: ""
+          enabled: false
+          desc: Name of the passenger
+          type: string
+        - key: has_bicycle
+          value: ""
+          enabled: false
+          desc: Indicates whether the passenger has a bicycle.
+          type: boolean
+        - key: has_dog
+          value: ""
+          enabled: false
+          desc: Indicates whether the passenger has a dog.
+          type: boolean
+auth:
+    type: oauth2
+    grant: client_credentials
+    tokenUrl: https://example.com/oauth/token
+    clientId: '{{clientId}}'
+    clientSecret: '{{clientSecret}}'
+    scope: read write
+asserts:
+    - target: status
+      op: eq
+      value: "201"
+      enabled: true
+docs: |-
+    **Create a booking**
+
+    A booking is a temporary hold on a trip. It is not confirmed until the payment is processed.
+responseExample: |-
+    {
+      "has_bicycle": true,
+      "has_dog": true,
+      "id": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+      "links": {
+        "self": "https://api.example.com/bookings/efdbb9d1-02c2-4bc3-afb7-6788d8782b1e"
+      },
+      "passenger_name": "John Doe",
+      "trip_id": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e"
+    }
+spec:
+    file: train-travel-api.yaml
+    operationId: create-booking
