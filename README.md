@@ -622,9 +622,7 @@ for what's in the box, and the [CHANGELOG](CHANGELOG.md) for the full release de
 Where it's headed next — intent, not a promise. The full roadmap lives in
 [`docs/roadmap.md`](docs/roadmap.md).
 
-- **Secrets editing UI** — manage `*.secret.yaml` from the app, auto-gitignored on the first secret
-- **Rendered markdown** in the per-request docs tab (today it shows raw source)
-- **Proxy + client certificates** — upstream proxy config and mTLS for outgoing requests
+- **Secrets editing UI** — manage `*.secret.yaml` from the app (auto-gitignore on open already ships via gitguard)
 - **gRPC** — first-class gRPC requests alongside HTTP and GraphQL
 
 ---
