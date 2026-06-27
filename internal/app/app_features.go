@@ -69,6 +69,30 @@ func (a *App) PickFile(title string) (string, error) {
 		PromptForSingleSelection()
 }
 
+// PickImportFile opens the native file chooser (filtered to the common import
+// formats) and returns the chosen file's contents, or "" if cancelled. Used by
+// the import dialog so users can load a HAR / Postman / OpenAPI file instead of
+// pasting a multi-megabyte document into a textarea.
+func (a *App) PickImportFile(title string) (string, error) {
+	if err := a.requireWails(); err != nil {
+		return "", err
+	}
+	path, err := a.wails.Dialog.OpenFile().
+		SetTitle(title).
+		CanChooseFiles(true).
+		AddFilter("Import files (.har .json .yaml .yml)", "*.har;*.json;*.yaml;*.yml").
+		AddFilter("All files", "*").
+		PromptForSingleSelection()
+	if err != nil || path == "" {
+		return "", err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 // ExportFile prompts for a save location (suggesting filename) and writes
 // content there. Returns the chosen path, or "" if the user cancelled.
 func (a *App) ExportFile(filename, content string) (string, error) {
@@ -100,8 +124,8 @@ func (a *App) ImportCurl(cmd string) (model.Request, error) {
 	return importer.Curl(cmd)
 }
 
-// ImportCollection parses external collection data (format: "postman" or
-// "openapi") and writes each request as a YAML file under collPath/destSubdir,
+// ImportCollection parses external collection data (format: "postman",
+// "openapi", or "har") and writes each request as a YAML file under collPath/destSubdir,
 // mirroring the source's folder structure. Returns the number written.
 func (a *App) ImportCollection(collPath, format, data, destSubdir string) (int, error) {
 	if collPath == "" {
@@ -114,6 +138,8 @@ func (a *App) ImportCollection(collPath, format, data, destSubdir string) (int, 
 		items, err = importer.Postman([]byte(data))
 	case "openapi":
 		items, err = importer.OpenAPI([]byte(data))
+	case "har":
+		items, _, err = importer.HAR([]byte(data))
 	default:
 		return 0, fmt.Errorf("unknown import format %q", format)
 	}
@@ -184,6 +210,39 @@ func (a *App) GenerateMocksFromOpenAPI(collPath, data string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	return writeMocks(collPath, defs)
+}
+
+// GenerateMocksFromHAR parses a HAR document and writes one mock definition file
+// per captured request into collPath/.senda/mocks/, so the mock server can
+// replay the recorded responses offline. Returns the number of mock files
+// written.
+func (a *App) GenerateMocksFromHAR(collPath, data string) (int, error) {
+	if collPath == "" {
+		return 0, fmt.Errorf("no collection open")
+	}
+	defs, err := importer.HARMocks([]byte(data))
+	if err != nil {
+		return 0, err
+	}
+	return writeMocks(collPath, defs)
+}
+
+// RequestToHAR renders a request and its response as a HAR 1.2 document string,
+// for the response panel's "Export as HAR" action. Frontend pairs it with
+// ExportFile to choose a save location.
+func (a *App) RequestToHAR(req model.Request, resp model.Response) (string, error) {
+	out, err := importer.MarshalHAR(req, resp)
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
+}
+
+// writeMocks marshals mock definitions to YAML files under the collection's
+// mocks/ directory, one per def, with a stable slugified filename so
+// regenerating overwrites rather than duplicating.
+func writeMocks(collPath string, defs []mockserver.MockDef) (int, error) {
 	mocksDir := store.MocksDir(collPath)
 	if err := os.MkdirAll(mocksDir, 0o755); err != nil {
 		return 0, err
@@ -194,8 +253,6 @@ func (a *App) GenerateMocksFromOpenAPI(collPath, data string) (int, error) {
 		if err != nil {
 			return count, err
 		}
-		// Stable filename per operation so regenerating the same spec overwrites
-		// rather than piling up get-stations-2.yaml duplicates (uniquePath would).
 		dest := filepath.Join(mocksDir, slugify(def.Name)+".yaml")
 		if err := os.WriteFile(dest, out, 0o644); err != nil {
 			return count, err

@@ -199,7 +199,7 @@ export default function Sidebar() {
             onClick={(e) => e.stopPropagation()}
           >
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowImport(true); }}>
-              <Download size={ICON.sm} /> Import collection
+              <Download size={ICON.sm} /> Import ...
             </button>
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowMockPanel(true); }}>
               <Server size={ICON.sm} /> Mock server

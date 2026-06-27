@@ -170,6 +170,17 @@ export default function ResponseViewer() {
     void api.exportFile(`response.${ext}`, response()?.body ?? "").catch(() => {});
   };
 
+  const exportHar = async () => {
+    const r = response();
+    if (!r) return;
+    try {
+      const har = await api.requestToHar(request, r);
+      await api.exportFile(`${request.name || "request"}.har`, har);
+    } catch {
+      /* user cancelled the save dialog */
+    }
+  };
+
   const [savedMock, setSavedMock] = createSignal(false);
   const saveAsMock = async () => {
     const coll = collection();
@@ -256,6 +267,7 @@ export default function ResponseViewer() {
                       items={[
                         { label: "Copy body", icon: () => <Copy size={ICON.sm} />, onClick: copyBody },
                         { label: "Save body to file", icon: () => <Download size={ICON.sm} />, onClick: saveBody },
+                        { label: "Export as HAR", icon: () => <Download size={ICON.sm} />, onClick: exportHar },
                         {
                           label: savedMock() ? "Saved as mock" : "Save as mock",
                           icon: () => (savedMock() ? <Check size={ICON.sm} /> : <FilePlus size={ICON.sm} />),

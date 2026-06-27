@@ -1,5 +1,5 @@
 // Package importer converts external request formats (curl commands, Postman
-// collections, OpenAPI specs) into Senda model.Request values. Imports preserve
+// collections, OpenAPI specs, HAR captures) into Senda model.Request values. Imports preserve
 // {{var}} placeholders verbatim where the source already uses that syntax.
 package importer
 

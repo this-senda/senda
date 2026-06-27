@@ -122,6 +122,9 @@ export function installDevMock() {
         SaveCollection: async () => {},
         SaveEnvironment: async () => {},
         PickFile: async () => "/picked/client-cert.pem",
+        PickImportFile: async () => "",
+        RequestToHAR: async () => '{"log":{"version":"1.2","entries":[]}}',
+        GenerateMocksFromHAR: async () => 0,
         SendRequest: async (req: any) => {
           const big = String(req?.url ?? "").includes("comments");
           const payload = big ? body : '{\n  "id": "usr_8f2a",\n  "created": true\n}';

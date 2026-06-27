@@ -81,6 +81,7 @@ export const api = {
   pickDirectory: (title: string) => App.PickDirectory(title),
   pickZipCollection: (title: string) => App.PickZipCollection(title),
   pickFile: (title: string) => App.PickFile(title),
+  pickImportFile: (title: string) => App.PickImportFile(title),
   send: (req: Request, collPath: string, reqPath: string, envName: string) =>
     App.SendRequest(req, collPath, reqPath, envName),
   openCollection: (path: string) => App.OpenCollection(path),
@@ -110,6 +111,9 @@ export const api = {
     App.ImportCollection(collPath, format, data, destSubdir),
   generateMocksFromOpenAPI: (collPath: string, data: string) =>
     App.GenerateMocksFromOpenAPI(collPath, data),
+  generateMocksFromHar: (collPath: string, data: string) =>
+    App.GenerateMocksFromHAR(collPath, data),
+  requestToHar: (req: Request, resp: Response) => App.RequestToHAR(req, resp),
   generateCode: (req: Request, target: string) => App.GenerateCode(req, target),
   renderMarkdown: (md: string) => App.RenderMarkdown(md),
   codegenTargets: () => App.CodegenTargets(),
