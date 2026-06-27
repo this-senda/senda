@@ -7,6 +7,29 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.10](https://github.com/this-senda/senda/compare/v0.1.9...v0.1.10) (2026-06-27)
+
+
+### Features
+
+* **flow:** response refs + .flow.yaml engine ([#70](https://github.com/this-senda/senda/issues/70)) ([e2f4180](https://github.com/this-senda/senda/commit/e2f4180e078ce80eeb328d9032ed1a774c4abb3f))
+* **gitguard:** offer to gitignore secrets/history on open ([#63](https://github.com/this-senda/senda/issues/63)) ([f08b707](https://github.com/this-senda/senda/commit/f08b70712c6761eeadf93705fe2ac4ee3ab036c0))
+* **httpclient:** per-collection proxy and mTLS ([#67](https://github.com/this-senda/senda/issues/67)) ([3d8d9dd](https://github.com/this-senda/senda/commit/3d8d9dda172f3ea22fefc6bbdd9be3257c1bb424))
+* **importer:** HAR import, mock gen, and response export ([#72](https://github.com/this-senda/senda/issues/72)) ([94e2679](https://github.com/this-senda/senda/commit/94e267963b01c545802d4857b1e1a5b98e933aee))
+* **layout:** add response panel collapse toggle ([#69](https://github.com/this-senda/senda/issues/69)) ([df7dada](https://github.com/this-senda/senda/commit/df7dadaf4a9ec8a0df348efb29921d7201e8af3c))
+* **scm:** read-only git comparison view ([#66](https://github.com/this-senda/senda/issues/66)) ([ae1bd27](https://github.com/this-senda/senda/commit/ae1bd2774efc125419af7352fd3a10ef48272201))
+
+
+### Bug Fixes
+
+* **response:** move body actions to overflow menu, stop status wrap ([#68](https://github.com/this-senda/senda/issues/68)) ([b38e8d6](https://github.com/this-senda/senda/commit/b38e8d6f416d91cd48b577d8661ab64ff918dc2c))
+* track build/config.yml so wails3 dev works ([#64](https://github.com/this-senda/senda/issues/64)) ([3173365](https://github.com/this-senda/senda/commit/3173365e325b3538ee49a7f2fc549867313ef6ad))
+
+
+### Documentation
+
+* update roadmap and current state ([#71](https://github.com/this-senda/senda/issues/71)) ([82e6de5](https://github.com/this-senda/senda/commit/82e6de59daf5b7d949e3aea01efb47fd3d17f427))
+
 ## [0.1.9](https://github.com/this-senda/senda/compare/v0.1.8...v0.1.9) (2026-06-26)
 
 
