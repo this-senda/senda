@@ -166,6 +166,8 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 ### Running collections
 
 - **Folder runner**: sequential execution of all requests in a folder — with timing, status, and assertion results per request
+- **Request chaining**: reference an earlier response inline with `{{res.<slug>.json.token}}` (status / body / `json.<path>` / `header.<name>`) — no script needed
+- **Flows**: declarative `*.flow.yaml` graphs (request / branch / setvar / loop / parallel / delay) for orchestration beyond the sequential runner; run from the app or headless with `senda run -flow` — see [`docs/flows.md`](docs/flows.md)
 - **Load testing**: concurrent virtual-user (VU) mode with configurable duration, target RPS, and max VUs; reports p50/p95/p99 latency and status distribution streamed live
 
 ### Mock server
@@ -510,6 +512,9 @@ bin/senda run -collection ./my-api -folder auth -env dev -q   # -q = summary onl
 
 # Data-driven run: repeat every request once per row of a CSV/JSON file
 bin/senda run -collection ./my-api -data users.csv
+
+# Run a flow (branch/loop/chained requests) by name or path
+bin/senda run -collection ./my-api -flow signup
 
 # Machine-readable run report for CI (json or junit XML; -o file or stdout)
 bin/senda run -collection ./my-api --report junit -o report.xml

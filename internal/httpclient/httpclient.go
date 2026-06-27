@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"senda/internal/auth"
@@ -43,7 +44,8 @@ var DefaultUserAgent = "SendaRuntime/" + buildinfo.Version
 type Client struct {
 	hc  *http.Client
 	jar *cookiejar.Jar
-	net NetConfig // last-applied transport config; see Configure
+	mu  sync.Mutex // guards the transport swap in Configure
+	net NetConfig  // last-applied transport config; see Configure
 }
 
 // NetConfig is the resolved (post-{{var}}) network configuration for a
@@ -70,6 +72,12 @@ func New() *Client {
 // survive repeated sends). The cookie jar lives on the *http.Client and is
 // untouched by transport swaps.
 func (c *Client) Configure(cfg NetConfig) error {
+	// Lock so concurrent senders sharing one session (a flow's parallel nodes)
+	// can't race on the transport swap. cfg is constant per collection, so after
+	// the first call this is the cheap cfg==c.net no-op, and the mutex orders
+	// that single swap happens-before every subsequent c.hc.Do.
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if cfg == c.net {
 		return nil
 	}
@@ -185,7 +193,13 @@ func (c *Client) Send(ctx context.Context, req model.Request, scope *vars.Scope)
 
 // tracer collects httptrace phase timestamps for one send. Redirected
 // requests overwrite earlier phases, so the timing reflects the final hop.
+//
+// httptrace callbacks may fire on background dial goroutines that outlive Do
+// (e.g. a speculative dial when the request actually got a pooled connection),
+// so the writes here can race with timing()'s reads once sends run concurrently
+// on a shared client (a flow's parallel node). mu guards every field.
 type tracer struct {
+	mu                        sync.Mutex
 	dnsStart, dnsDone         time.Time
 	connectStart, connectDone time.Time
 	tlsStart, tlsDone         time.Time
@@ -194,24 +208,27 @@ type tracer struct {
 }
 
 func (t *tracer) trace() *httptrace.ClientTrace {
+	set := func(f func()) { t.mu.Lock(); f(); t.mu.Unlock() }
 	return &httptrace.ClientTrace{
-		DNSStart:          func(httptrace.DNSStartInfo) { t.dnsStart = time.Now() },
-		DNSDone:           func(httptrace.DNSDoneInfo) { t.dnsDone = time.Now() },
-		ConnectStart:      func(string, string) { t.connectStart = time.Now() },
-		ConnectDone:       func(string, string, error) { t.connectDone = time.Now() },
-		TLSHandshakeStart: func() { t.tlsStart = time.Now() },
-		TLSHandshakeDone:  func(tls.ConnectionState, error) { t.tlsDone = time.Now() },
+		DNSStart:          func(httptrace.DNSStartInfo) { set(func() { t.dnsStart = time.Now() }) },
+		DNSDone:           func(httptrace.DNSDoneInfo) { set(func() { t.dnsDone = time.Now() }) },
+		ConnectStart:      func(string, string) { set(func() { t.connectStart = time.Now() }) },
+		ConnectDone:       func(string, string, error) { set(func() { t.connectDone = time.Now() }) },
+		TLSHandshakeStart: func() { set(func() { t.tlsStart = time.Now() }) },
+		TLSHandshakeDone:  func(tls.ConnectionState, error) { set(func() { t.tlsDone = time.Now() }) },
 		GotConn: func(info httptrace.GotConnInfo) {
 			if info.Reused {
-				t.reused = true
+				set(func() { t.reused = true })
 			}
 		},
-		GotFirstResponseByte: func() { t.firstByte = time.Now() },
+		GotFirstResponseByte: func() { set(func() { t.firstByte = time.Now() }) },
 	}
 }
 
 // timing converts the collected timestamps into per-phase durations.
 func (t *tracer) timing(start, end time.Time) *model.ResponseTiming {
+	t.mu.Lock()
+	defer t.mu.Unlock()
 	span := func(a, b time.Time) int64 {
 		if a.IsZero() || b.IsZero() || b.Before(a) {
 			return 0

@@ -1,0 +1,7 @@
+name: Get post author
+method: GET
+# {{uid}} is set by the flow's setvar node from the previous response's userId.
+url: https://jsonplaceholder.typicode.com/users/{{uid}}
+asserts:
+  - { target: status, op: eq, value: "200", enabled: true }
+  - { target: json.id, op: exists, value: "", enabled: true }

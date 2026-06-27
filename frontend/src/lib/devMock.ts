@@ -90,6 +90,28 @@ export function installDevMock() {
           { name: "dev", vars: [{ key: "baseUrl", value: "https://dev.api", enabled: true }] },
           { name: "prod", vars: [{ key: "baseUrl", value: "https://api.demo.test", enabled: true }] },
         ],
+        ListFlows: async () => [
+          { name: "Fetch post author", path: "/demo/.senda/flows/fetch-post-author.flow.yaml" },
+          { name: "Public data snapshot", path: "/demo/.senda/flows/public-data-snapshot.flow.yaml" },
+          { name: "Fetch posts (loop)", path: "/demo/.senda/flows/fetch-posts-loop.flow.yaml" },
+        ],
+        ReadFlow: async () => ({
+          name: "Fetch post author",
+          path: "/demo/.senda/flows/fetch-post-author.flow.yaml",
+          start: "getPost",
+          nodes: {
+            getPost: { type: "request", request: "Chaining/get-post.yaml", next: "check" },
+            check: { type: "branch", cond: { left: "{{res.get-post.status}}", op: "eq", right: "200" }, onTrue: "setUid", onFalse: "" },
+            setUid: { type: "setvar", var: "uid", from: "{{res.get-post.json.userId}}", next: "getUser" },
+            getUser: { type: "request", request: "Chaining/get-user.yaml" },
+          },
+        }),
+        RunFlow: async () => [
+          { nodeId: "getPost", type: "request", result: { name: "Get post", path: "Chaining/get-post.yaml", method: "GET", url: "https://jsonplaceholder.typicode.com/posts/1", status: 200, durationMs: 31, sizeBytes: 292, ok: true, assertPass: 1, assertFail: 0, response: { status: 200, statusText: "OK", durationMs: 31, sizeBytes: 292, headers: { "Content-Type": ["application/json"] }, body: '{\n  "userId": 1,\n  "id": 1,\n  "title": "sunt aut facere"\n}', truncated: false } } },
+          { nodeId: "check", type: "branch", branch: "true" },
+          { nodeId: "setUid", type: "setvar" },
+          { nodeId: "getUser", type: "request", result: { name: "Get post author", path: "Chaining/get-user.yaml", method: "GET", url: "https://jsonplaceholder.typicode.com/users/1", status: 200, durationMs: 18, sizeBytes: 509, ok: true, assertPass: 2, assertFail: 0, response: { status: 200, statusText: "OK", durationMs: 18, sizeBytes: 509, headers: { "Content-Type": ["application/json"] }, body: '{\n  "id": 1,\n  "name": "Leanne Graham",\n  "email": "Sincere@april.biz"\n}', truncated: false } } },
+        ],
         ReadRequest: async (path: string) => reqFor(path),
         ReadFolderMeta: async (path: string) => ({ name: String(path).split("/").pop() ?? "", path, color: "", tags: [], description: "", vars: [], auth: { type: "inherit" } }),
         ResolveScope: async () => [],

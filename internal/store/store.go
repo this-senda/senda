@@ -18,6 +18,7 @@ const (
 	metaFile = "senda.meta.yaml"
 	envDir   = "environments"
 	mockDir  = "mocks"
+	flowDir  = "flows"
 )
 
 // reserved paths that are not requests when walking the tree.

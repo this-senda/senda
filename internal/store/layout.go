@@ -54,6 +54,11 @@ func MocksDir(root string) string { return filepath.Join(root, ConfigDirName, mo
 // SecurityDir returns the canonical security-templates directory (.senda/security).
 func SecurityDir(root string) string { return filepath.Join(root, ConfigDirName, securityDirName) }
 
+// FlowsDir returns the canonical flows directory (.senda/flows). Flows live
+// under .senda/ so the request tree-walk (which skips dotfiles) never mistakes a
+// *.flow.yaml for a request.
+func FlowsDir(root string) string { return filepath.Join(root, ConfigDirName, flowDir) }
+
 // pathExists reports whether anything (file or dir) exists at path.
 func pathExists(path string) bool {
 	_, err := os.Stat(path)

@@ -1,0 +1,6 @@
+name: Get post by id
+method: GET
+# {{pid}} is supplied by the loop's data file, one value per row.
+url: https://jsonplaceholder.typicode.com/posts/{{pid}}
+asserts:
+  - { target: status, op: eq, value: "200", enabled: true }

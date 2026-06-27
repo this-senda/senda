@@ -1,0 +1,5 @@
+name: Get post
+method: GET
+url: https://jsonplaceholder.typicode.com/posts/1
+asserts:
+  - { target: status, op: eq, value: "200", enabled: true }

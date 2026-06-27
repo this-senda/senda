@@ -8,10 +8,18 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"senda/internal/model"
 )
+
+// appendMu serializes Append's read-modify-write (List → rebuild → tmp → rename)
+// so concurrent callers — e.g. a flow's parallel request nodes — can't clobber
+// the shared history.jsonl(.tmp) or lose entries.
+// ponytail: one global lock; history volume is tiny, so per-collection locks
+// aren't worth it.
+var appendMu sync.Mutex
 
 const (
 	dir  = ".senda"
@@ -31,6 +39,8 @@ func Append(collPath string, e model.HistoryEntry) error {
 	if collPath == "" {
 		return nil
 	}
+	appendMu.Lock()
+	defer appendMu.Unlock()
 	if e.At == "" {
 		e.At = time.Now().UTC().Format(time.RFC3339)
 	}

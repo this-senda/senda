@@ -2774,6 +2774,211 @@ body.dragging-splitter {
   white-space: nowrap;
 }
 
+/* ---- flows ---- */
+.flow-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.flow-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flow-picker-label {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-faint);
+}
+.flow-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.flow-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.flow-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+.flow-chip.active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--accent-dim);
+}
+.flow-detail {
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.flow-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-elev);
+}
+.flow-detail-name {
+  font-weight: 600;
+  color: var(--text);
+}
+.flow-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.flow-graph {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+.flow-node {
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.flow-node-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.flow-node-id {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text);
+}
+.flow-node-start {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent);
+  border: 1px solid var(--accent-dim);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+.flow-node-type {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-faint);
+}
+.flow-node-summary {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  word-break: break-all;
+}
+.flow-node-edge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+}
+.flow-edge-label {
+  color: var(--accent);
+}
+.flow-error {
+  padding: 0;
+}
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.flow-steps-label {
+  padding: 8px 14px;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-faint);
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border-soft);
+}
+.flow-step-wrap {
+  border-bottom: 1px solid var(--border-soft);
+}
+.flow-step-wrap:last-child {
+  border-bottom: none;
+}
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  font-size: var(--fs-sm);
+}
+.flow-step.clickable {
+  cursor: pointer;
+}
+.flow-step.clickable:hover {
+  background: var(--bg-elev);
+}
+.flow-step-caret-spacer {
+  width: 12px;
+  flex: none;
+}
+.flow-step-body {
+  margin: 0;
+  padding: 10px 14px 14px 32px;
+  max-height: 280px;
+  overflow: auto;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  background: var(--bg);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.flow-step-id {
+  font-family: var(--mono);
+  color: var(--text-dim);
+  width: 110px;
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-step-type {
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+.flow-step-url {
+  flex: 1;
+  color: var(--text);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-step .status-badge {
+  width: 36px;
+  flex: none;
+  text-align: center;
+}
+
 /* ---- tree folder actions ---- */
 .folder-name {
   flex: 1;

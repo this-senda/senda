@@ -243,6 +243,59 @@ type RunResult struct {
 	Response   *Response `json:"response,omitempty"`
 }
 
+// Flow is a declarative graph orchestrating requests with branching, loops and
+// variable extraction beyond the sequential folder runner. Persisted as one
+// *.flow.yaml under .senda/flows/. Execution starts at Start and follows each
+// node's outgoing edge (Next / OnTrue / OnFalse) until a node has none.
+type Flow struct {
+	Name  string              `yaml:"name" json:"name"`
+	Path  string              `yaml:"-" json:"path"`
+	Start string              `yaml:"start" json:"start"`
+	Nodes map[string]FlowNode `yaml:"nodes" json:"nodes"`
+}
+
+// FlowNode is one step in a Flow. Type selects which fields apply:
+//
+//	request  — runs Request (a collection-relative path); edge Next
+//	branch   — evaluates Cond; edge OnTrue or OnFalse
+//	setvar   — sets runtime var Var to the interpolated From; edge Next
+//	delay    — sleeps Ms milliseconds; edge Next
+//	loop     — runs the Body node list once per row of data file Data; edge Next
+//	parallel — runs each list in Branches concurrently; edge Next
+//
+// Nodes listed in a loop Body or a parallel branch are owned by that container
+// and run linearly (their own edges are ignored) — don't also target them with
+// a Next/OnTrue/OnFalse from the main graph.
+type FlowNode struct {
+	Type     string     `yaml:"type" json:"type"`
+	Request  string     `yaml:"request,omitempty" json:"request,omitempty"`
+	Cond     *FlowCond  `yaml:"cond,omitempty" json:"cond,omitempty"`
+	Var      string     `yaml:"var,omitempty" json:"var,omitempty"`
+	From     string     `yaml:"from,omitempty" json:"from,omitempty"`
+	Ms       int        `yaml:"ms,omitempty" json:"ms,omitempty"`
+	Data     string     `yaml:"data,omitempty" json:"data,omitempty"`
+	Body     []string   `yaml:"body,omitempty" json:"body,omitempty"`
+	Branches [][]string `yaml:"branches,omitempty" json:"branches,omitempty"`
+	Next     string     `yaml:"next,omitempty" json:"next,omitempty"`
+	OnTrue   string     `yaml:"onTrue,omitempty" json:"onTrue,omitempty"`
+	OnFalse  string     `yaml:"onFalse,omitempty" json:"onFalse,omitempty"`
+}
+
+// FlowCond is a branch comparison. Left and Right are interpolated (so they can
+// reference {{res.<slug>...}} or {{var}}) then compared with Op, which uses the
+// same operators as assertions (eq, neq, contains, gt, …).
+type FlowCond struct {
+	Left  string `yaml:"left" json:"left"`
+	Op    string `yaml:"op" json:"op"`
+	Right string `yaml:"right,omitempty" json:"right,omitempty"`
+}
+
+// FlowInfo is a flow's identity for listing in the sidebar (no node detail).
+type FlowInfo struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
 // Cookie is one cookie from the session jar, surfaced to the UI.
 type Cookie struct {
 	Name  string `json:"name"`
