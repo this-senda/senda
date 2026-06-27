@@ -38,7 +38,7 @@ func Eval(asserts []model.Assert, resp model.Response) []model.AssertResult {
 
 func evalOne(a model.Assert, resp model.Response) model.AssertResult {
 	res := model.AssertResult{Target: a.Target, Op: a.Op, Value: a.Value}
-	actual, found, err := extract(strings.TrimSpace(a.Target), resp)
+	actual, found, err := Extract(strings.TrimSpace(a.Target), resp)
 	if err != nil {
 		res.Error = err.Error()
 		return res
@@ -56,7 +56,7 @@ func evalOne(a model.Assert, resp model.Response) model.AssertResult {
 			res.Error = "target not found"
 			return res
 		}
-		pass, err := compare(a.Op, actual, a.Value)
+		pass, err := Compare(a.Op, actual, a.Value)
 		if err != nil {
 			res.Error = err.Error()
 			return res
@@ -66,9 +66,11 @@ func evalOne(a model.Assert, resp model.Response) model.AssertResult {
 	return res
 }
 
-// extract resolves a target expression to its string form. found=false means
-// the target legitimately does not exist (missing header / JSON path).
-func extract(target string, resp model.Response) (actual string, found bool, err error) {
+// Extract resolves a target expression (status, duration, size, body,
+// header.<Name>, json.<path>) to its string form. found=false means the target
+// legitimately does not exist (missing header / JSON path). Shared with vars so
+// {{res.<slug>.<target>}} references reuse the same grammar as assertions.
+func Extract(target string, resp model.Response) (actual string, found bool, err error) {
 	switch {
 	case target == "status":
 		return strconv.Itoa(resp.Status), true, nil
@@ -178,7 +180,11 @@ func stringify(v any) string {
 	}
 }
 
-func compare(op, actual, expected string) (bool, error) {
+// Compare evaluates one operator (eq, neq, contains, notcontains, gt, gte, lt,
+// lte, matches) against two string operands. exists/notexists are handled by
+// the caller (they depend on presence, not value). Shared with the flow engine's
+// branch nodes.
+func Compare(op, actual, expected string) (bool, error) {
 	switch op {
 	case "eq":
 		return actual == expected || numericEqual(actual, expected), nil

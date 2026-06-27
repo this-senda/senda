@@ -14,6 +14,7 @@ import (
 	"senda/internal/aigen"
 	"senda/internal/codegen"
 	"senda/internal/docgen"
+	"senda/internal/flow"
 	"senda/internal/history"
 	"senda/internal/importer"
 	"senda/internal/load"
@@ -285,6 +286,56 @@ func (a *App) RunFolder(ctx context.Context, folderPath, collPath, envName strin
 	return runner.RunFolder(ctx, paths, send, func(res model.RunResult) {
 		a.emit("run:result", res)
 	}), nil
+}
+
+// ListFlows returns the flows defined under the collection's .senda/flows/.
+func (a *App) ListFlows(collPath string) ([]model.FlowInfo, error) {
+	return store.ListFlows(collPath)
+}
+
+// ReadFlow loads one flow by its file path.
+func (a *App) ReadFlow(path string) (model.Flow, error) {
+	return store.ReadFlow(path)
+}
+
+// RunFlow executes a flow graph, streaming each step to the frontend as
+// "flow:step" events (request steps carry a RunResult, mirroring RunFolder's
+// "run:result"). It reuses the same session/send path as a folder run, so
+// variables, {{res...}} references, cookies and scripts all behave identically.
+func (a *App) RunFlow(ctx context.Context, flowPath, collPath, envName string) ([]flow.StepResult, error) {
+	fl, err := store.ReadFlow(flowPath)
+	if err != nil {
+		return nil, err
+	}
+	makeSend := func(extra map[string]string) runner.Send {
+		return func(ctx context.Context, path string) (model.Request, model.Response, error) {
+			abs := path
+			if !filepath.IsAbs(abs) {
+				abs = filepath.Join(collPath, path)
+			}
+			req, err := store.ReadRequest(abs)
+			if err != nil {
+				return req, model.Response{}, err
+			}
+			resp, appliedURL := a.session.SendWithExtra(ctx, req, collPath, abs, envName, extra)
+			recordSend(collPath, req, resp, appliedURL)
+			return req, resp, nil
+		}
+	}
+	dataLoad := func(p string) ([]map[string]string, error) {
+		if !filepath.IsAbs(p) {
+			p = filepath.Join(collPath, p)
+		}
+		return runner.LoadDataFile(p)
+	}
+	a.emit("flow:start", map[string]any{"name": fl.Name})
+	return flow.Run(ctx, fl, flow.Runner{
+		MakeSend: makeSend,
+		Resolve:  func(s string) string { return a.session.Resolve(collPath, "", envName, s) },
+		Data:     dataLoad,
+		SetVar:   a.session.SetVar,
+		OnStep:   func(sr flow.StepResult) { a.emit("flow:step", sr) },
+	})
 }
 
 // RunLoad runs a concurrent load test against every request under folderPath.

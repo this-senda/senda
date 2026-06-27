@@ -21,6 +21,11 @@ var placeholder = regexp.MustCompile(`\{\{\s*(\$?[\w.\-]+(?:\([^)]*\))?)\s*\}\}`
 type Scope struct {
 	values     map[string]string
 	Unresolved []string
+	// Dynamic, if set, resolves names that miss the static map (and aren't
+	// faker tokens) before they're marked unresolved — e.g. {{res.<slug>...}}
+	// references to a prior response. Kept generic so vars stays free of any
+	// response/jsonpath coupling.
+	Dynamic func(name string) (string, bool)
 }
 
 // Build flattens the layers into a single lookup map. Later arguments win,
@@ -43,6 +48,13 @@ func (sc *Scope) Get(name string) (string, bool) {
 	return v, ok
 }
 
+// Set overrides one value at the highest precedence, used to overlay per-run
+// extras (e.g. a data-driven row) onto an already-built scope so they
+// interpolate just like any other variable.
+func (sc *Scope) Set(key, value string) {
+	sc.values[key] = value
+}
+
 // Apply substitutes every {{name}} in s. Unknown names are left verbatim and
 // recorded in Unresolved (de-duplicated) for surfacing as warnings.
 func (sc *Scope) Apply(s string) string {
@@ -56,6 +68,10 @@ func (sc *Scope) Apply(s string) string {
 			// Unknown faker token: leave verbatim, record once.
 		} else if v, ok := sc.values[name]; ok {
 			return v
+		} else if sc.Dynamic != nil {
+			if v, ok := sc.Dynamic(name); ok {
+				return v
+			}
 		}
 		if !seen[name] {
 			seen[name] = true

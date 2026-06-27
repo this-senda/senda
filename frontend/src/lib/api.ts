@@ -4,6 +4,7 @@
 import * as App from "../../bindings/senda/internal/app/app";
 import * as model from "../../bindings/senda/internal/model/models";
 import * as mockserverModel from "../../bindings/senda/internal/mockserver/models";
+import type { StepResult as FlowStepResult } from "../../bindings/senda/internal/flow/models";
 import type { ScopeVar } from "../../bindings/senda/internal/app/models";
 import type { SyncState } from "../../bindings/senda/internal/security/models";
 import type { Activity } from "../../bindings/senda/internal/store/models";
@@ -27,6 +28,9 @@ export type TLSConfig = model.TLSConfig;
 export type Assert = model.Assert;
 export type AssertResult = model.AssertResult;
 export type RunResult = model.RunResult;
+export type Flow = model.Flow;
+export type FlowInfo = model.FlowInfo;
+export type FlowStep = FlowStepResult;
 export type HistoryEntry = model.HistoryEntry;
 export type LoadOptions = model.LoadOptions;
 export type LoadSummary = model.LoadSummary;
@@ -113,6 +117,10 @@ export const api = {
   // runner
   runFolder: (folderPath: string, collPath: string, envName: string) =>
     App.RunFolder(folderPath, collPath, envName),
+  listFlows: (collPath: string) => App.ListFlows(collPath),
+  readFlow: (path: string) => App.ReadFlow(path),
+  runFlow: (flowPath: string, collPath: string, envName: string) =>
+    App.RunFlow(flowPath, collPath, envName),
   runLoad: (folderPath: string, collPath: string, envName: string, opts: LoadOptions) =>
     App.RunLoad(folderPath, collPath, envName, opts),
   runSecurityScan: (folderPath: string, collPath: string, envName: string, opts: SecurityOptions) =>

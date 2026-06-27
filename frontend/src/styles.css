@@ -2774,6 +2774,61 @@ body.dragging-splitter {
   white-space: nowrap;
 }
 
+/* ---- flows ---- */
+.flow-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.flow-row {
+  display: flex;
+}
+.flow-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
+}
+.flow-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: var(--fs-sm);
+}
+.flow-step-id {
+  font-family: var(--mono);
+  color: var(--text-dim);
+  width: 110px;
+  flex: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-step-type {
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+.flow-step-url {
+  flex: 1;
+  color: var(--text);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.flow-step .status-badge {
+  width: 36px;
+  flex: none;
+  text-align: center;
+}
+
 /* ---- tree folder actions ---- */
 .folder-name {
   flex: 1;

@@ -90,6 +90,22 @@ export function installDevMock() {
           { name: "dev", vars: [{ key: "baseUrl", value: "https://dev.api", enabled: true }] },
           { name: "prod", vars: [{ key: "baseUrl", value: "https://api.demo.test", enabled: true }] },
         ],
+        ListFlows: async () => [
+          { name: "signup", path: "/demo/.senda/flows/signup.flow.yaml" },
+        ],
+        ReadFlow: async () => ({
+          name: "signup",
+          path: "/demo/.senda/flows/signup.flow.yaml",
+          start: "login",
+          nodes: {
+            login: { type: "request", request: "auth/login.yaml", next: "me" },
+            me: { type: "request", request: "users/me.yaml" },
+          },
+        }),
+        RunFlow: async () => [
+          { nodeId: "login", type: "request", result: { name: "login", path: "auth/login.yaml", method: "POST", url: "https://api.demo.test/login", status: 200, durationMs: 31, sizeBytes: 64, ok: true, assertPass: 0, assertFail: 0 } },
+          { nodeId: "me", type: "request", result: { name: "me", path: "users/me.yaml", method: "GET", url: "https://api.demo.test/me", status: 200, durationMs: 18, sizeBytes: 80, ok: true, assertPass: 0, assertFail: 0 } },
+        ],
         ReadRequest: async (path: string) => reqFor(path),
         ReadFolderMeta: async (path: string) => ({ name: String(path).split("/").pop() ?? "", path, color: "", tags: [], description: "", vars: [], auth: { type: "inherit" } }),
         ResolveScope: async () => [],

@@ -5,6 +5,7 @@ package pipeline
 
 import (
 	"context"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -23,13 +24,14 @@ import (
 type Session struct {
 	HTTP *httpclient.Client
 
-	mu      sync.Mutex
-	runtime map[string]string
+	mu        sync.Mutex
+	runtime   map[string]string
+	responses map[string]model.Response // by request slug, for {{res.<slug>...}}
 }
 
 // NewSession builds a fresh session with its own client, jar and vars.
 func NewSession() *Session {
-	return &Session{HTTP: httpclient.New(), runtime: map[string]string{}}
+	return &Session{HTTP: httpclient.New(), runtime: map[string]string{}, responses: map[string]model.Response{}}
 }
 
 // SetVar stores a runtime variable (script senda.setVar).
@@ -58,6 +60,57 @@ func (s *Session) ClearRuntime() {
 	s.runtime = map[string]string{}
 }
 
+// resolveRes resolves a {{res.<slug>.<target>}} reference against a previously
+// sent request's response. <target> is the same grammar as assert targets
+// (status, body, header.<Name>, json.<path>). Array indexing ([n]) isn't
+// available here — the {{...}} grammar excludes brackets — use a post-script for
+// that. Returns ok=false (leaving the placeholder unresolved) for any miss.
+func (s *Session) resolveRes(name string) (string, bool) {
+	rest, ok := strings.CutPrefix(name, "res.")
+	if !ok {
+		return "", false
+	}
+	slug, target, ok := strings.Cut(rest, ".")
+	if !ok || slug == "" || target == "" {
+		return "", false
+	}
+	s.mu.Lock()
+	resp, ok := s.responses[slug]
+	s.mu.Unlock()
+	if !ok {
+		return "", false
+	}
+	val, found, err := assert.Extract(target, resp)
+	if err != nil || !found {
+		return "", false
+	}
+	return val, true
+}
+
+// storeResponse records resp under the request file's slug so later requests in
+// the same session (folder run or flow) can reference it via {{res.<slug>...}}.
+func (s *Session) storeResponse(reqPath string, resp model.Response) {
+	slug := slugOf(reqPath)
+	if slug == "" {
+		return
+	}
+	s.mu.Lock()
+	s.responses[slug] = resp
+	s.mu.Unlock()
+}
+
+// slugOf is the request file's basename without its YAML extension — the key
+// used for {{res.<slug>...}} references. Empty for ad-hoc sends (no path).
+func slugOf(reqPath string) string {
+	base := filepath.Base(reqPath)
+	base = strings.TrimSuffix(base, ".yaml")
+	base = strings.TrimSuffix(base, ".yml")
+	if base == "." || base == string(filepath.Separator) {
+		return ""
+	}
+	return base
+}
+
 // Scope builds the interpolation scope. Precedence, lowest first: collection
 // vars/secrets, then each ancestor folder's vars (root-first so deeper folders
 // override shallower ones), then env vars/secrets, then runtime vars (highest).
@@ -83,7 +136,17 @@ func (s *Session) Scope(collPath, reqPath, envName string) *vars.Scope {
 		}
 	}
 	layers = append(layers, s.RuntimeKVs())
-	return vars.Build(layers...)
+	sc := vars.Build(layers...)
+	sc.Dynamic = s.resolveRes // enable {{res.<slug>...}} references
+	return sc
+}
+
+// Resolve interpolates a standalone string against the session scope (env,
+// collection/folder vars, runtime vars and {{res...}} references). Used by the
+// flow engine for branch conditions and setvar extraction, which aren't tied to
+// a single request. Pass reqPath "" for collection-level resolution.
+func (s *Session) Resolve(collPath, reqPath, envName, str string) string {
+	return s.Scope(collPath, reqPath, envName).Apply(str)
 }
 
 // collectionNetConfig reads the collection root's proxy/TLS settings and
@@ -161,13 +224,20 @@ func (s *Session) SendWithExtra(ctx context.Context, req model.Request, collPath
 		req = mutated
 	}
 
-	// Scope built after the pre-script so freshly set runtime vars interpolate.
+	// Scope built after the pre-script so freshly set runtime vars interpolate
+	// ({{res...}} references are enabled inside Scope). Extra vars (data-driven
+	// rows, loop iterations) overlay at the top so they interpolate into the URL,
+	// headers and body — not just the script getVar.
 	scope := s.Scope(collPath, reqPath, envName)
+	for k, v := range extra {
+		scope.Set(k, v)
+	}
 	if err := s.HTTP.Configure(collectionNetConfig(collPath, scope)); err != nil {
 		return model.Response{Error: err.Error(), ScriptLogs: scriptLogs}, req.URL
 	}
 	req.Auth = effectiveAuth(collPath, reqPath, req.Auth)
 	resp := s.HTTP.Send(ctx, req, scope)
+	s.storeResponse(reqPath, resp)
 	if resp.Error == "" {
 		resp.Asserts = assert.Eval(req.Asserts, resp)
 		if req.ResponseSchema != "" {

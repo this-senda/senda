@@ -2,7 +2,7 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, Workflow, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
@@ -16,6 +16,7 @@ import CollectionSettings from "./CollectionSettings";
 import FolderSettings from "./FolderSettings";
 import ImportDialog from "./ImportDialog";
 import HistoryPanel from "./HistoryPanel";
+import FlowPanel from "./FlowPanel";
 import SecurityScan from "./SecurityScan";
 import SourceControlPanel from "./SourceControlPanel";
 
@@ -103,6 +104,7 @@ export default function Sidebar() {
   const [showImport, setShowImport] = createSignal(false);
   const [showHistory, setShowHistory] = createSignal(false);
   const [showScm, setShowScm] = createSignal(false);
+  const [showFlows, setShowFlows] = createSignal(false);
   const [scanTarget, setScanTarget] = createSignal<TreeNode | null>(null);
   const [search, setSearch] = createSignal("");
 
@@ -202,6 +204,9 @@ export default function Sidebar() {
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowMockPanel(true); }}>
               <Server size={ICON.sm} /> Mock server
             </button>
+            <button class="ctx-item flow-open" onClick={() => { closeCollCtx?.(); setShowFlows(true); }}>
+              <Workflow size={ICON.sm} /> Flows
+            </button>
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); exportDocs(); }}>
               <FileText size={ICON.sm} /> Export docs
             </button>
@@ -223,6 +228,9 @@ export default function Sidebar() {
       </Show>
       <Show when={showScm()}>
         <SourceControlPanel onClose={() => setShowScm(false)} />
+      </Show>
+      <Show when={showFlows()}>
+        <FlowPanel onClose={() => setShowFlows(false)} />
       </Show>
       <Show when={scanTarget()}>
         <SecurityScan

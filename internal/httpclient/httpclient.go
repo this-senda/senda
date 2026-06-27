@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"senda/internal/auth"
@@ -43,7 +44,8 @@ var DefaultUserAgent = "SendaRuntime/" + buildinfo.Version
 type Client struct {
 	hc  *http.Client
 	jar *cookiejar.Jar
-	net NetConfig // last-applied transport config; see Configure
+	mu  sync.Mutex // guards the transport swap in Configure
+	net NetConfig  // last-applied transport config; see Configure
 }
 
 // NetConfig is the resolved (post-{{var}}) network configuration for a
@@ -70,6 +72,12 @@ func New() *Client {
 // survive repeated sends). The cookie jar lives on the *http.Client and is
 // untouched by transport swaps.
 func (c *Client) Configure(cfg NetConfig) error {
+	// Lock so concurrent senders sharing one session (a flow's parallel nodes)
+	// can't race on the transport swap. cfg is constant per collection, so after
+	// the first call this is the cheap cfg==c.net no-op, and the mutex orders
+	// that single swap happens-before every subsequent c.hc.Do.
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if cfg == c.net {
 		return nil
 	}
