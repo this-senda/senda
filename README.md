@@ -92,9 +92,9 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 
 ![Code generation — curl, fetch, httpie, python, go](docs/screenshots/15-code-generation.png)
 
-### Import — curl, Postman, OpenAPI
+### Import — curl, Postman, OpenAPI, HAR
 
-![Import dialog — curl, Postman collections, and OpenAPI specs](docs/screenshots/16-import.png)
+![Import dialog — curl, Postman collections, OpenAPI specs, and HAR captures](docs/screenshots/16-import.png)
 
 ### Request history
 
@@ -192,7 +192,8 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 
 ### Import & code generation
 
-- **Import from**: curl commands, Postman v2.0+ collections, OpenAPI 3.0 / 3.1 specs
+- **Import from**: curl commands, Postman v2.0+ collections, OpenAPI 3.0 / 3.1 specs, HAR captures (Chrome DevTools "Copy all as HAR" — bulk requests + example responses, with optional record-and-replay mocks; secrets and static/analytics noise stripped on import)
+- **Export a response as HAR**: turn any captured request/response into a shareable `.har` from the response panel
 - **Generate code**: curl, fetch, httpie, Python `requests`, Go `net/http`
 - **Generate API docs**: render a collection (or one folder) to Markdown or self-contained HTML via `senda docs`
 
@@ -460,7 +461,7 @@ senda/
 │   ├── runner/                   # Sequential folder runner (+ data-driven runs)
 │   ├── load/                     # Concurrent load test engine
 │   ├── codegen/                  # Code generation (curl, fetch, httpie, python, go)
-│   ├── importer/                 # Import from curl / Postman / OpenAPI
+│   ├── importer/                 # Import from curl / Postman / OpenAPI / HAR
 │   ├── docgen/                   # Markdown / HTML API docs from a collection
 │   ├── mockserver/               # Local mock server (rules, resources, scenarios)
 │   ├── security/                 # Nuclei-compatible security scanner

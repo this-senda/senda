@@ -64,7 +64,7 @@ Numbered to match the order they appear in the root README.
 | `13-environments.png` | Environment editor — per-environment variables |
 | `14-auth.png` | Auth tab — Bearer / Basic / API key / OAuth 2.0 |
 | `15-code-generation.png` | Code generation — curl / fetch / httpie / python / go |
-| `16-import.png` | Import — curl, Postman, and OpenAPI |
+| `16-import.png` | Import — curl, Postman, OpenAPI, and HAR |
 | `17-history.png` | Request history panel |
 | `18-workspace-rail.png` | Workspace rail — multi-collection switcher + icon picker |
 | `19-faker-autocomplete.png` | `{{$faker}}` token autocomplete in the JSON body |

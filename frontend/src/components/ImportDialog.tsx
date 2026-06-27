@@ -1,12 +1,12 @@
 // Import modal: paste a curl command (opens as a new tab) or paste a Postman
 // v2.1 / OpenAPI 3 document (writes request files into the open collection).
 import { createSignal, Match, Show, Switch } from "solid-js";
-import { X } from "lucide-solid";
+import { FileUp, X } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import { collection, openInTab, setCollection, setEnvironments } from "../lib/store";
 
-type Mode = "curl" | "postman" | "openapi";
+type Mode = "curl" | "postman" | "openapi" | "har";
 
 export default function ImportDialog(props: { onClose: () => void }) {
   const [mode, setMode] = createSignal<Mode>("curl");
@@ -35,10 +35,14 @@ export default function ImportDialog(props: { onClose: () => void }) {
       }
       const n = await api.importCollection(coll.path, mode(), text(), subdir());
       let msg = `Imported ${n} request${n === 1 ? "" : "s"}.`;
-      // For OpenAPI specs, optionally also generate a runnable mock server from
-      // the documented responses/examples (written into the collection's mocks/).
+      // OpenAPI specs and HAR captures can optionally also generate a runnable
+      // mock server (from documented examples / recorded responses) into mocks/.
       if (mode() === "openapi" && genMocks()) {
         const m = await api.generateMocksFromOpenAPI(coll.path, text());
+        msg += ` Generated ${m} mock${m === 1 ? "" : "s"} — start the mock server to serve them.`;
+      }
+      if (mode() === "har" && genMocks()) {
+        const m = await api.generateMocksFromHar(coll.path, text());
         msg += ` Generated ${m} mock${m === 1 ? "" : "s"} — start the mock server to serve them.`;
       }
       // Refresh tree so the imported requests appear.
@@ -52,12 +56,24 @@ export default function ImportDialog(props: { onClose: () => void }) {
     }
   };
 
+  const loadFile = async () => {
+    setError("");
+    try {
+      const content = await api.pickImportFile("Choose a file to import");
+      if (content) setText(content);
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
   const placeholder = () =>
     mode() === "curl"
       ? "curl -X POST https://api.example.com/login -H 'Content-Type: application/json' -d '{...}'"
       : mode() === "postman"
         ? "Paste a Postman Collection v2.1 JSON export…"
-        : "Paste an OpenAPI 3 spec (JSON or YAML)…";
+        : mode() === "har"
+          ? "Paste HAR JSON (Chrome DevTools → Network → Copy all as HAR)…"
+          : "Paste an OpenAPI 3 spec (JSON or YAML)…";
 
   return (
     <div class="modal-backdrop" onClick={props.onClose}>
@@ -79,7 +95,16 @@ export default function ImportDialog(props: { onClose: () => void }) {
             <button classList={{ active: mode() === "openapi" }} onClick={() => setMode("openapi")}>
               OpenAPI
             </button>
+            <button classList={{ active: mode() === "har" }} onClick={() => setMode("har")}>
+              HAR
+            </button>
           </div>
+
+          <Show when={mode() !== "curl"}>
+            <button class="btn ghost import-file-btn" onClick={loadFile}>
+              <FileUp size={ICON.sm} /> Load from file…
+            </button>
+          </Show>
 
           <Show when={mode() !== "curl"}>
             <label class="field-row">
@@ -93,14 +118,18 @@ export default function ImportDialog(props: { onClose: () => void }) {
             </label>
           </Show>
 
-          <Show when={mode() === "openapi"}>
+          <Show when={mode() === "openapi" || mode() === "har"}>
             <label class="check-row">
               <input
                 type="checkbox"
                 checked={genMocks()}
                 onChange={(e) => setGenMocks(e.currentTarget.checked)}
               />
-              <span>Generate mock server from response examples</span>
+              <span>
+                {mode() === "har"
+                  ? "Generate mock server from recorded responses"
+                  : "Generate mock server from response examples"}
+              </span>
             </label>
           </Show>
 

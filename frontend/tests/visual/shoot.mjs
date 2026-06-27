@@ -233,7 +233,7 @@ await dismiss(page);
 // 16 — import dialog.
 await shot(page, "16-import.png", async () => {
   await page.locator('button[title="Collection actions"]').click();
-  await page.getByText("Import collection", { exact: true }).click();
+  await page.getByText("Import ...", { exact: true }).click();
   await wait(500);
 });
 await dismiss(page);

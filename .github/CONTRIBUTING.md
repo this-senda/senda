@@ -127,7 +127,7 @@ senda/
 │   ├── auth/                     # Auth scheme helpers
 │   ├── runner/ · load/           # Folder runner + load test engine
 │   ├── codegen/ · docgen/        # Code + API-doc generation
-│   ├── importer/                 # Import from Postman / OpenAPI / curl
+│   ├── importer/                 # Import from Postman / OpenAPI / curl / HAR
 │   ├── mockserver/ · security/   # Mock server + security scanner
 │   ├── wsclient/ · sseclient/    # WebSocket + SSE clients
 │   ├── history/                  # JSONL-based request history
