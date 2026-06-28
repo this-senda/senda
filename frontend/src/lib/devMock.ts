@@ -106,6 +106,13 @@ export function installDevMock() {
             getUser: { type: "request", request: "Chaining/get-user.yaml" },
           },
         }),
+        ReadFlowRaw: async () =>
+          'name: Fetch post author\nstart: getPost\nnodes:\n  getPost:\n    type: request\n    request: Chaining/get-post.yaml\n    next: check\n',
+        SaveFlowRaw: async () => {},
+        DeleteFlow: async () => {},
+        CreateFlow: async (_coll: string, name: string) =>
+          `/demo/.senda/flows/${name}.flow.yaml`,
+        ValidateFlow: async () => [],
         RunFlow: async () => [
           { nodeId: "getPost", type: "request", result: { name: "Get post", path: "Chaining/get-post.yaml", method: "GET", url: "https://jsonplaceholder.typicode.com/posts/1", status: 200, durationMs: 31, sizeBytes: 292, ok: true, assertPass: 1, assertFail: 0, response: { status: 200, statusText: "OK", durationMs: 31, sizeBytes: 292, headers: { "Content-Type": ["application/json"] }, body: '{\n  "userId": 1,\n  "id": 1,\n  "title": "sunt aut facere"\n}', truncated: false } } },
           { nodeId: "check", type: "branch", branch: "true" },

@@ -356,6 +356,38 @@ func (a *App) ReadFlow(path string) (model.Flow, error) {
 	return store.ReadFlow(path)
 }
 
+// ReadFlowRaw returns a flow file's verbatim text for the in-app YAML editor.
+func (a *App) ReadFlowRaw(path string) (string, error) {
+	return store.ReadFlowRaw(path)
+}
+
+// SaveFlowRaw writes editor content verbatim back to a flow file.
+func (a *App) SaveFlowRaw(path, content string) error {
+	return store.SaveFlowRaw(path, content)
+}
+
+// DeleteFlow removes a flow file by path.
+func (a *App) DeleteFlow(path string) error {
+	return store.DeleteFlow(path)
+}
+
+// CreateFlow writes a starter flow under the collection's .senda/flows/ and
+// returns its path.
+func (a *App) CreateFlow(collPath, name string) (string, error) {
+	return store.CreateFlow(collPath, name)
+}
+
+// ValidateFlow parses flow YAML text and returns one message per structural
+// problem (empty = valid), for live feedback in the editor. A YAML parse error
+// is returned as a single message rather than an error.
+func (a *App) ValidateFlow(content string) []string {
+	var fl model.Flow
+	if err := yaml.Unmarshal([]byte(content), &fl); err != nil {
+		return []string{"YAML parse error: " + err.Error()}
+	}
+	return flow.Validate(fl)
+}
+
 // RunFlow executes a flow graph, streaming each step to the frontend as
 // "flow:step" events (request steps carry a RunResult, mirroring RunFolder's
 // "run:result"). It reuses the same session/send path as a folder run, so
@@ -364,6 +396,9 @@ func (a *App) RunFlow(ctx context.Context, flowPath, collPath, envName string) (
 	fl, err := store.ReadFlow(flowPath)
 	if err != nil {
 		return nil, err
+	}
+	if msgs := flow.Validate(fl); len(msgs) > 0 {
+		return nil, fmt.Errorf("invalid flow:\n%s", strings.Join(msgs, "\n"))
 	}
 	makeSend := func(extra map[string]string) runner.Send {
 		return func(ctx context.Context, path string) (model.Request, model.Response, error) {

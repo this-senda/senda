@@ -167,7 +167,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 
 - **Folder runner**: sequential execution of all requests in a folder — with timing, status, and assertion results per request
 - **Request chaining**: reference an earlier response inline with `{{res.<slug>.json.token}}` (status / body / `json.<path>` / `header.<name>`) — no script needed
-- **Flows**: declarative `*.flow.yaml` graphs (request / branch / setvar / loop / parallel / delay) for orchestration beyond the sequential runner; run from the app or headless with `senda run -flow` — see [`docs/flows.md`](docs/flows.md)
+- **Flows**: declarative `*.flow.yaml` graphs (request / branch / setvar / loop / parallel / delay) for orchestration beyond the sequential runner; create/edit/delete them in-app (raw YAML with live validation) or by hand, run from the app or headless with `senda run -flow`. Graphs are validated before they run, so a dangling edge or bad `start` fails fast before any request fires — see [`docs/flows.md`](docs/flows.md)
 - **Load testing**: concurrent virtual-user (VU) mode with configurable duration, target RPS, and max VUs; reports p50/p95/p99 latency and status distribution streamed live
 
 ### Mock server

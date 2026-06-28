@@ -2835,11 +2835,33 @@ body.dragging-splitter {
 .flow-detail-name {
   font-weight: 600;
   color: var(--text);
+  margin-right: auto; /* push the action buttons to the right */
 }
-.flow-run {
+.flow-run,
+.flow-edit,
+.flow-delete {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+.flow-chip-new {
+  border-style: dashed;
+}
+.flow-editor {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.flow-val {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.flow-val-msg {
+  font-size: 12px;
+  color: var(--danger, #d33);
+  font-family: var(--mono, monospace);
 }
 .flow-graph {
   display: flex;

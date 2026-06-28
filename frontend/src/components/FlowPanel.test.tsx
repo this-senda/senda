@@ -28,9 +28,25 @@ vi.mock("../lib/api", () => ({
         { nodeId: "check", type: "branch", branch: "true" },
       ]),
     ),
+    readFlowRaw: vi.fn(() => Promise.resolve("name: signup\nstart: login\nnodes: {}\n")),
+    saveFlowRaw: vi.fn(() => Promise.resolve()),
+    deleteFlow: vi.fn(() => Promise.resolve()),
+    createFlow: vi.fn(() => Promise.resolve("/c/.senda/flows/newflow.flow.yaml")),
+    validateFlow: vi.fn(() => Promise.resolve(["node \"login\": next edge targets missing node \"x\""])),
   },
 }));
 vi.mock("@wailsio/runtime", () => ({ Events: { On: () => () => {} } }));
+// Mock the dialog helpers (no <Dialog/> mounted here) and CM6 host (jsdom can't
+// measure it) so the editor flows are driveable.
+vi.mock("../lib/dialog", () => ({
+  confirmDialog: vi.fn(() => Promise.resolve(true)),
+  promptDialog: vi.fn(() => Promise.resolve("newflow")),
+}));
+vi.mock("./CodeEditor", () => ({
+  default: (p: any) => (
+    <textarea class="code-editor" value={p.value} onInput={(e: any) => p.onChange?.(e.currentTarget.value)} />
+  ),
+}));
 
 import { api } from "../lib/api";
 import FlowPanel from "./FlowPanel";
@@ -80,5 +96,42 @@ describe("FlowPanel", () => {
     (api.listFlows as any).mockResolvedValueOnce([]);
     render(() => <FlowPanel onClose={() => {}} />);
     await waitFor(() => expect(screen.getByText(/No flows yet/)).toBeInTheDocument());
+  });
+
+  it("edits raw YAML and surfaces validation messages", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    fireEvent.click(await screen.findByText("signup"));
+    fireEvent.click(await screen.findByText("Edit"));
+    const ta = await screen.findByDisplayValue(/name: signup/);
+    expect(api.readFlowRaw).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml");
+    fireEvent.input(ta, { target: { value: "name: signup\nstart: login\nnodes: {}\nX" } });
+    await waitFor(() => expect(screen.getByText(/targets missing node/)).toBeInTheDocument());
+  });
+
+  it("saves the edited flow", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    fireEvent.click(await screen.findByText("signup"));
+    fireEvent.click(await screen.findByText("Edit"));
+    await screen.findByDisplayValue(/name: signup/);
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() =>
+      expect(api.saveFlowRaw).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml", expect.stringContaining("name: signup")),
+    );
+  });
+
+  it("deletes the selected flow after confirm", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    fireEvent.click(await screen.findByText("signup"));
+    fireEvent.click(await screen.findByText("Delete"));
+    await waitFor(() =>
+      expect(api.deleteFlow).toHaveBeenCalledWith("/c/.senda/flows/signup.flow.yaml"),
+    );
+  });
+
+  it("creates a new flow and opens it in the editor", async () => {
+    render(() => <FlowPanel onClose={() => {}} />);
+    await screen.findByText("signup");
+    fireEvent.click(screen.getByText("New flow"));
+    await waitFor(() => expect(api.createFlow).toHaveBeenCalledWith("/c", "newflow"));
   });
 });
