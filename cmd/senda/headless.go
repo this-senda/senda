@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"senda/internal/docgen"
 	"senda/internal/flow"
@@ -169,6 +170,9 @@ func runFlow(root, nameOrPath, env string, quiet bool, report, outFile string) {
 	fl, err := store.ReadFlow(fpath)
 	if err != nil {
 		fatal(err)
+	}
+	if msgs := flow.Validate(fl); len(msgs) > 0 {
+		fatal(fmt.Errorf("invalid flow:\n%s", strings.Join(msgs, "\n")))
 	}
 
 	session := pipeline.NewSession()

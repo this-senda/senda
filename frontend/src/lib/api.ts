@@ -140,6 +140,11 @@ export const api = {
     App.RunFolder(folderPath, collPath, envName),
   listFlows: (collPath: string) => App.ListFlows(collPath),
   readFlow: (path: string) => App.ReadFlow(path),
+  readFlowRaw: (path: string) => App.ReadFlowRaw(path),
+  saveFlowRaw: (path: string, content: string) => App.SaveFlowRaw(path, content),
+  deleteFlow: (path: string) => App.DeleteFlow(path),
+  createFlow: (collPath: string, name: string) => App.CreateFlow(collPath, name),
+  validateFlow: (content: string) => App.ValidateFlow(content),
   runFlow: (flowPath: string, collPath: string, envName: string) =>
     App.RunFlow(flowPath, collPath, envName),
   runLoad: (folderPath: string, collPath: string, envName: string, opts: LoadOptions) =>

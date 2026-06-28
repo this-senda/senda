@@ -38,7 +38,7 @@ Near-term, roughly in priority order:
 
 Bigger bets, not yet committed:
 
-- **Visual flow editor** — a node-graph canvas for editing `*.flow.yaml` (today flows are authored as YAML); React Flow is React-only, so this needs a Solid-compatible canvas or a hand-rolled one.
+- **Visual flow editor** — a node-graph canvas for editing `*.flow.yaml` (today flows are authored in the in-app raw-YAML editor with live validation, or by hand); React Flow is React-only, so this needs a Solid-compatible canvas or a hand-rolled one.
 - **Split view** — two requests side by side, for comparing environments or endpoints.
 - **In-app change history** — the read-only source-control diff (working tree vs `HEAD`) shipped in v0.1; next is surfacing `git log --follow` history for a request.
 

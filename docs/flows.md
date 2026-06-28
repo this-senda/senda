@@ -103,8 +103,16 @@ A global step cap (5000) bounds cycles so a flow can't hang.
 
 ### Running a flow
 
-From the desktop app: **collection menu → Flows**, then run one and watch the
-steps stream in.
+From the desktop app: **collection menu → Flows**. Pick a flow to preview its
+graph (laid out in execution order from `start`), then run it and watch the
+steps stream in. The panel also **creates, edits and deletes** flows in place:
+**New flow** writes a starter `*.flow.yaml`, **Edit** opens the raw YAML with
+live structural validation (dangling edges, bad `start`, body-type errors), and
+**Save** writes the file verbatim — comments and layout preserved.
+
+Flows are validated before they run (in the app and headless): a graph with a
+missing `start` or an edge pointing at a node that doesn't exist fails fast with
+a clear message, **before any request fires**.
 
 Headless / CI — same binary, same pipeline:
 
