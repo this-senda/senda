@@ -128,21 +128,31 @@ type AssertResult struct {
 // PostScript runs after the response arrives (typically extracts values into
 // runtime vars for later requests).
 type Request struct {
-	Name            string   `yaml:"name" json:"name"`
-	Method          string   `yaml:"method" json:"method"`
-	URL             string   `yaml:"url" json:"url"`
-	Params          []KV     `yaml:"params,omitempty" json:"params"`
-	PathParams      []KV     `yaml:"pathParams,omitempty" json:"pathParams,omitempty"` // doc-only: {path} params (KV.Type/Desc), not sent — the URL carries them as {{vars}}
-	Headers         []KV     `yaml:"headers,omitempty" json:"headers"`
-	Body            Body     `yaml:"body,omitempty" json:"body"`
-	Auth            Auth     `yaml:"auth,omitempty" json:"auth"`
-	Asserts         []Assert `yaml:"asserts,omitempty" json:"asserts"`
-	PreScript       string   `yaml:"preScript,omitempty" json:"preScript"`
-	PostScript      string   `yaml:"postScript,omitempty" json:"postScript"`
-	Docs            string   `yaml:"docs,omitempty" json:"docs"`
-	ResponseSchema  string   `yaml:"responseSchema,omitempty" json:"responseSchema,omitempty"`   // inline JSON Schema (validation + schema reference)
-	ResponseExample string   `yaml:"responseExample,omitempty" json:"responseExample,omitempty"` // doc-only: example success response body
-	OnFail          string   `yaml:"onFail,omitempty" json:"onFail,omitempty"`                   // stop | continue | jump:<folder>
+	Name            string    `yaml:"name" json:"name"`
+	Method          string    `yaml:"method" json:"method"`
+	URL             string    `yaml:"url" json:"url"`
+	Params          []KV      `yaml:"params,omitempty" json:"params"`
+	PathParams      []KV      `yaml:"pathParams,omitempty" json:"pathParams,omitempty"` // doc-only: {path} params (KV.Type/Desc), not sent — the URL carries them as {{vars}}
+	Headers         []KV      `yaml:"headers,omitempty" json:"headers"`
+	Body            Body      `yaml:"body,omitempty" json:"body"`
+	Auth            Auth      `yaml:"auth,omitempty" json:"auth"`
+	Asserts         []Assert  `yaml:"asserts,omitempty" json:"asserts"`
+	PreScript       string    `yaml:"preScript,omitempty" json:"preScript"`
+	PostScript      string    `yaml:"postScript,omitempty" json:"postScript"`
+	Docs            string    `yaml:"docs,omitempty" json:"docs"`
+	ResponseSchema  string    `yaml:"responseSchema,omitempty" json:"responseSchema,omitempty"`   // inline JSON Schema (validation + schema reference)
+	ResponseExample string    `yaml:"responseExample,omitempty" json:"responseExample,omitempty"` // doc-only: example success response body
+	OnFail          string    `yaml:"onFail,omitempty" json:"onFail,omitempty"`                   // stop | continue | jump:<folder>
+	Spec            *SpecLink `yaml:"spec,omitempty" json:"spec,omitempty"`                       // link to an OpenAPI operation for body schema hints
+}
+
+// SpecLink ties a request to one operation in a stored OpenAPI spec, so the body
+// editor can pull that operation's requestBody schema for validation +
+// autocomplete. File is relative to .senda/openapi; OperationID is the spec's
+// operationId, else a synthesized "METHOD /path" key.
+type SpecLink struct {
+	File        string `yaml:"file" json:"file"`
+	OperationID string `yaml:"operationId" json:"operationId"`
 }
 
 // Environment is a named set of variables (e.g. dev, prod).

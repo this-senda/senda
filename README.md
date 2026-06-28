@@ -193,6 +193,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 ### Import & code generation
 
 - **Import from**: curl commands, Postman v2.0+ collections, OpenAPI 3.0 / 3.1 specs, HAR captures (Chrome DevTools "Copy all as HAR" — bulk requests + example responses, with optional record-and-replay mocks; secrets and static/analytics noise stripped on import)
+- **OpenAPI spec editor**: imported specs are kept in `.senda/openapi/` and editable in-app via a structured form (operation summary/description + request-body fields), written back in place so the rest of the document is preserved; each request links to its operation, pulling that operation's request-body JSON Schema into the body editor for validation + key autocomplete
 - **Export a response as HAR**: turn any captured request/response into a shareable `.har` from the response panel
 - **Generate code**: curl, fetch, httpie, Python `requests`, Go `net/http`
 - **Generate API docs**: render a collection (or one folder) to Markdown or self-contained HTML via `senda docs`

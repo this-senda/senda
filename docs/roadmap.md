@@ -21,7 +21,8 @@ The v0.1 line is feature-complete for everyday API work:
 - **AI assist** — optional LLM-suggested assertions from a response (bring your own key; Anthropic or any OpenAI-compatible endpoint).
 - **Mock server** — YAML-defined routes, scenarios, stateful CRUD resources, proxy passthrough, hot-reload.
 - **Protocols** — HTTP/HTTPS, WebSocket, and Server-Sent Events.
-- **Chaining & flows** — inline `{{res.<slug>...}}` response references, plus declarative `*.flow.yaml` graphs (request / branch / setvar / loop / parallel / delay) created/edited/deleted in-app (raw YAML, live validation) or by hand, runnable from the app or headless via `senda run -flow`; graphs are validated before they run.
+- **Chaining & flows** — inline `{{res.<slug>...}}` response references, plus declarative `*.flow.yaml` graphs (request / branch / setvar / loop / parallel / delay) runnable from the app or headless via `senda run -flow`.
+- **OpenAPI spec editor** — imported specs are kept in `.senda/openapi/` and editable in-app via a structured form (operation summary/description + request-body fields), with edits written back in place so the rest of the document is preserved; each request links to its operation, pulling that operation's request-body JSON Schema into the body editor for validation + key autocomplete.
 - **And more** — security scanning, JSON Schema response validation, import (curl / Postman / OpenAPI / HAR) and HAR response export, code generation, doc generation, rendered-markdown per-request docs, 13 themes, command palette, request history, file watch, cookie jar, read-only source-control diff (working tree vs `HEAD`) — plus a headless CLI and a terminal UI.
 
 See the [CHANGELOG](https://github.com/this-senda/senda/blob/main/CHANGELOG.md) for the full v0.1 detail.
@@ -39,7 +40,6 @@ Bigger bets, not yet committed:
 
 - **Visual flow editor** — a node-graph canvas for editing `*.flow.yaml` (today flows are authored in the in-app raw-YAML editor with live validation, or by hand); React Flow is React-only, so this needs a Solid-compatible canvas or a hand-rolled one.
 - **Split view** — two requests side by side, for comparing environments or endpoints.
-- **OpenAPI spec editor** — edit a linked spec and pull request-body schema hints into the editor.
 - **In-app change history** — the read-only source-control diff (working tree vs `HEAD`) shipped in v0.1; next is surfacing `git log --follow` history for a request.
 
 ## Non-goals

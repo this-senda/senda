@@ -97,6 +97,9 @@ func convertOpenAPI(base, path, method string, op *v3.Operation, pathParams []*v
 		Docs:            docsFromOp(op),
 		Asserts:         assertsForOp(op),
 		ResponseExample: responseExample(op),
+		// Linked to its source operation; ImportCollection fills Spec.File once
+		// the spec is saved into .senda/openapi.
+		Spec: &model.SpecLink{OperationID: opKey(method, path, op)},
 	}
 	// Operation parameters override path-level ones with the same name+location.
 	seen := map[string]bool{}

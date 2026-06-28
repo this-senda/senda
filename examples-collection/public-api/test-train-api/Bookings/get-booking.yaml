@@ -1,0 +1,41 @@
+name: get-booking
+method: GET
+url: '{{baseUrl}}/bookings/{{bookingId}}'
+pathParams:
+    - key: bookingId
+      value: 1725ff48-ab45-4bb5-9d02-88745177dedb
+      enabled: true
+      desc: The ID of the booking to retrieve.
+      type: string
+body:
+    type: none
+auth:
+    type: oauth2
+    grant: client_credentials
+    tokenUrl: https://example.com/oauth/token
+    clientId: '{{clientId}}'
+    clientSecret: '{{clientSecret}}'
+    scope: read write
+asserts:
+    - target: status
+      op: eq
+      value: "200"
+      enabled: true
+docs: |-
+    **Get a booking**
+
+    Returns the details of a specific booking.
+responseExample: |-
+    {
+      "has_bicycle": true,
+      "has_dog": true,
+      "id": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+      "links": {
+        "self": "https://api.example.com/bookings/1725ff48-ab45-4bb5-9d02-88745177dedb"
+      },
+      "passenger_name": "John Doe",
+      "trip_id": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e"
+    }
+spec:
+    file: train-travel-api.yaml
+    operationId: get-booking

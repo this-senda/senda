@@ -59,6 +59,9 @@ func SecurityDir(root string) string { return filepath.Join(root, ConfigDirName,
 // *.flow.yaml for a request.
 func FlowsDir(root string) string { return filepath.Join(root, ConfigDirName, flowDir) }
 
+// SpecsDir returns the canonical OpenAPI-specs directory (.senda/openapi).
+func SpecsDir(root string) string { return filepath.Join(root, ConfigDirName, specDir) }
+
 // pathExists reports whether anything (file or dir) exists at path.
 func pathExists(path string) bool {
 	_, err := os.Stat(path)

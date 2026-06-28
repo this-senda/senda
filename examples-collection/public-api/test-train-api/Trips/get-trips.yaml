@@ -1,0 +1,101 @@
+name: get-trips
+method: GET
+url: '{{baseUrl}}/trips'
+params:
+    - key: page
+      value: "1"
+      enabled: false
+      desc: The page number to return
+      type: integer
+    - key: limit
+      value: "10"
+      enabled: false
+      desc: The number of items to return per page
+      type: integer
+    - key: origin
+      value: efdbb9d1-02c2-4bc3-afb7-6788d8782b1e
+      enabled: true
+      desc: The ID of the origin station
+      type: string
+    - key: destination
+      value: b2e783e1-c824-4d63-b37a-d8d698862f1d
+      enabled: true
+      desc: The ID of the destination station
+      type: string
+    - key: date
+      value: "2024-02-01T09:00:00Z"
+      enabled: true
+      desc: The date and time of the trip in ISO 8601 format in origin station's timezone.
+      type: string
+    - key: bicycles
+      value: "false"
+      enabled: false
+      desc: Only return trips where bicycles are known to be allowed
+      type: boolean
+    - key: dogs
+      value: "false"
+      enabled: false
+      desc: Only return trips where dogs are known to be allowed
+      type: boolean
+body:
+    type: none
+auth:
+    type: oauth2
+    grant: client_credentials
+    tokenUrl: https://example.com/oauth/token
+    clientId: '{{clientId}}'
+    clientSecret: '{{clientSecret}}'
+    scope: read write
+asserts:
+    - target: status
+      op: eq
+      value: "200"
+      enabled: true
+docs: |-
+    **Get available train trips**
+
+    Returns a list of available train trips between the specified origin and destination stations on the given date, and allows for filtering by bicycle and dog allowances.
+responseExample: |-
+    {
+      "data": [
+        {
+          "arrival_time": "2024-02-01T16:00:00Z",
+          "bicycles_allowed": true,
+          "departure_time": "2024-02-01T10:00:00Z",
+          "destination": "b2e783e1-c824-4d63-b37a-d8d698862f1d",
+          "dogs_allowed": true,
+          "id": "ea399ba1-6d95-433f-92d1-83f67b775594",
+          "links": {
+            "destination": "https://api.example.com/stations/b2e783e1-c824-4d63-b37a-d8d698862f1d",
+            "origin": "https://api.example.com/stations/efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+            "self": "https://api.example.com/trips/ea399ba1-6d95-433f-92d1-83f67b775594"
+          },
+          "operator": "Deutsche Bahn",
+          "origin": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+          "price": 50
+        },
+        {
+          "arrival_time": "2024-02-01T18:00:00Z",
+          "bicycles_allowed": true,
+          "departure_time": "2024-02-01T12:00:00Z",
+          "destination": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+          "dogs_allowed": true,
+          "id": "4d67459c-af07-40bb-bb12-178dbb88e09f",
+          "links": {
+            "destination": "https://api.example.com/stations/efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+            "origin": "https://api.example.com/stations/b2e783e1-c824-4d63-b37a-d8d698862f1d",
+            "self": "https://api.example.com/trips/4d67459c-af07-40bb-bb12-178dbb88e09f"
+          },
+          "operator": "SNCF",
+          "origin": "b2e783e1-c824-4d63-b37a-d8d698862f1d",
+          "price": 50
+        }
+      ],
+      "links": {
+        "next": "https://api.example.com/trips?origin=efdbb9d1-02c2-4bc3-afb7-6788d8782b1e&destination=b2e783e1-c824-4d63-b37a-d8d698862f1d&date=2024-02-01&page=2",
+        "self": "https://api.example.com/trips?origin=efdbb9d1-02c2-4bc3-afb7-6788d8782b1e&destination=b2e783e1-c824-4d63-b37a-d8d698862f1d&date=2024-02-01"
+      }
+    }
+spec:
+    file: train-travel-api.yaml
+    operationId: get-trips
