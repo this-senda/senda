@@ -1,11 +1,10 @@
 name: Screenshots
 
-# Regenerate the documentation screenshots + GIF walkthroughs and commit them
-# back. Two capture passes run in one job:
+# Regenerate the desktop documentation screenshots + GIF and commit them back.
 #   • desktop — Playwright against `vite --mode test` (hand-written Wails binding
 #     stubs + a capture-time mock backend) → docs/screenshots/
-#   • terminal — the senda terminal-UI generator renders the real tuiModel output to PNG
-#     and an animated GIF in pure Go via internal/termimg → docs/screenshots/tui/
+# The terminal (TUI/CLI) assets are regenerated LOCALLY (`task shots:tui` /
+# `shots:cli`, pure Go; or the `:vhs` variants); they are not generated in CI.
 # Run manually after UI changes.
 on:
   workflow_dispatch:
@@ -51,22 +50,6 @@ jobs:
           cp frontend/tests/visual/__screenshots__/*.png docs/screenshots/
           cp frontend/tests/visual/__screenshots__/*.gif docs/screenshots/
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      # senda terminal-UI rendering needs a monospace face with box-drawing coverage
-      # (DejaVu Sans Mono) plus a fallback for the glyphs it lacks (FreeMono).
-      - name: Install TUI capture fonts
-        run: sudo apt-get update && sudo apt-get install -y fonts-dejavu-core fonts-freefont-ttf
-
-      - name: Capture TUI screenshots + GIF
-        env:
-          SENDA_TUI_SHOTS: "1"
-          SENDA_TUI_SHOT_DIR: ${{ github.workspace }}/docs/screenshots/tui
-        run: go test ./internal/tui -run TestTUIShots -count=1 -v
-
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
@@ -76,14 +59,8 @@ jobs:
             exit 0
           fi
           git add docs/screenshots
-          git commit -m "docs: regenerate desktop + terminal screenshots and walkthrough GIFs"
+          git commit -m "docs: regenerate desktop screenshots and walkthrough GIF"
           git push
-
-      - name: Upload TUI screenshots as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots-tui
-          path: docs/screenshots/tui/
 
       - name: Upload as artifact
         uses: actions/upload-artifact@v4

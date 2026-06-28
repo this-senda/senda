@@ -1,0 +1,6 @@
+name: Delete user
+method: DELETE
+url: http://{{base_url}}/v1/users/{{user_id}}
+auth:
+    type: bearer
+    token: "{{token}}"

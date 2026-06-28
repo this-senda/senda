@@ -1,0 +1,10 @@
+name: List orders
+method: GET
+url: http://{{base_url}}/v1/orders
+headers:
+    - key: Accept
+      value: application/json
+      enabled: true
+auth:
+    type: bearer
+    token: "{{token}}"

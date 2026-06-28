@@ -1,0 +1,17 @@
+name: Refund order
+method: POST
+url: http://{{base_url}}/v1/orders/ord_5521/refund
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "amount": 4200,
+          "reason": "customer request"
+        }
+auth:
+    type: bearer
+    token: "{{token}}"

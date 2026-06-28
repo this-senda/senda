@@ -1,0 +1,17 @@
+name: prod
+vars:
+    - key: base_url
+      value: 127.0.0.1:8787
+      enabled: true
+    - key: token
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+      enabled: true
+    - key: api_key
+      value: sk_live_abc123
+      enabled: true
+    - key: ws_url
+      value: wss://rt.senda.dev
+      enabled: true
+    - key: user_id
+      value: usr_8a2f
+      enabled: true

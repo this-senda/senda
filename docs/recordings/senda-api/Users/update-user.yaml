@@ -1,0 +1,16 @@
+name: Update user
+method: PATCH
+url: http://{{base_url}}/v1/users/{{user_id}}
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "role": "member"
+        }
+auth:
+    type: bearer
+    token: "{{token}}"

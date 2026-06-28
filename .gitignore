@@ -38,6 +38,13 @@ tmp/
 .security/
 .senda/
 history.jsonl
+# Exception: the docs recording fixture must ship its .senda config (mocks +
+# environments) so the `:vhs` shot tasks are reproducible from a clone.
+!/docs/recordings/senda-api/.senda/
+!/docs/recordings/senda-api/.senda/**
+# ...but never the run log or secrets a recording session may write there.
+/docs/recordings/senda-api/.senda/history.jsonl
+/docs/recordings/senda-api/.senda/**/*.secret.yaml
 # Local Claude Code settings (never ship to the public repo)
 .claude/
 # Root-level built binary (anchored so it doesn't match the cmd/senda source

@@ -1,0 +1,6 @@
+name: Logout
+method: POST
+url: http://{{base_url}}/v1/auth/logout
+auth:
+    type: bearer
+    token: "{{token}}"

@@ -1,0 +1,6 @@
+name: local
+vars:
+    # Local mock only — no env in this demo collection ever dials a real host.
+    - key: base_url
+      value: 127.0.0.1:8787
+      enabled: true

@@ -1,0 +1,17 @@
+name: Create order
+method: POST
+url: http://{{base_url}}/v1/orders
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "user_id": "{{user_id}}",
+          "items": [{ "sku": "BK-001", "qty": 1 }]
+        }
+auth:
+    type: bearer
+    token: "{{token}}"

@@ -102,7 +102,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 
 </details>
 
-> **Regenerate screenshots:** `cd frontend && bun run shots` (or `task shots` from the repo root) drives the UI headlessly and rewrites every image, including the GIF. See [`docs/screenshots/README.md`](docs/screenshots/README.md) for the full process.
+> **Regenerate screenshots:** `cd frontend && bun run shots` (or `task shots:desktop` from the repo root) drives the UI headlessly and rewrites every image, including the GIF. See [`docs/screenshots/README.md`](docs/screenshots/README.md) for the full process.
 
 ---
 
@@ -420,7 +420,7 @@ go test ./...
 cd frontend && bun run test
 
 # Visual screenshot regeneration (Playwright drives a mocked backend)
-task shots          # or, from frontend/: bun run shots
+task shots:desktop  # or, from frontend/: bun run shots
 ```
 
 ---

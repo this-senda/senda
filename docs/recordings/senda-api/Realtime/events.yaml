@@ -1,0 +1,5 @@
+name: Events stream
+method: WS
+url: wss://{{ws_url}}/events/stream
+auth:
+    type: none

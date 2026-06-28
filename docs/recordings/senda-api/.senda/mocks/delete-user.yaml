@@ -1,0 +1,6 @@
+name: delete-user
+method: DELETE
+path: /v1/users/usr_8a2f
+responses:
+    - status: 204
+      desc: No Content

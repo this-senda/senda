@@ -1,0 +1,16 @@
+name: Update order
+method: PATCH
+url: http://{{base_url}}/v1/orders/ord_5521
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "status": "paid"
+        }
+auth:
+    type: bearer
+    token: "{{token}}"

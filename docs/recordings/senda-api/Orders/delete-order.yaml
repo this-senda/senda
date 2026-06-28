@@ -1,0 +1,6 @@
+name: Delete order
+method: DELETE
+url: http://{{base_url}}/v1/orders/ord_5521
+auth:
+    type: bearer
+    token: "{{token}}"

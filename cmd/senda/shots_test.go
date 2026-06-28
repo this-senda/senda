@@ -143,8 +143,12 @@ func TestCLIShot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Still PNG — the final state of the run.
-	rend, err := termimg.New(termimg.Defaults())
+	// Still PNG — the final state of the run, rendered at 2× then downscaled
+	// (SSAA) with softer hinting for smooth glyphs at normal size.
+	shotOpts := termimg.Defaults()
+	shotOpts.Supersample = 2
+	shotOpts.SoftHinting = true
+	rend, err := termimg.New(shotOpts)
 	if err != nil {
 		t.Fatalf("load fonts (need fonts-dejavu-core + fonts-freefont-ttf, or set SENDA_TUI_FONT*): %v", err)
 	}
@@ -166,9 +170,7 @@ func TestCLIShot(t *testing.T) {
 	if os.Getenv("SENDA_CLI_GIF") == "0" {
 		return
 	}
-	gifOpts := termimg.Defaults()
-	gifOpts.Antialias = false // crisp glyphs keep the 256-colour palette vivid
-	rGif, err := termimg.New(gifOpts)
+	rGif, err := termimg.New(shotOpts)
 	if err != nil {
 		t.Fatal(err)
 	}

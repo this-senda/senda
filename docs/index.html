@@ -141,8 +141,14 @@
     }
     .window .titlebar .dot { width:11px; height:11px; border-radius:50%; }
     .dot.r{background:var(--red);} .dot.y{background:var(--yellow);} .dot.g{background:var(--green);}
-    .window .titlebar .t { margin-left:8px; font:600 .76rem var(--mono); color:var(--overlay1); }
-    .window img { width:100%; display:block; }
+    .window .titlebar .t { margin-left:8px; display:flex; gap:4px; }
+    .hero-tab {
+      font:600 .72rem var(--mono); color:var(--overlay1); background:none;
+      border:0; padding:2px 9px; border-radius:6px; cursor:pointer; transition:color .15s, background .15s;
+    }
+    .hero-tab:hover { color:var(--text); }
+    .hero-tab.active { color:var(--text); background:var(--surface0); }
+    .window img { width:100%; display:block; aspect-ratio:960/600; object-fit:contain; background:var(--crust); }
 
     /* ---- Stats band ---- */
     .stats { border-top:1px solid var(--surface0); border-bottom:1px solid var(--surface0); background:var(--mantle); }
@@ -436,9 +442,13 @@
       <div class="reveal window" aria-hidden="false">
         <div class="titlebar">
           <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-          <span class="t">senda — desktop</span>
+          <span class="t" id="heroTabs">
+            <button class="hero-tab active" data-i="0">desktop</button>
+            <button class="hero-tab" data-i="1">terminal</button>
+            <button class="hero-tab" data-i="2">headless</button>
+          </span>
         </div>
-        <img src="screenshots/walkthrough.gif" alt="Senda walkthrough: open a collection, send a request, inspect the response, run tests, switch theme" loading="eager" width="960" height="600">
+        <img id="heroShot" src="screenshots/walkthrough.gif" alt="Senda desktop walkthrough: open a collection, send a request, inspect the response, run tests, switch theme" loading="eager" width="960" height="600">
       </div>
     </div>
   </section>
@@ -535,7 +545,7 @@
         <div class="feat reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M9 6h6a3 3 0 0 1 3 3v6"/></svg></div>
           <h3>Chaining &amp; flows</h3>
-          <p>Reference an earlier response inline with <code>{{res.login.json.token}}</code>, or wire requests into a <code>*.flow.yaml</code> graph — branch, loop, parallel, delay — runnable from the app or <code>senda run -flow</code>.</p>
+          <p>Reference an earlier response inline with <code>{{res.login.json.token}}</code>, or wire requests into a <code>*.flow.yaml</code> graph — branch, loop, parallel, delay. Create and edit flows in-app with live validation, run them from the app or <code>senda run -flow</code>. Bad graphs fail fast before any request fires.</p>
         </div>
         <div class="feat reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><line x1="7" y1="7.5" x2="7.01" y2="7.5"/><line x1="7" y1="16.5" x2="7.01" y2="16.5"/></svg></div>
@@ -887,6 +897,28 @@
         var label = btn.childNodes[btn.childNodes.length - 1];
         if (label && label.nodeType === 3) label.textContent = ' Download for ' + os;
       }
+    })();
+
+    // Hero: cycle desktop / terminal / headless walkthroughs; click a tab to lock.
+    (function () {
+      var shot = document.getElementById('heroShot');
+      var tabs = [].slice.call(document.querySelectorAll('.hero-tab'));
+      if (!shot || !tabs.length) return;
+      var gifs = [
+        { src: 'screenshots/walkthrough.gif', alt: 'Senda desktop walkthrough' },
+        { src: 'screenshots/tui/walkthrough.gif', alt: 'Senda terminal UI walkthrough' },
+        { src: 'screenshots/cli/walkthrough.gif', alt: 'Senda CLI runner walkthrough' }
+      ];
+      var i = 0, timer = null;
+      var auto = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      function show(n) {
+        i = n; shot.src = gifs[n].src; shot.alt = gifs[n].alt;
+        tabs.forEach(function (t, k) { t.classList.toggle('active', k === n); });
+      }
+      tabs.forEach(function (t) {
+        t.addEventListener('click', function () { auto = false; clearInterval(timer); show(+t.dataset.i); });
+      });
+      if (auto) timer = setInterval(function () { show((i + 1) % gifs.length); }, 7000);
     })();
 
     // Lightbox: click a gallery shot to zoom; backdrop / Escape / click closes.
