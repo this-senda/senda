@@ -27,15 +27,17 @@ func TestTUIShots(t *testing.T) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	r, err := termimg.New(termimg.Defaults())
+	// Stills + GIF render at 2× then downscale (SSAA) with softer hinting, so
+	// glyphs get smooth grayscale-AA edges at the normal output size — sharp, not
+	// chunky — without shipping oversized images.
+	shotOpts := termimg.Defaults()
+	shotOpts.Supersample = 2
+	shotOpts.SoftHinting = true
+	r, err := termimg.New(shotOpts)
 	if err != nil {
 		t.Fatalf("load fonts (need fonts-dejavu-core + fonts-freefont-ttf, or set SENDA_TUI_FONT*): %v", err)
 	}
-	// The GIF renders glyphs crisp (no anti-aliasing) so each frame keeps the
-	// theme's exact colours and the 256-colour palette stays vivid.
-	gifOpts := termimg.Defaults()
-	gifOpts.Antialias = false
-	rGif, err := termimg.New(gifOpts)
+	rGif, err := termimg.New(shotOpts)
 	if err != nil {
 		t.Fatal(err)
 	}

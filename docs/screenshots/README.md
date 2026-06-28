@@ -24,7 +24,7 @@ cp frontend/tests/visual/__screenshots__/*.png docs/screenshots/
 cp frontend/tests/visual/__screenshots__/*.gif docs/screenshots/
 ```
 
-Or do both in one step with `task shots` from the repo root.
+Or do both in one step with `task shots:desktop` from the repo root.
 
 In CI, run the **Screenshots** workflow (`.github/workflows/screenshots.yml`,
 `workflow_dispatch`) — it regenerates everything and commits it back.

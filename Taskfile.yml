@@ -106,8 +106,8 @@ tasks:
     cmds:
       - ./tests/e2e/run-podman.sh {{.CLI_ARGS}}
 
-  shots:
-    desc: "Regenerate documentation screenshots + GIF (Playwright drives `vite --mode test`; copies into docs/screenshots/). SENDA_CHROME=path uses a custom Chrome where Playwright's browser download is blocked."
+  shots:desktop:
+    desc: "Regenerate the DESKTOP GUI screenshots + GIF (Playwright drives `vite --mode test`; copies into docs/screenshots/). SENDA_CHROME=path uses a custom Chrome where Playwright's browser download is blocked."
     deps: [install]
     dir: frontend
     cmds:
@@ -115,16 +115,33 @@ tasks:
       - cp tests/visual/__screenshots__/*.png tests/visual/__screenshots__/*.gif ../docs/screenshots/
 
   shots:tui:
-    desc: "Regenerate the senda terminal-UI screenshots + walkthrough GIF into docs/screenshots/tui/ (pure Go; renders real tuiModel output via internal/termimg — no PTY/ffmpeg). Needs DejaVu Sans Mono + FreeMono (apt: fonts-dejavu-core fonts-freefont-ttf, or set SENDA_TUI_FONT*). SENDA_TUI_GIF=0 skips the GIF."
+    desc: "Regenerate the senda terminal-UI screenshots + walkthrough GIF into docs/screenshots/tui/ (pure Go; renders real tuiModel output via internal/termimg, supersampled — no PTY/ffmpeg). Needs DejaVu Sans Mono + FreeMono (apt: fonts-dejavu-core fonts-freefont-ttf, or set SENDA_TUI_FONT*). SENDA_TUI_GIF=0 skips the GIF."
     cmds:
       - mkdir -p docs/screenshots/tui
       - SENDA_TUI_SHOTS=1 SENDA_TUI_SHOT_DIR="$PWD/docs/screenshots/tui" go test ./internal/tui -run TestTUIShots -count=1 -v
 
   shots:cli:
-    desc: "Regenerate the `senda run` screenshot + walkthrough GIF into docs/screenshots/cli/ (pure Go; runs the real send pipeline against a local in-process server and renders the actual output via internal/termimg — no network). Same font requirements as shots:tui. SENDA_CLI_GIF=0 skips the GIF."
+    desc: "Regenerate the `senda run` screenshot + walkthrough GIF into docs/screenshots/cli/ (pure Go; runs the real send pipeline against a local in-process server, supersampled — no network). Same font requirements as shots:tui. SENDA_CLI_GIF=0 skips the GIF."
     cmds:
       - mkdir -p docs/screenshots/cli
       - SENDA_CLI_SHOTS=1 SENDA_CLI_SHOT_DIR="$PWD/docs/screenshots/cli" go test ./cmd/senda -run TestCLIShot -count=1 -v
+
+  shots:tui:vhs:
+    desc: "EXPERIMENTAL: record the senda TUI with charmbracelet/vhs against the REAL binary (docs/recordings/senda-api + built-in mock server) → docs/screenshots/tui/. Real terminal, truecolor. Needs vhs + ttyd + ffmpeg (pacman -S vhs ttyd ffmpeg)."
+    deps: [build:senda]
+    cmds:
+      - docs/recordings/record.sh tui
+
+  shots:cli:vhs:
+    desc: "EXPERIMENTAL: record `senda run` with charmbracelet/vhs against the REAL binary (docs/recordings/senda-api + mock server) → docs/screenshots/cli/. Needs vhs + ttyd + ffmpeg."
+    deps: [build:senda]
+    cmds:
+      - docs/recordings/record.sh cli
+
+  shots:vhs:container:
+    desc: "EXPERIMENTAL, MAX PRIVACY: record TUI + CLI inside a throwaway charmbracelet/vhs container (generic hostname, no real user/host/home/IP can leak; chrome bundled, nothing installed locally). Needs podman or docker (overlay via fuse-overlayfs). Pass CLI_ARGS=tui|cli|all."
+    cmds:
+      - docs/recordings/record-container.sh {{.CLI_ARGS | default "all"}}
 
   hooks:install:
     desc: "Enable git hooks (pre-commit: gofmt check + secret scan via gitleaks). Run once per clone."

@@ -37,9 +37,25 @@ Override the lookup with `SENDA_TUI_FONT`, `SENDA_TUI_FONT_BOLD`, and
 `SENDA_TUI_FONT_FALLBACK` if your fonts live elsewhere. `SENDA_TUI_GIF=0` skips
 the (slower) GIF pass.
 
-In CI, run the **Screenshots** workflow
-(`.github/workflows/screenshots.yml`, `workflow_dispatch`) — its `tui` job
-installs the fonts, regenerates everything, and commits it back.
+These are regenerated **locally**, not in CI (the Screenshots workflow only
+covers the desktop GUI).
+
+> **Alternative — record the real binary:** `task shots:tui:vhs` drives the
+> actual `senda` TUI with [vhs](https://github.com/charmbracelet/vhs) against
+> `docs/recordings/senda-api` (backed by the built-in mock server) for a real
+> terminal recording. Needs `vhs` + `ttyd` + `ffmpeg`. See
+> [`docs/recordings/`](../../recordings/).
+>
+> **Privacy:** because this records a real shell/binary, `record.sh` guards
+> against leaking local machine info — clean `PS1` (no `user@host`/path),
+> `-trimpath` build, redirected mock output, and localhost-only requests (your
+> IP is never exposed). Guards are listed at the top of `record.sh`; still,
+> eyeball the generated PNGs/GIF before committing.
+>
+> **Max privacy:** `task shots:vhs:container` runs the whole thing inside a
+> throwaway `charmbracelet/vhs` container (generic hostname, root user, `/vhs`
+> workdir, chrome bundled). Nothing about your real machine can appear even if a
+> guard failed. Needs `podman` or `docker`.
 
 ## Files
 

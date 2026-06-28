@@ -1,0 +1,15 @@
+name: Refresh token
+method: POST
+url: http://{{base_url}}/v1/auth/refresh
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "refresh_token": "{{token}}"
+        }
+auth:
+    type: none

@@ -1,0 +1,54 @@
+name: List users
+method: GET
+url: http://{{base_url}}/v1/users
+params:
+    - key: limit
+      value: "20"
+      enabled: true
+      desc: items per page
+    - key: status
+      value: active
+      enabled: true
+      desc: filter by state
+    - key: sort
+      value: -created_at
+      enabled: true
+      desc: order
+headers:
+    - key: Authorization
+      value: Bearer {{token}}
+      enabled: true
+    - key: Accept
+      value: application/json
+      enabled: true
+    - key: X-Senda-Client
+      value: tui/1.0
+      enabled: true
+auth:
+    type: bearer
+    token: "{{token}}"
+asserts:
+    - target: status
+      op: eq
+      value: "200"
+      enabled: true
+    - target: duration
+      op: lt
+      value: "300"
+      enabled: true
+    - target: header.Content-Type
+      op: contains
+      value: application/json
+      enabled: true
+    - target: json.meta.total
+      op: eq
+      value: "142"
+      enabled: true
+    - target: json.data[0].name
+      op: eq
+      value: Ada Lovelace
+      enabled: true
+    - target: json.data[0].role
+      op: eq
+      value: admin
+      enabled: true

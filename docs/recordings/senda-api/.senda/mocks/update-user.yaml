@@ -1,0 +1,14 @@
+name: update-user
+method: PATCH
+path: /v1/users/usr_8a2f
+responses:
+    - status: 200
+      desc: OK
+      headers:
+        Content-Type: application/json
+      body:
+        id: usr_8a2f
+        name: Ada Lovelace
+        email: ada@senda.dev
+        role: member
+        active: true

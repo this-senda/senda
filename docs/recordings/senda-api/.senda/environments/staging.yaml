@@ -1,0 +1,7 @@
+name: staging
+vars:
+    # Points at the local mock (not a real host) so no send — even an accidental
+    # one under this env — ever leaves the machine.
+    - key: base_url
+      value: 127.0.0.1:8787
+      enabled: true

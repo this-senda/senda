@@ -19,6 +19,7 @@ import (
 	"os"
 
 	"github.com/mattn/go-runewidth"
+	xdraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/font/sfnt"
@@ -34,11 +35,22 @@ type Options struct {
 	DefaultFg    color.RGBA // foreground for unstyled cells
 	DefaultBg    color.RGBA // background for unstyled cells and padding
 
-	// Antialias controls glyph edge smoothing. PNG stills look best with it on
-	// (true). For GIFs leave it off: crisp 1-bit glyphs keep each frame to the
-	// theme's exact colours, so the 256-colour palette stays vivid instead of
-	// drowning in anti-aliased near-grey blends.
+	// Antialias controls glyph edge smoothing. Leave it on (true) for both PNG
+	// stills and GIFs — combined with Supersample it gives crisp, smooth glyphs.
+	// Turning it off thresholds glyphs to 1-bit coverage (pure fg/bg, no blends),
+	// which keeps a GIF's 256-colour palette vivid but renders chunky at 1×.
 	Antialias bool
+
+	// SoftHinting picks font.HintingVertical instead of the default HintingFull.
+	// Full hinting snaps stems to the pixel grid — crisp at 1× but chunky when
+	// supersampled; soften it for the hi-res supersampled pass.
+	SoftHinting bool
+
+	// Supersample renders the grid at this integer factor, then downscales the
+	// result back to 1× with a Catmull-Rom filter — crisp, grayscale-AA glyphs at
+	// the normal output size without shipping an oversized image. 0/1 = off.
+	// Set Antialias=true alongside it so the downscale has real coverage to blend.
+	Supersample int
 
 	// Font search paths. The first readable file in each list wins. Fallback
 	// faces are consulted, in order, only for runes the primary face lacks
@@ -100,6 +112,7 @@ type Renderer struct {
 	bold     loadedFont
 	fallback []loadedFont
 	baseline int
+	ss       int // supersample factor (≥1)
 
 	masks map[maskKey]*image.Alpha
 }
@@ -111,17 +124,26 @@ type maskKey struct {
 
 // New loads the fonts and prepares a Renderer.
 func New(opt Options) (*Renderer, error) {
-	r := &Renderer{opt: opt, masks: map[maskKey]*image.Alpha{}}
+	ss := opt.Supersample
+	if ss < 1 {
+		ss = 1
+	}
+	// Render everything at ss×; Image downscales the finished frame back to 1×.
+	opt.CellW *= ss
+	opt.CellH *= ss
+	opt.Pad *= ss
+	opt.FontSize *= float64(ss)
+	r := &Renderer{opt: opt, ss: ss, masks: map[maskKey]*image.Alpha{}}
 	var err error
-	if r.regular, err = loadFace(opt.RegularPaths, opt.FontSize); err != nil {
+	if r.regular, err = loadFace(opt.RegularPaths, opt.FontSize, opt.SoftHinting); err != nil {
 		return nil, fmt.Errorf("regular font: %w", err)
 	}
 	// Bold is optional; fall back to regular if absent.
-	if r.bold, err = loadFace(opt.BoldPaths, opt.FontSize); err != nil {
+	if r.bold, err = loadFace(opt.BoldPaths, opt.FontSize, opt.SoftHinting); err != nil {
 		r.bold = r.regular
 	}
 	for _, p := range opt.FallbackPaths {
-		if lf, e := loadFace([]string{p}, opt.FontSize); e == nil {
+		if lf, e := loadFace([]string{p}, opt.FontSize, opt.SoftHinting); e == nil {
 			r.fallback = append(r.fallback, lf)
 		}
 	}
@@ -131,7 +153,11 @@ func New(opt Options) (*Renderer, error) {
 	return r, nil
 }
 
-func loadFace(paths []string, size float64) (loadedFont, error) {
+func loadFace(paths []string, size float64, soft bool) (loadedFont, error) {
+	hint := font.HintingFull
+	if soft {
+		hint = font.HintingVertical
+	}
 	var lastErr error
 	for _, p := range paths {
 		b, err := os.ReadFile(p)
@@ -144,7 +170,7 @@ func loadFace(paths []string, size float64) (loadedFont, error) {
 			lastErr = err
 			continue
 		}
-		face, err := opentype.NewFace(sf, &opentype.FaceOptions{Size: size, DPI: 72, Hinting: font.HintingFull})
+		face, err := opentype.NewFace(sf, &opentype.FaceOptions{Size: size, DPI: 72, Hinting: hint})
 		if err != nil {
 			lastErr = err
 			continue
@@ -168,6 +194,11 @@ func (r *Renderer) Image(ansi string) *image.RGBA {
 		for x := 0; x < g.cols; x++ {
 			r.drawCell(img, x, y, g.at(x, y))
 		}
+	}
+	if r.ss > 1 {
+		dst := image.NewRGBA(image.Rect(0, 0, w/r.ss, h/r.ss))
+		xdraw.CatmullRom.Scale(dst, dst.Bounds(), img, img.Bounds(), xdraw.Src, nil)
+		return dst
 	}
 	return img
 }

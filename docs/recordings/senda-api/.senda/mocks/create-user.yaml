@@ -1,0 +1,14 @@
+name: create-user
+method: POST
+path: /v1/users
+responses:
+    - status: 201
+      desc: Created
+      headers:
+        Content-Type: application/json
+      body:
+        id: usr_9f3a
+        name: Grace Hopper
+        email: grace@senda.dev
+        role: admin
+        active: true

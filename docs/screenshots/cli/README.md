@@ -32,6 +32,11 @@ Same requirement as the TUI shots: **DejaVu Sans Mono** + **FreeMono** on the
 system font path (`apt-get install -y fonts-dejavu-core fonts-freefont-ttf`, or
 point `SENDA_TUI_FONT*` at your own). `SENDA_CLI_GIF=0` skips the GIF.
 
+> **Alternative — record the real binary:** `task shots:cli:vhs` records the
+> actual `senda run` with [vhs](https://github.com/charmbracelet/vhs) against
+> `docs/recordings/senda-api` (Users folder, mock-backed). Needs `vhs` + `ttyd`
+> + `ffmpeg`.
+
 ## Files
 
 | File | Shown |

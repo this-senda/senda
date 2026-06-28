@@ -1,0 +1,27 @@
+name: get-users
+method: GET
+path: /v1/users
+responses:
+    - status: 200
+      desc: OK
+      headers:
+        Content-Type: application/json
+        Cache-Control: no-cache
+      body:
+        data:
+            - id: usr_8a2f
+              name: Ada Lovelace
+              email: ada@senda.dev
+              role: admin
+              active: true
+              created_at: "2026-01-14T09:24:00Z"
+            - id: usr_3c9b
+              name: Alan Turing
+              email: alan@senda.dev
+              role: member
+              active: true
+              created_at: "2026-02-02T16:05:00Z"
+        meta:
+            total: 142
+            limit: 20
+            page: 1

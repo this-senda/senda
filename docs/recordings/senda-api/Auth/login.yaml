@@ -1,0 +1,16 @@
+name: Login
+method: POST
+url: http://{{base_url}}/v1/auth/login
+headers:
+    - key: Content-Type
+      value: application/json
+      enabled: true
+body:
+    type: json
+    raw: |-
+        {
+          "email": "ada@senda.dev",
+          "password": "hunter2"
+        }
+auth:
+    type: none
