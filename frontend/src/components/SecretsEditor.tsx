@@ -34,7 +34,11 @@ export default function SecretsEditor(props: { onClose: () => void }) {
 
   const patch = (i: number, p: Partial<KV>) =>
     setRows(rows().map((r, idx) => (idx === i ? { ...r, ...p } : r)));
-  const remove = (i: number) => setRows(rows().filter((_, idx) => idx !== i));
+  const remove = (i: number) => {
+    setRows(rows().filter((_, idx) => idx !== i));
+    // reindex reveal flags: drop i, shift everything above it down one.
+    setRevealed((prev) => new Set([...prev].filter((x) => x !== i).map((x) => (x > i ? x - 1 : x))));
+  };
   const addRow = () =>
     setRows([...rows(), { key: "", value: "", enabled: true } as KV]);
 
