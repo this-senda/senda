@@ -3449,6 +3449,32 @@ body.dragging-node * {
   padding: 10px;
   overflow-y: auto;
 }
+.secrets-hint {
+  font-size: var(--fs-sm);
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+.secret-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.secret-row .secret-key {
+  flex: 0 0 34%;
+}
+.secret-row .secret-val {
+  flex: 1;
+}
+.secret-row input[type="text"],
+.secret-row input[type="password"] {
+  background: var(--bg-elev2);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 5px 8px;
+  font-size: var(--fs-base);
+}
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);

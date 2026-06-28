@@ -344,3 +344,41 @@ func EnvironmentSecrets(root, name string) []model.KV {
 	}
 	return secretVars(filepath.Join(dir, name+".secret.yml"))
 }
+
+// writeSecretVars writes a vars-only secret overlay to path (0o600, tighter
+// than plain env files). An empty/nil vars slice removes the file instead, so
+// clearing every secret leaves no stray overlay behind. Callers must ensure the
+// file is gitignored (see gitguard) — secrets must never reach git.
+func writeSecretVars(path string, vars []model.KV) error {
+	if len(vars) == 0 {
+		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	data, err := yaml.Marshal(struct {
+		Vars []model.KV `yaml:"vars"`
+	}{vars})
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, data, 0o600)
+}
+
+// SaveCollectionSecrets writes the collection-level secret overlay
+// (.senda/senda.secret.yaml). Mirrors CollectionSecrets' read format.
+func SaveCollectionSecrets(root string, vars []model.KV) error {
+	return writeSecretVars(filepath.Join(ConfigDir(root), secretFile), vars)
+}
+
+// SaveEnvironmentSecrets writes a per-environment secret overlay
+// (.senda/environments/<name>.secret.yaml). Mirrors EnvironmentSecrets.
+func SaveEnvironmentSecrets(root, name string, vars []model.KV) error {
+	if name == "" {
+		return fmt.Errorf("environment name required")
+	}
+	return writeSecretVars(filepath.Join(EnvironmentsDir(root), name+".secret.yaml"), vars)
+}

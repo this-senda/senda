@@ -123,6 +123,41 @@ func TestSecretsOverlay(t *testing.T) {
 	}
 }
 
+func TestSecretsWriteRoundTrip(t *testing.T) {
+	root := t.TempDir()
+	coll := []model.KV{{Key: "apiKey", Value: "shh", Enabled: true}}
+	if err := SaveCollectionSecrets(root, coll); err != nil {
+		t.Fatal(err)
+	}
+	if v := CollectionSecrets(root); len(v) != 1 || v[0].Key != "apiKey" || v[0].Value != "shh" {
+		t.Errorf("collection secret round-trip = %+v", v)
+	}
+
+	env := []model.KV{{Key: "token", Value: "hunter2", Enabled: true}}
+	if err := SaveEnvironmentSecrets(root, "dev", env); err != nil {
+		t.Fatal(err)
+	}
+	if v := EnvironmentSecrets(root, "dev"); len(v) != 1 || v[0].Value != "hunter2" {
+		t.Errorf("env secret round-trip = %+v", v)
+	}
+
+	// empty slice removes the overlay file.
+	if err := SaveCollectionSecrets(root, nil); err != nil {
+		t.Fatal(err)
+	}
+	if v := CollectionSecrets(root); v != nil {
+		t.Errorf("cleared collection secrets should be nil, got %+v", v)
+	}
+	if _, err := os.Stat(filepath.Join(ConfigDir(root), secretFile)); !os.IsNotExist(err) {
+		t.Errorf("secret file should be removed when cleared, stat err = %v", err)
+	}
+
+	// empty env name is rejected.
+	if err := SaveEnvironmentSecrets(root, "", env); err == nil {
+		t.Error("expected error for empty env name")
+	}
+}
+
 func TestListEnvironmentsMissingDir(t *testing.T) {
 	envs, err := ListEnvironments(t.TempDir())
 	if err != nil {

@@ -2,7 +2,7 @@
 // folder/request tree, open a request into the editor, add/delete/rename, run
 // a folder, import requests, and view history.
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from "solid-js";
-import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileCode, FileText, Folder, FolderPlus, GitCompare, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, Workflow, X, Zap, Server } from "lucide-solid";
+import { ChevronRight, ChevronsDownUp, ChevronsUpDown, Clock, Download, FilePlus, FileCode, FileText, Folder, FolderPlus, GitCompare, KeyRound, MoreHorizontal, Pencil, Play, Plus, Search, Settings, ShieldCheck, Workflow, X, Zap, Server } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api } from "../lib/api";
 import type { TreeNode } from "../lib/api";
@@ -13,6 +13,7 @@ import { attachCtxDismiss } from "../lib/ctxMenu";
 import { blankRequest } from "../lib/factory";
 import { alertDialog, confirmDialog, promptDialog } from "../lib/dialog";
 import CollectionSettings from "./CollectionSettings";
+import SecretsEditor from "./SecretsEditor";
 import FolderSettings from "./FolderSettings";
 import ImportDialog from "./ImportDialog";
 import HistoryPanel from "./HistoryPanel";
@@ -101,6 +102,7 @@ function filterTree(node: TreeNode, q: string): TreeNode | null {
 
 export default function Sidebar() {
   const [showSettings, setShowSettings] = createSignal(false);
+  const [showSecrets, setShowSecrets] = createSignal(false);
   const [showImport, setShowImport] = createSignal(false);
   const [showHistory, setShowHistory] = createSignal(false);
   const [showScm, setShowScm] = createSignal(false);
@@ -214,6 +216,9 @@ export default function Sidebar() {
               <FileText size={ICON.sm} /> Export docs
             </button>
             <div class="ctx-sep" />
+            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSecrets(true); }}>
+              <KeyRound size={ICON.sm} /> Manage secrets
+            </button>
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSettings(true); }}>
               <Settings size={ICON.sm} /> Collection settings
             </button>
@@ -222,6 +227,9 @@ export default function Sidebar() {
       </div>
       <Show when={showSettings()}>
         <CollectionSettings onClose={() => setShowSettings(false)} />
+      </Show>
+      <Show when={showSecrets()}>
+        <SecretsEditor onClose={() => setShowSecrets(false)} />
       </Show>
       <Show when={showImport()}>
         <ImportDialog onClose={() => setShowImport(false)} />
