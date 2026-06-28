@@ -6,6 +6,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 
 	"senda/internal/fake"
+	"senda/internal/gitguard"
 	"senda/internal/mockserver"
 	"senda/internal/model"
 	"senda/internal/pipeline"
@@ -184,4 +185,34 @@ func (a *App) ListEnvironments(collPath string) ([]model.Environment, error) {
 // SaveEnvironment writes one environment file.
 func (a *App) SaveEnvironment(collPath string, env model.Environment) error {
 	return store.SaveEnvironment(collPath, env)
+}
+
+// ReadCollectionSecrets returns the collection-level secret vars with their real
+// values, for the secrets editor. Unlike ResolveScope (which masks secrets),
+// this exposes values — the editor runs locally on the user's machine.
+func (a *App) ReadCollectionSecrets(collPath string) []model.KV {
+	return store.CollectionSecrets(collPath)
+}
+
+// SaveCollectionSecrets writes the collection-level secret overlay. Ensures the
+// secret files are gitignored first so they can never be staged.
+func (a *App) SaveCollectionSecrets(collPath string, vars []model.KV) error {
+	if err := gitguard.WriteIgnore(collPath); err != nil {
+		return err
+	}
+	return store.SaveCollectionSecrets(collPath, vars)
+}
+
+// ReadEnvironmentSecrets returns one environment's secret vars with real values.
+func (a *App) ReadEnvironmentSecrets(collPath, envName string) []model.KV {
+	return store.EnvironmentSecrets(collPath, envName)
+}
+
+// SaveEnvironmentSecrets writes one environment's secret overlay, ensuring the
+// secret files are gitignored first.
+func (a *App) SaveEnvironmentSecrets(collPath, envName string, vars []model.KV) error {
+	if err := gitguard.WriteIgnore(collPath); err != nil {
+		return err
+	}
+	return store.SaveEnvironmentSecrets(collPath, envName, vars)
 }

@@ -146,7 +146,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 - Named environments (dev, prod, staging…) stored as YAML alongside requests
 - `{{var}}` interpolation in URL, headers, and body
 - Precedence: runtime (script) → environment → collection base → request
-- **Secrets**: `*.secret.yaml` files are gitignored and merged at send-time only — never committed
+- **Secrets**: `*.secret.yaml` files are gitignored and merged at send-time only — never committed; edit them in-app (collection or per-environment) via the Manage secrets dialog, values masked with per-row reveal
 
 ### Testing & assertions
 
@@ -629,7 +629,6 @@ for what's in the box, and the [CHANGELOG](CHANGELOG.md) for the full release de
 Where it's headed next — intent, not a promise. The full roadmap lives in
 [`docs/roadmap.md`](docs/roadmap.md).
 
-- **Secrets editing UI** — manage `*.secret.yaml` from the app (auto-gitignore on open already ships via gitguard)
 - **gRPC** — first-class gRPC requests alongside HTTP and GraphQL
 
 ---

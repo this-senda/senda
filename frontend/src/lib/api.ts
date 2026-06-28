@@ -104,6 +104,15 @@ export const api = {
   saveEnvironment: (collPath: string, env: Environment) =>
     App.SaveEnvironment(collPath, env),
 
+  // secrets (*.secret.yaml overlays; real values, edited locally)
+  readCollectionSecrets: (collPath: string) => App.ReadCollectionSecrets(collPath),
+  saveCollectionSecrets: (collPath: string, vars: KV[]) =>
+    App.SaveCollectionSecrets(collPath, vars),
+  readEnvironmentSecrets: (collPath: string, envName: string) =>
+    App.ReadEnvironmentSecrets(collPath, envName),
+  saveEnvironmentSecrets: (collPath: string, envName: string, vars: KV[]) =>
+    App.SaveEnvironmentSecrets(collPath, envName, vars),
+
   // export
   exportFile: (filename: string, content: string) => App.ExportFile(filename, content),
   exportDocsHtml: (collPath: string, subPath = "") => App.ExportDocsHTML(collPath, subPath),

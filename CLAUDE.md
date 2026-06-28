@@ -61,6 +61,20 @@ cd frontend && bun run typecheck       # tsc --noEmit
 - Two settings modals edit SAME `senda.meta.yaml`, don't mix up: `CollectionSettings.tsx` = collection ROOT (opened from collection context menu → "Collection settings"; reads `collection()` from store), `FolderSettings.tsx` = sub-folders (opened from folder's context menu; takes `props.path`). Collection-root-only config (proxy/TLS, default auth) lives in `CollectionSettings`. `FolderSettings` has `isRoot`-style path check available but NEVER opened for root — putting root-only UI behind check there makes it unreachable. New bound `Git*`/meta App method touched by either modal → mirror in `tests/visual/mock-backend.mjs` (see e2e note below).
 - New field on `model.Collection` → add to BOTH hand-copy sites in `store.go` (`ReadMeta` and `SaveCollection` copy fields explicitly, not via struct assignment) or silently won't persist.
 
+## SolidJS — editable lists MUST use `<Index>`, never `<For>` (ABSOLUTE)
+
+This has bitten repeatedly: type one char into a row input → focus + caret lost → must re-click. **Always** the same cause, **always** preventable.
+
+**Rule (no exceptions):** any list whose rows contain a focusable, edited-in-place element — `<input>`, `<textarea>`, contenteditable, or a custom input wrapper (`VarInput`, `KVEditor`) — iterates with `<Index each>`, **NOT** `<For each>`.
+
+**Why:** `<For>` keys rows by object **reference**. Edit handlers replace the row's reference every keystroke (`setRows(rows.map((r,i)=> i===idx ? {...r, x} : r))`). New ref → `<For>` disposes and recreates that row's DOM → the focused `<input>` unmounts → focus + caret die on every character. `<Index>` keys by **position**: the DOM node is stable, only the value signal updates, focus is kept. (`<For>` is correct ONLY for non-editable rows — buttons, static text, display-only — or `<For>` over a `createStore` array mutated via path setters `setRows(i,'value',v)` so the row ref stays stable.)
+
+**API differs — convert carefully:** `<For>` callback is `(item, indexAccessor)` → `item` is the value, `index()` is a function. `<Index>` callback is `(itemAccessor, index)` → `item()` is a function, `index` is a plain number. When switching `<For>`→`<Index>`: every bare `item.field` becomes `item().field`, and every `index()` becomes `index`.
+
+**Canonical reference:** `KVEditor.tsx` (the house row editor) and `AssertEditor.tsx`, `RequestEditor.tsx` multipart — all `<Index>`.
+
+**Verify before claiming done (mandatory for any new/changed form list):** run the real app and type **2+ consecutive characters** into a row input without re-clicking — focus must persist and all chars land. A passing typecheck/vitest does NOT catch this; it is a runtime reconciliation behavior. Grep new UI for `<For` near `<input`/`onInput`/`VarInput`/`KVEditor` and convert any hit.
+
 ## WebKit e2e (`frontend/tests/e2e/`) — load-bearing selectors
 
 Specs drive real WebKit. Rename/retag any selector below → CI breaks. Touch markup → fix matching spec same change.

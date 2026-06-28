@@ -1,4 +1,4 @@
-import { createEffect, createResource, createSignal, For, Show } from "solid-js";
+import { createEffect, createResource, createSignal, For, Index, Show } from "solid-js";
 import { X, Plus, Trash2 } from "lucide-solid";
 import { ICON } from "../lib/icons";
 import { api, type SpecOp, type SpecField } from "../lib/api";
@@ -166,23 +166,23 @@ export default function SpecEditorPanel(props: { onClose: () => void }) {
                   </div>
                   <Show when={hasBody()}>
                     <div class="spec-fields">
-                      <For each={fields()}>
+                      <Index each={fields()}>
                         {(f, i) => (
                           <div class="spec-field-row">
-                            <input class="dlg-input spec-field-name" placeholder="name" value={f.name} onInput={(e) => updateField(i(), { name: e.currentTarget.value })} />
-                            <select class="body-type-select" value={f.type} onChange={(e) => updateField(i(), { type: e.currentTarget.value })}>
-                              <For each={FIELD_TYPES.includes(f.type) ? FIELD_TYPES : [f.type, ...FIELD_TYPES]}>
+                            <input class="dlg-input spec-field-name" placeholder="name" value={f().name} onInput={(e) => updateField(i, { name: e.currentTarget.value })} />
+                            <select class="body-type-select" value={f().type} onChange={(e) => updateField(i, { type: e.currentTarget.value })}>
+                              <For each={FIELD_TYPES.includes(f().type) ? FIELD_TYPES : [f().type, ...FIELD_TYPES]}>
                                 {(t) => <option value={t}>{t}</option>}
                               </For>
                             </select>
                             <label class="spec-req" title="Required">
-                              <input type="checkbox" checked={f.required} onChange={(e) => updateField(i(), { required: e.currentTarget.checked })} /> req
+                              <input type="checkbox" checked={f().required} onChange={(e) => updateField(i, { required: e.currentTarget.checked })} /> req
                             </label>
-                            <input class="dlg-input spec-field-desc" placeholder="description" value={f.desc} onInput={(e) => updateField(i(), { desc: e.currentTarget.value })} />
-                            <button class="icon-btn" title="Remove field" onClick={() => removeField(i())}><Trash2 size={ICON.xs} /></button>
+                            <input class="dlg-input spec-field-desc" placeholder="description" value={f().desc} onInput={(e) => updateField(i, { desc: e.currentTarget.value })} />
+                            <button class="icon-btn" title="Remove field" onClick={() => removeField(i)}><Trash2 size={ICON.xs} /></button>
                           </div>
                         )}
-                      </For>
+                      </Index>
                       <button class="mini-btn" onClick={addField}><Plus size={ICON.xs} /> Add field</button>
                     </div>
                   </Show>
