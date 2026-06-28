@@ -252,7 +252,7 @@ export default function RequestEditor() {
                 <div class="empty-hint docs-hint">Markdown notes for this request — stored in its YAML.</div>
                 <CodeEditor
                   value={request.docs ?? ""}
-                  language="text"
+                  language="markdown"
                   onChange={(v) => {
                     setRequest("docs", v);
                     setDirty(true);

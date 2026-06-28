@@ -12,6 +12,7 @@ import {
   type CompletionResult,
 } from "@codemirror/autocomplete";
 import { json } from "@codemirror/lang-json";
+import { markdown } from "@codemirror/lang-markdown";
 import { buildScope, triggerAt } from "../lib/vars";
 import { fakerTokens } from "../lib/faker";
 import { makeBodySchemaSource } from "../lib/jsonSchemaComplete";
@@ -22,7 +23,7 @@ import { tags as t } from "@lezer/highlight";
 
 type Props = {
   value: string;
-  language?: "json" | "text" | "graphql";
+  language?: "json" | "text" | "graphql" | "markdown";
   readOnly?: boolean;
   onChange?: (v: string) => void;
   // GraphQL only: when set, enables schema-aware validation + autocomplete.
@@ -189,6 +190,15 @@ const highlight = syntaxHighlighting(
     { tag: [t.variableName, t.atom, t.labelName], color: "var(--syn-variable)" },
     { tag: [t.comment, t.lineComment, t.blockComment], color: "var(--text-faint)", fontStyle: "italic" },
     { tag: [t.punctuation, t.brace, t.bracket, t.separator], color: "var(--text-dim)" },
+    // Markdown (docs editor). Heading levels are distinct tags, so list them.
+    { tag: [t.heading1, t.heading2, t.heading3, t.heading4, t.heading5, t.heading6], color: "var(--syn-keyword)", fontWeight: "700" },
+    { tag: t.strong, fontWeight: "700", color: "var(--syn-property)" },
+    { tag: t.emphasis, fontStyle: "italic" },
+    { tag: t.strikethrough, textDecoration: "line-through" },
+    { tag: t.monospace, color: "var(--syn-string)" },
+    { tag: [t.link, t.url], color: "var(--syn-variable)", textDecoration: "underline" },
+    { tag: t.quote, color: "var(--text-dim)", fontStyle: "italic" },
+    { tag: t.processingInstruction, color: "var(--text-faint)" }, // markup chars: # * - > `
   ]),
 );
 
@@ -224,6 +234,7 @@ export default function CodeEditor(props: Props) {
           ]),
       ...(props.language === "json" ? [json()] : []),
       ...(props.language === "graphql" ? graphql(props.schema) : []),
+      ...(props.language === "markdown" ? [markdown()] : []),
       EditorView.updateListener.of((u) => {
         if (u.docChanged && props.onChange) {
           props.onChange(u.state.doc.toString());
