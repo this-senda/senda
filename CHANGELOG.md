@@ -7,6 +7,21 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.1.11](https://github.com/this-senda/senda/compare/v0.1.10...v0.1.11) (2026-06-28)
+
+
+### Features
+
+* **docs:** syntax-highlight markdown in request docs editor ([#78](https://github.com/this-senda/senda/issues/78)) ([538f246](https://github.com/this-senda/senda/commit/538f24632c357c9c354e8a9e4bacd989c789573b))
+* **flow:** in-app YAML editor, graph validation, ordered view ([#74](https://github.com/this-senda/senda/issues/74)) ([a3286fe](https://github.com/this-senda/senda/commit/a3286fef714adeea46aa06be395e741627d28e4f))
+* **openapi:** structured spec editor + body schema hints ([#73](https://github.com/this-senda/senda/issues/73)) ([771019d](https://github.com/this-senda/senda/commit/771019d1b8c7e7f3738624da6d4527a4ca506935))
+* **secrets:** in-app secret editor + fix For/Index focus loss ([#77](https://github.com/this-senda/senda/issues/77)) ([561e411](https://github.com/this-senda/senda/commit/561e411dd41a0f61f5d207e7deaebc7bc484e41d))
+
+
+### Documentation
+
+* crisp terminal screenshots + vhs recording path ([#76](https://github.com/this-senda/senda/issues/76)) ([dfba73d](https://github.com/this-senda/senda/commit/dfba73da088bcf6ac4d60d26527ca2089d0608dc))
+
 ## [0.1.10](https://github.com/this-senda/senda/compare/v0.1.9...v0.1.10) (2026-06-27)
 
 
