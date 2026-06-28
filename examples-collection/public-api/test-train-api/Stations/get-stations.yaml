@@ -1,0 +1,76 @@
+name: get-stations
+method: GET
+url: '{{baseUrl}}/stations'
+params:
+    - key: page
+      value: "1"
+      enabled: false
+      desc: The page number to return
+      type: integer
+    - key: limit
+      value: "10"
+      enabled: false
+      desc: The number of items to return per page
+      type: integer
+    - key: coordinates
+      value: 52.5200,13.4050
+      enabled: false
+      desc: |
+        The latitude and longitude of the user's location, to narrow down the search results to sites within a proximity of this location.
+      type: string
+    - key: search
+      value: ""
+      enabled: false
+      desc: |
+        A search term to filter the list of stations by name or address.
+      type: string
+    - key: country
+      value: DE
+      enabled: false
+      desc: Filter stations by country code
+      type: string
+body:
+    type: none
+auth:
+    type: oauth2
+    grant: client_credentials
+    tokenUrl: https://example.com/oauth/token
+    clientId: '{{clientId}}'
+    clientSecret: '{{clientSecret}}'
+    scope: read write
+asserts:
+    - target: status
+      op: eq
+      value: "200"
+      enabled: true
+docs: |-
+    **Get a list of train stations**
+
+    Returns a paginated and searchable list of all train stations.
+responseExample: |-
+    {
+      "data": [
+        {
+          "address": "Invalidenstraße 10557 Berlin, Germany",
+          "country_code": "DE",
+          "id": "efdbb9d1-02c2-4bc3-afb7-6788d8782b1e",
+          "name": "Berlin Hauptbahnhof",
+          "timezone": "Europe/Berlin"
+        },
+        {
+          "address": "18 Rue de Dunkerque 75010 Paris, France",
+          "country_code": "FR",
+          "id": "b2e783e1-c824-4d63-b37a-d8d698862f1d",
+          "name": "Paris Gare du Nord",
+          "timezone": "Europe/Paris"
+        }
+      ],
+      "links": {
+        "next": "https://api.example.com/stations?page=3",
+        "prev": "https://api.example.com/stations?page=1",
+        "self": "https://api.example.com/stations&page=2"
+      }
+    }
+spec:
+    file: train-travel-api.yaml
+    operationId: get-stations

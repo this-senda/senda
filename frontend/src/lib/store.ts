@@ -38,6 +38,7 @@ export async function refreshActivity(collPath: string) {
 // --- background process state (mock server, load test) --------------------
 export const [mockServerAddr, setMockServerAddr] = createSignal("");   // "" = stopped
 export const [showMockPanel, setShowMockPanel] = createSignal(false);
+export const [showSpecPanel, setShowSpecPanel] = createSignal(false);
 
 // Response pane collapsed state, persisted across launches.
 export const [respCollapsed, setRespCollapsed] = createSignal(

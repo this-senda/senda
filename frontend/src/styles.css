@@ -4298,3 +4298,188 @@ body.dragging-node * {
   word-break: break-word;
   color: var(--text-dim);
 }
+
+/* --- OpenAPI spec link + body schema validation --- */
+.spec-link {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+.schema-validate {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 6px;
+  font-size: var(--fs-xs);
+  max-height: 25%;
+  overflow-y: auto;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-soft);
+}
+.schema-ok {
+  color: var(--ok);
+  font-size: var(--fs-xs);
+}
+.schema-fail {
+  display: flex;
+  gap: 6px;
+}
+.schema-field {
+  color: var(--err);
+  font-family: var(--mono);
+}
+.schema-msg {
+  color: var(--text-dim);
+}
+
+/* --- OpenAPI spec editor panel --- */
+.spec-empty {
+  padding: 24px 12px;
+}
+/* Definite height + min-height:0 everywhere so CodeMirror owns its own scroll
+   instead of growing the modal past its 80vh cap (which clips with no scroll). */
+.spec-layout {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 8px;
+  height: 60vh;
+}
+.spec-files {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--border);
+  padding-right: 6px;
+  overflow-y: auto;
+  min-height: 0;
+}
+.spec-filerow {
+  padding: 0 0 6px;
+}
+.spec-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.spec-file:hover {
+  background: var(--hover);
+}
+.spec-file.active {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+.spec-op-path {
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spec-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.spec-form {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 8px 8px;
+}
+.spec-op-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spec-op-pathbig {
+  font-family: var(--mono);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+.spec-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+}
+.spec-textarea {
+  min-height: 60px;
+  resize: vertical;
+  font-family: var(--sans);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+.spec-form-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  border-bottom: 1px solid var(--border-soft);
+  padding-bottom: 4px;
+}
+.spec-form-sub {
+  color: var(--text-faint);
+  font-size: var(--fs-xs);
+}
+.spec-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.spec-field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.spec-field-name {
+  flex: 0 0 140px;
+}
+.spec-field-desc {
+  flex: 1;
+  min-width: 0;
+}
+.spec-req {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-xs);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.spec-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 0;
+  flex-shrink: 0;
+}
+.spec-foot .send-btn {
+  margin-left: auto;
+}
+.spec-err-count {
+  color: var(--err);
+  font-size: var(--fs-xs);
+}
+.spec-saved {
+  color: var(--ok);
+  font-size: var(--fs-xs);
+}

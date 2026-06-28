@@ -11,6 +11,7 @@ import FpsMeter from "./components/FpsMeter";
 import CommandPalette from "./components/CommandPalette";
 import ThemeSettings from "./components/ThemeSettings";
 import MockServerPanel from "./components/MockServerPanel";
+import SpecEditorPanel from "./components/SpecEditorPanel";
 import RunResults from "./components/RunResults";
 import StatusBar from "./components/StatusBar";
 import Dialog from "./components/Dialog";
@@ -35,6 +36,8 @@ import {
   setActiveEnv,
   showMockPanel,
   setShowMockPanel,
+  showSpecPanel,
+  setShowSpecPanel,
   respCollapsed,
   toggleResp,
   runPanelTarget,
@@ -263,6 +266,9 @@ export default function App() {
       <Dialog />
       <Show when={showMockPanel()}>
         <MockServerPanel onClose={() => setShowMockPanel(false)} />
+      </Show>
+      <Show when={showSpecPanel()}>
+        <SpecEditorPanel onClose={() => setShowSpecPanel(false)} />
       </Show>
       <Show when={showRunPanel() && runPanelTarget()}>
         <RunResults

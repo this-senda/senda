@@ -19,6 +19,7 @@ const (
 	envDir   = "environments"
 	mockDir  = "mocks"
 	flowDir  = "flows"
+	specDir  = "openapi"
 )
 
 // reserved paths that are not requests when walking the tree.

@@ -151,11 +151,34 @@ func (a *App) ImportCollection(collPath, format, data, destSubdir string) (int, 
 	if destSubdir != "" {
 		base = filepath.Join(collPath, destSubdir)
 	}
+
+	// Persist the OpenAPI spec itself into .senda/openapi so it can be edited
+	// in-app and so each imported request's Spec.File points at a real file.
+	specFile := ""
+	if format == "openapi" {
+		name := importer.SpecTitle([]byte(data))
+		if name == "" {
+			name = "api"
+		}
+		specsDir := store.SpecsDir(collPath)
+		if err := os.MkdirAll(specsDir, 0o755); err != nil {
+			return 0, err
+		}
+		dest := uniquePath(specsDir, name)
+		if err := os.WriteFile(dest, []byte(data), 0o644); err != nil {
+			return 0, err
+		}
+		specFile = filepath.Base(dest)
+	}
+
 	count := 0
 	for _, im := range items {
 		dir := base
 		for _, seg := range im.Dir {
 			dir = filepath.Join(dir, seg)
+		}
+		if specFile != "" && im.Request.Spec != nil {
+			im.Request.Spec.File = specFile
 		}
 		path := uniquePath(dir, im.Request.Name)
 		if err := store.SaveRequest(path, im.Request); err != nil {
