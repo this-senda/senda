@@ -221,7 +221,13 @@ type Collection struct {
 	Auth        Auth      `yaml:"auth,omitempty" json:"auth"`
 	Proxy       string    `yaml:"proxy,omitempty" json:"proxy"`
 	TLS         TLSConfig `yaml:"tls,omitempty" json:"tls"`
-	Tree        *TreeNode `yaml:"-" json:"tree"`
+	// SecretsEncrypted, when set, means this collection's *.secret.yaml files are
+	// AES-256-GCM envelopes (internal/secretcrypt) rather than plaintext vars.
+	// SecretsKeyID is the opaque keychain account naming the decryption key — it
+	// is not the key itself, so it is safe to commit in senda.meta.yaml.
+	SecretsEncrypted bool      `yaml:"secretsEncrypted,omitempty" json:"secretsEncrypted"`
+	SecretsKeyID     string    `yaml:"secretsKeyID,omitempty" json:"secretsKeyID"`
+	Tree             *TreeNode `yaml:"-" json:"tree"`
 }
 
 // TLSConfig configures the transport for a collection's sends: a client

@@ -155,6 +155,11 @@ export function installCaptureMock() {
       tree,
     }),
     SaveCollection: async () => {},
+    EncryptionStatus: async () => ({ enabled: false, keyAvailable: false, source: "" }),
+    EnableEncryption: async () => {},
+    DisableEncryption: async () => {},
+    ExportKey: async () => "",
+    ImportKey: async () => {},
     ReadFolderMeta: async (path) => ({
       name: String(path).split("/").pop() ?? "",
       path,

@@ -81,6 +81,8 @@ export default function FolderSettings(props: {
         auth: auth(),
         proxy: "", // root-only; folders never carry proxy/tls
         tls: { certFile: "", keyFile: "", caFile: "", insecure: false },
+        secretsEncrypted: false, // root-only; folders never carry encryption flags
+        secretsKeyID: "",
         tree: null as any,
       };
       await api.saveCollection(meta);
