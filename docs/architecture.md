@@ -143,7 +143,7 @@ The one thing that kills naive API clients. Designed for upfront:
 - Precedence: **request-local → environment → collection vars**.
 - Resolution happens in **Go** (`vars` pkg) at send time, not in UI.
 - `{{var}}` syntax. Unresolved var → surfaced as warning, not silent blank.
-- Secrets: values in `environments/*.secret.yaml`, gitignored by default; merged at runtime, never written to the committed env file.
+- Secrets: values in `environments/*.secret.yaml` (and collection-level `senda.secret.yaml`), gitignored by default; merged at runtime, never written to the committed env file. Optionally encrypted at rest (`internal/secretcrypt`, AES-256-GCM) into a YAML envelope; the 32-byte key is resolved per-collection from `SENDA_SECRET_KEY`, the OS keychain, or `~/.config/senda/keys/<keyID>.key` — never stored beside the ciphertext. The `secretsEncrypted`/`secretsKeyID` meta flags drive it; reads transparently decrypt, so the headless CLI works with the key supplied via env.
 
 ## 7. Frontend (SolidJS)
 

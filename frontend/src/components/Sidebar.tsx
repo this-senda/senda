@@ -216,7 +216,7 @@ export default function Sidebar() {
               <FileText size={ICON.sm} /> Export docs
             </button>
             <div class="ctx-sep" />
-            <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSecrets(true); }}>
+            <button class="ctx-item secrets-open" onClick={() => { closeCollCtx?.(); setShowSecrets(true); }}>
               <KeyRound size={ICON.sm} /> Manage secrets
             </button>
             <button class="ctx-item" onClick={() => { closeCollCtx?.(); setShowSettings(true); }}>

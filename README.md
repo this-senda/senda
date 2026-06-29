@@ -146,7 +146,7 @@ Built with **Wails (Go)** for the native shell and **SolidJS** for the UI, it sh
 - Named environments (dev, prod, staging…) stored as YAML alongside requests
 - `{{var}}` interpolation in URL, headers, and body
 - Precedence: runtime (script) → environment → collection base → request
-- **Secrets**: `*.secret.yaml` files are gitignored and merged at send-time only — never committed; edit them in-app (collection or per-environment) via the Manage secrets dialog, values masked with per-row reveal
+- **Secrets**: `*.secret.yaml` files are gitignored and merged at send-time only — never committed; edit them in-app (collection or per-environment) via the Manage secrets dialog, values masked with per-row reveal. Optional **at-rest encryption** (AES-256-GCM, key in the OS keychain) guards them against disk/backup theft; export the key as `SENDA_SECRET_KEY` to decrypt headless on a server/CI
 
 ### Testing & assertions
 

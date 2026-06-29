@@ -113,6 +113,13 @@ export const api = {
   saveEnvironmentSecrets: (collPath: string, envName: string, vars: KV[]) =>
     App.SaveEnvironmentSecrets(collPath, envName, vars),
 
+  // secret encryption (at-rest)
+  encryptionStatus: (collPath: string) => App.EncryptionStatus(collPath),
+  enableEncryption: (collPath: string) => App.EnableEncryption(collPath),
+  disableEncryption: (collPath: string) => App.DisableEncryption(collPath),
+  exportKey: (collPath: string) => App.ExportKey(collPath),
+  importKey: (collPath: string, b64: string) => App.ImportKey(collPath, b64),
+
   // export
   exportFile: (filename: string, content: string) => App.ExportFile(filename, content),
   exportDocsHtml: (collPath: string, subPath = "") => App.ExportDocsHTML(collPath, subPath),

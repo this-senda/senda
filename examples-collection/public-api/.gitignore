@@ -1,0 +1,4 @@
+# senda: keep secrets and local history out of git
+*.secret.yaml
+*.secret.yml
+.senda/history.jsonl

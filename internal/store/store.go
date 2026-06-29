@@ -4,6 +4,7 @@ package store
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -12,6 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"senda/internal/model"
+	"senda/internal/secretcrypt"
 )
 
 const (
@@ -48,6 +50,8 @@ func ReadMeta(dir string) model.Collection {
 			c.Auth = meta.Auth
 			c.Proxy = meta.Proxy
 			c.TLS = meta.TLS
+			c.SecretsEncrypted = meta.SecretsEncrypted
+			c.SecretsKeyID = meta.SecretsKeyID
 		}
 	}
 	return c
@@ -92,6 +96,9 @@ func SaveCollection(c model.Collection) error {
 		Auth:        c.Auth,
 		Proxy:       c.Proxy,
 		TLS:         c.TLS,
+
+		SecretsEncrypted: c.SecretsEncrypted,
+		SecretsKeyID:     c.SecretsKeyID,
 	}
 	data, err := yaml.Marshal(meta)
 	if err != nil {
@@ -300,32 +307,53 @@ func isSecretFile(name string) bool {
 }
 
 // secretVars reads a vars-only YAML file, returning nil if it doesn't exist
-// or doesn't parse. Secrets are best-effort overlays, never hard errors.
-func secretVars(path string) []model.KV {
+// or doesn't parse. Secrets are best-effort overlays, never hard errors — but a
+// locked/corrupt encrypted file is logged so missing secrets aren't silent.
+// keyID resolves the decryption key for AES-GCM envelopes; "" for plaintext.
+func secretVars(path, keyID string) []model.KV {
+	v, err := secretVarsErr(path, keyID)
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("senda: secret %s: %v", path, err)
+	}
+	return v
+}
+
+// secretVarsErr is secretVars surfacing the error, for the App's key-status path.
+func secretVarsErr(path, keyID string) ([]model.KV, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil
+		return nil, err
+	}
+	if secretcrypt.IsEnvelope(data) {
+		key, _, kerr := secretcrypt.ResolveKey(keyID)
+		if kerr != nil {
+			return nil, kerr
+		}
+		if data, err = secretcrypt.Open(key, data); err != nil {
+			return nil, err
+		}
 	}
 	var f struct {
 		Vars []model.KV `yaml:"vars"`
 	}
 	if err := yaml.Unmarshal(data, &f); err != nil {
-		return nil
+		return nil, err
 	}
-	return f.Vars
+	return f.Vars, nil
 }
 
 // CollectionSecrets returns vars from .senda/senda.secret.yaml (gitignored
 // sibling of senda.meta.yaml), falling back to a legacy root-level copy.
 // Empty when absent.
 func CollectionSecrets(root string) []model.KV {
+	keyID := ReadMeta(root).SecretsKeyID
 	for _, p := range []string{
 		filepath.Join(ConfigDir(root), secretFile),
 		filepath.Join(ConfigDir(root), secretFileYml),
 		filepath.Join(root, secretFile),
 		filepath.Join(root, secretFileYml),
 	} {
-		if v := secretVars(p); v != nil {
+		if v := secretVars(p, keyID); v != nil {
 			return v
 		}
 	}
@@ -338,18 +366,28 @@ func EnvironmentSecrets(root, name string) []model.KV {
 	if name == "" {
 		return nil
 	}
+	keyID := ReadMeta(root).SecretsKeyID
 	dir := environmentsReadDir(root)
-	if v := secretVars(filepath.Join(dir, name+".secret.yaml")); v != nil {
+	if v := secretVars(filepath.Join(dir, name+".secret.yaml"), keyID); v != nil {
 		return v
 	}
-	return secretVars(filepath.Join(dir, name+".secret.yml"))
+	return secretVars(filepath.Join(dir, name+".secret.yml"), keyID)
 }
 
 // writeSecretVars writes a vars-only secret overlay to path (0o600, tighter
 // than plain env files). An empty/nil vars slice removes the file instead, so
 // clearing every secret leaves no stray overlay behind. Callers must ensure the
 // file is gitignored (see gitguard) — secrets must never reach git.
-func writeSecretVars(path string, vars []model.KV) error {
+func writeSecretVars(path, keyID string, encrypt bool, vars []model.KV) error {
+	// One canonical file per overlay. Drop a stale .yml sibling so we never leave
+	// a plaintext .secret.yml orphan next to the .secret.yaml we write (e.g. when
+	// enabling encryption on a collection whose secrets were stored as .yml).
+	if strings.HasSuffix(path, ".secret.yaml") {
+		sib := strings.TrimSuffix(path, ".secret.yaml") + ".secret.yml"
+		if err := os.Remove(sib); err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	}
 	if len(vars) == 0 {
 		if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
 			return err
@@ -365,13 +403,24 @@ func writeSecretVars(path string, vars []model.KV) error {
 	if err != nil {
 		return err
 	}
+	if encrypt {
+		key, _, kerr := secretcrypt.ResolveKey(keyID)
+		if kerr != nil {
+			return kerr
+		}
+		if data, err = secretcrypt.Seal(key, data); err != nil {
+			return err
+		}
+	}
 	return os.WriteFile(path, data, 0o600)
 }
 
 // SaveCollectionSecrets writes the collection-level secret overlay
-// (.senda/senda.secret.yaml). Mirrors CollectionSecrets' read format.
+// (.senda/senda.secret.yaml). Mirrors CollectionSecrets' read format, encrypting
+// when the collection has secret encryption enabled.
 func SaveCollectionSecrets(root string, vars []model.KV) error {
-	return writeSecretVars(filepath.Join(ConfigDir(root), secretFile), vars)
+	m := ReadMeta(root)
+	return writeSecretVars(filepath.Join(ConfigDir(root), secretFile), m.SecretsKeyID, m.SecretsEncrypted, vars)
 }
 
 // SaveEnvironmentSecrets writes a per-environment secret overlay
@@ -380,5 +429,25 @@ func SaveEnvironmentSecrets(root, name string, vars []model.KV) error {
 	if name == "" {
 		return fmt.Errorf("environment name required")
 	}
-	return writeSecretVars(filepath.Join(EnvironmentsDir(root), name+".secret.yaml"), vars)
+	m := ReadMeta(root)
+	return writeSecretVars(filepath.Join(EnvironmentsDir(root), name+".secret.yaml"), m.SecretsKeyID, m.SecretsEncrypted, vars)
+}
+
+// SecretEnvNames lists environment names that have a secret overlay file. Used
+// when toggling encryption so every per-env secret file is re-written.
+func SecretEnvNames(root string) []string {
+	dir := environmentsReadDir(root)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, e := range entries {
+		n := e.Name()
+		if e.IsDir() || !isSecretFile(n) {
+			continue
+		}
+		names = append(names, strings.TrimSuffix(strings.TrimSuffix(n, ".secret.yaml"), ".secret.yml"))
+	}
+	return names
 }

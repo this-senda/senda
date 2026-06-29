@@ -3454,6 +3454,58 @@ body.dragging-node * {
   color: var(--text-dim);
   margin-bottom: 10px;
 }
+.secrets-enc {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-elev1);
+  font-size: var(--fs-sm);
+}
+.secrets-enc-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  color: var(--text);
+}
+.secrets-enc-status {
+  color: var(--text-dim);
+}
+.secrets-enc-locked {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--danger, #e05252);
+}
+.secrets-enc .secret-val {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 5px 8px;
+}
+.secrets-enc-export {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-elev1);
+}
+.secrets-enc-export code {
+  user-select: all;
+  word-break: break-all;
+  color: var(--text);
+}
+.secrets-enc-export .secrets-hint {
+  margin-bottom: 0;
+}
 .secret-row {
   display: flex;
   align-items: center;
